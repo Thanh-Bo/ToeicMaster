@@ -5,7 +5,7 @@ using ToeicMaster.API.Entities;
 public class AiExplanationService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiKey = "AIzaSyB5OkDvRzbQVQ_yho7-qLfuP6_IgTUZ04M"; 
+    private readonly string _apiKey = "AIzaSyD9gpvNMz3WbqPVVmMsNvusc6np6bBc92w"; 
     public AiExplanationService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -36,10 +36,18 @@ public class AiExplanationService
 
         var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         
-        // Gọi API Gemini 1.5 Flash (Bản nhanh và miễn phí)
-        var response = await _httpClient.PostAsync($"[https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=){_apiKey}", jsonContent);
+       
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={_apiKey}";
 
-        if (!response.IsSuccessStatusCode) return ("Lỗi API", "Lỗi API");
+        var response = await _httpClient.PostAsync(url, jsonContent);
+
+        if (!response.IsSuccessStatusCode) 
+        {
+            // Đọc chi tiết lỗi Google trả về
+            var errorContent = await response.Content.ReadAsStringAsync();
+            // Trả về nội dung lỗi để hiển thị lên màn hình
+            return ($"Lỗi: {response.StatusCode}", $"Chi tiết: {errorContent}");
+        }
 
         var responseString = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(responseString);

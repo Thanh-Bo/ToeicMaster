@@ -13,7 +13,7 @@ namespace ToeicMaster.API.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _context;
-
+       
         public AdminController(AppDbContext context)
         {
             _context = context;
@@ -131,45 +131,6 @@ namespace ToeicMaster.API.Controllers
         }
 
 
-        [HttpPost("generate-explanations/{testId}")]
-        // Nhớ đổi tên service thành GeminiExplanationService (hoặc tên class service bạn đang dùng)
-        public async Task<IActionResult> GenerateExplanations(int testId, [FromServices] AiExplanationService aiService)
-        {
-            // 1. Lấy câu hỏi chưa có giải thích chi tiết (Check cột FullExplanation)
-            var questions = await _context.Questions
-                .Include(q => q.Answers)
-                .Include(q => q.Group)
-                // SỬA: Đổi q.Explanation thành q.FullExplanation
-                .Where(q => q.Group.Part.TestId == testId && string.IsNullOrEmpty(q.FullExplanation)) 
-                .ToListAsync();
-
-            int count = 0;
-
-            foreach (var q in questions)
-            {
-                if (q.Group.TextContent == "Incomplete Sentences") 
-                {
-                    try 
-                    {
-                        // 2. Gọi AI (Hàm này trả về 2 biến: shortExpl và fullExpl)
-                        var result = await aiService.GenerateExplanationAsync(q, q.Answers.ToList());
-                        
-                        // 3. Gán vào 2 cột mới trong DB
-                        q.ShortExplanation = result.Short;
-                        q.FullExplanation = result.Full;
-                        
-                        await _context.SaveChangesAsync(); 
-                        count++;
-                        await Task.Delay(500); // Nghỉ 0.5s
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Lỗi câu {q.QuestionNo}: {ex.Message}");
-                    }
-                }
-            }
-
-            return Ok(new { message = $"Đã tạo xong giải thích cho {count} câu hỏi!" });
-        }
+        
     }
 }

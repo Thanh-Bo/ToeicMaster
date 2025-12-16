@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ToeicMaster.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14b9f6d24d617c1c4b9cbff9390c6e2743d5d970")]
 [assembly: System.Reflection.AssemblyProductAttribute("ToeicMaster.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ToeicMaster.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

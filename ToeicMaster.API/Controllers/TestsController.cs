@@ -18,12 +18,14 @@ namespace ToeicMaster.API.Controllers
         private readonly DapperContext _dapperContext;
         private readonly AppDbContext _efContext;
         private readonly IMemoryCache _cache;
+        private readonly AiExplanationService _aiService;
 
-        public TestsController(DapperContext dapperContext, AppDbContext efContext, IMemoryCache cache)
+        public TestsController(DapperContext dapperContext, AppDbContext efContext, IMemoryCache cache , AiExplanationService aiService)
         {
             _dapperContext = dapperContext;
             _efContext = efContext;
             _cache = cache;
+            _aiService = aiService;
         }
 
         // 1. GET LIST
@@ -159,11 +161,45 @@ namespace ToeicMaster.API.Controllers
                 Questions = userAnswers.Select(ua => new ResultQuestionDto
                 {
                     QuestionId = ua.QuestionId, QuestionNo = ua.Question.QuestionNo ?? 0, Content = ua.Question.Content,
-                    UserSelected = ua.SelectedOption ?? "", CorrectOption = ua.Question.CorrectOption, IsCorrect = ua.IsCorrect ?? false, Explanation = null,
+                    UserSelected = ua.SelectedOption ?? "", CorrectOption = ua.Question.CorrectOption, IsCorrect = ua.IsCorrect ?? false, 
+
+                    ShortExplanation = ua.Question.ShortExplanation, 
+                    FullExplanation = ua.Question.FullExplanation,
                     Answers = ua.Question.Answers.Select(a => new ResultAnswerDto { Label = a.Label, Content = a.Content }).ToList()
                 }).OrderBy(q => q.QuestionNo).ToList()
             };
             return Ok(result);
+        }
+
+        [HttpPost("{testId}/generate-explanations")]
+        public async Task<IActionResult> GenerateExplanations(int testId)
+        {
+            // 1. Lấy các câu hỏi thuộc đề thi này mà CHƯA có giải thích
+            var questions = await _efContext.Questions
+                .Include(q => q.Group).ThenInclude(g => g.Part)
+                .Include(q => q.Answers)
+                .Where(q => q.Group.Part.TestId == testId && (q.ShortExplanation == null || q.FullExplanation == null))
+                .ToListAsync();
+
+            if (!questions.Any()) return Ok("Tuyệt vời! Tất cả câu hỏi trong đề này đã có giải thích rồi.");
+
+            int count = 0;
+            foreach (var q in questions)
+            {
+                // 2. Gọi AI (Code cũ của bạn)
+                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(q, q.Answers.ToList());
+
+                // 3. Lưu vào Database
+                q.ShortExplanation = shortExp;
+                q.FullExplanation = fullExp;
+                count++;
+                
+                // Lưu ý: AI Free có giới hạn tốc độ, nên delay nhẹ 1 chút để không bị lỗi 429
+                await Task.Delay(2000); // Nghỉ 2 giây giữa mỗi câu
+            }
+
+            await _efContext.SaveChangesAsync();
+            return Ok(new { Message = $"Đã cập nhật giải thích thành công cho {count} câu hỏi!", TotalUpdated = count });
         }
     }
 }

@@ -18,7 +18,8 @@ namespace ToeicMaster.API.Models.Exam
         public string UserSelected { get; set; } = string.Empty; // Đáp án user chọn (VD: "A")
         public string CorrectOption { get; set; } = string.Empty; // Đáp án đúng (VD: "B")
         public bool IsCorrect { get; set; }
-        public string? Explanation { get; set; } // Giải thích
+        public string? ShortExplanation { get; set; } 
+        public string? FullExplanation { get; set; }
         public List<ResultAnswerDto> Answers { get; set; } = new();
     }
 
