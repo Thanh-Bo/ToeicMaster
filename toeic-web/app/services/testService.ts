@@ -18,5 +18,13 @@ export const testService = {
   ,
   getResult: (attemptId: number) => {
     return axiosClient.get(`/tests/results/${attemptId}`);
+  },
+
+  // 4. Lấy giải thích câu hỏi
+  getQuestionExplanation: async (questionId: number) => {
+   
+    const response = await axiosClient.post(`/Tests/explain-question/${questionId}`);
+    return response.data; 
+    
   }
 };

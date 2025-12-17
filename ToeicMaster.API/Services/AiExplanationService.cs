@@ -5,12 +5,18 @@ using ToeicMaster.API.Entities;
 public class AiExplanationService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiKey = "AIzaSyD9gpvNMz3WbqPVVmMsNvusc6np6bBc92w"; 
-    public AiExplanationService(HttpClient httpClient)
+    private readonly string _apiKey ; 
+    public AiExplanationService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
+        // Lấy key an toàn từ file cấu hình
+        _apiKey = configuration["Gemini:ApiKey"]; 
+        
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            throw new Exception("Chưa cấu hình API Key trong appsettings.json!");
+        }
     }
-
     public async Task<(string? Short, string? Full)> GenerateExplanationAsync(Question question, List<Answer> answers)
     {
         var answerText = string.Join(", ", answers.Select(a => $"{a.Label}. {a.Content}"));

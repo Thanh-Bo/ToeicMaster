@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // GỌI API QUA SERVICE (Ngắn gọn, sạch sẽ)
+      
       const res = await authService.login({ email, password });
       
       // Axios trả về data nằm trong res.data

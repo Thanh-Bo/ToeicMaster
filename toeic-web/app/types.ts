@@ -30,3 +30,22 @@ export interface TestDetail {
   title: string;
   parts: Part[];
 }
+
+export interface ResultDetail {
+  attemptId: number;
+  testTitle: string;
+  totalScore: number;
+  totalQuestions: number;
+  completedAt: string;
+  questions: {
+    questionId: number;
+    questionNo: number;
+    content: string;
+    userSelected: string;
+    correctOption: string;
+    isCorrect: boolean;
+    shortExplanation: string | null; // Mới
+    fullExplanation: string | null;  // Mới
+    answers: { label: string; content: string }[];
+  }[];
+}

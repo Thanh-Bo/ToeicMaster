@@ -3,7 +3,7 @@ namespace ToeicMaster.API.Models.Exam
     public class TestResultDetailDto
     {
         public int AttemptId { get; set; }
-        public string TestTitle { get; set; } = string.Empty;
+        public string TestTitle { get; set; } 
         public int TotalScore { get; set; }
         public int TotalQuestions { get; set; }
         public DateTime CompletedAt { get; set; }

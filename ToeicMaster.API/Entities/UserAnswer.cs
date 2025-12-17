@@ -11,9 +11,9 @@ public partial class UserAnswer
 
     public int QuestionId { get; set; }
 
-    public string? SelectedOption { get; set; }
+    public string SelectedOption { get; set; }
 
-    public bool? IsCorrect { get; set; }
+    public bool IsCorrect { get; set; }
 
     public string? TextResponse { get; set; }
 

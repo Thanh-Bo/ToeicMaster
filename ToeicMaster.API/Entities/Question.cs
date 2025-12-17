@@ -9,7 +9,7 @@ public partial class Question
 
     public int GroupId { get; set; }
 
-    public int? QuestionNo { get; set; }
+    public int QuestionNo { get; set; }
 
     public string? Content { get; set; }
 

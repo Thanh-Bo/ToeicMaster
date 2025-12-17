@@ -59,6 +59,7 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            // Check if email exist in database
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             // Verify Password
@@ -162,7 +163,7 @@ namespace ToeicMaster.API.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(15), // Access Token sống 15 phút
+                Expires = DateTime.UtcNow.AddDays(7), // Access Token sống 7 ngay
                 Issuer = jwtSettings["Issuer"],
                 Audience = jwtSettings["Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

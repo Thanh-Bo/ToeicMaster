@@ -157,11 +157,11 @@ namespace ToeicMaster.API.Controllers
             var result = new TestResultDetailDto
             {
                 AttemptId = attempt.Id, TestTitle = attempt.Test.Title,
-                TotalScore = attempt.TotalScore ?? 0, TotalQuestions = userAnswers.Count, CompletedAt = attempt.CompletedAt ?? DateTime.Now,
+                TotalScore = attempt.TotalScore , TotalQuestions = userAnswers.Count, CompletedAt = attempt.CompletedAt ,
                 Questions = userAnswers.Select(ua => new ResultQuestionDto
                 {
-                    QuestionId = ua.QuestionId, QuestionNo = ua.Question.QuestionNo ?? 0, Content = ua.Question.Content,
-                    UserSelected = ua.SelectedOption ?? "", CorrectOption = ua.Question.CorrectOption, IsCorrect = ua.IsCorrect ?? false, 
+                    QuestionId = ua.QuestionId, QuestionNo = ua.Question.QuestionNo , Content = ua.Question.Content,
+                    UserSelected = ua.SelectedOption , CorrectOption = ua.Question.CorrectOption, IsCorrect = ua.IsCorrect , 
 
                     ShortExplanation = ua.Question.ShortExplanation, 
                     FullExplanation = ua.Question.FullExplanation,
@@ -186,20 +186,64 @@ namespace ToeicMaster.API.Controllers
             int count = 0;
             foreach (var q in questions)
             {
-                // 2. Gọi AI (Code cũ của bạn)
+                // 2. Gọi AI
                 var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(q, q.Answers.ToList());
 
                 // 3. Lưu vào Database
                 q.ShortExplanation = shortExp;
                 q.FullExplanation = fullExp;
                 count++;
-                
-                // Lưu ý: AI Free có giới hạn tốc độ, nên delay nhẹ 1 chút để không bị lỗi 429
+                await _efContext.SaveChangesAsync();
+
                 await Task.Delay(2000); // Nghỉ 2 giây giữa mỗi câu
             }
 
-            await _efContext.SaveChangesAsync();
+            
             return Ok(new { Message = $"Đã cập nhật giải thích thành công cho {count} câu hỏi!", TotalUpdated = count });
+        }
+
+        // Tra loi tung cau hoi
+        [HttpPost("explain-question/{questionId}")]
+        public async Task<IActionResult> ExplainOneQuestion(int questionId)
+        {
+            // 1. Lấy câu hỏi và đáp án từ DB
+            var question = await _efContext.Questions
+                .Include(q => q.Answers)
+                .Include(q => q.Group) // Lấy Group để phòng trường hợp cần Transcript
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+
+            if (question == null) return NotFound("Không tìm thấy câu hỏi");
+
+            // 2. Kiểm tra xem đã có giải thích chưa? (Nếu có rồi thì trả về luôn, đỡ tốn tiền AI)
+            if (!string.IsNullOrEmpty(question.FullExplanation))
+            {
+                return Ok(new 
+                { 
+                    shortExplanation = question.ShortExplanation, 
+                    fullExplanation = question.FullExplanation 
+                });
+            }
+
+            // 3. Nếu chưa có, gọi AI tạo mới
+            try 
+            {
+                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(question, question.Answers.ToList());
+
+                // 4. Lưu vào Database (Để người sau vào xem không phải chờ nữa)
+                question.ShortExplanation = shortExp;
+                question.FullExplanation = fullExp;
+                await _efContext.SaveChangesAsync();
+
+                return Ok(new 
+                { 
+                    shortExplanation = shortExp, 
+                    fullExplanation = fullExp 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi khi gọi AI: " + ex.Message);
+            }
         }
     }
 }
