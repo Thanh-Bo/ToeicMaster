@@ -21,6 +21,10 @@ namespace ToeicMaster.API.Models.Exam
         public string? ShortExplanation { get; set; } 
         public string? FullExplanation { get; set; }
         public List<ResultAnswerDto> Answers { get; set; } = new();
+
+
+        public int? GroupId { get; set; }           
+        public string? GroupContent { get; set; }
     }
 
     public class ResultAnswerDto

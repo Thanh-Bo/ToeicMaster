@@ -12,16 +12,17 @@ namespace ToeicMaster.API.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        
+        private readonly AppDbContext _efContext;
        
-        public AdminController(AppDbContext context)
+        public AdminController(AppDbContext efContext)
         {
-            _context = context;
+            _efContext = efContext;
         }
 
        
 
-        [HttpPost("import-reading-excel")]
+        [HttpPost("import-part5")]
         public async Task<IActionResult> ImportReadingExcel(IFormFile file, [FromQuery] int testId)
         {
             // 1. Kiểm tra file
@@ -32,7 +33,7 @@ namespace ToeicMaster.API.Controllers
             try 
             {
                 // 2. Tìm đề thi (Test) trong DB để gắn câu hỏi vào
-                var test = await _context.Tests
+                var test = await _efContext.Tests
                     .Include(t => t.Parts)
                     .ThenInclude(p => p.QuestionGroups)
                     .FirstOrDefaultAsync(t => t.Id == testId);
@@ -77,7 +78,7 @@ namespace ToeicMaster.API.Controllers
                             {
                                 part = new Part { Name = $"Part {partNum}", PartNumber = partNum, TestId = test.Id };
                                 test.Parts.Add(part);
-                                await _context.SaveChangesAsync(); // Lưu để có ID Part
+                                await _efContext.SaveChangesAsync(); // Lưu để có ID Part
                             }
 
                             // b. Tạo Group (Part 5 mỗi câu 1 group, hoặc gom chung 1 group cũng được)
@@ -86,8 +87,8 @@ namespace ToeicMaster.API.Controllers
                             if (group == null)
                             {
                                 group = new QuestionGroup { PartId = part.Id, TextContent = "Incomplete Sentences" };
-                                _context.QuestionGroups.Add(group);
-                                await _context.SaveChangesAsync();
+                                _efContext.QuestionGroups.Add(group);
+                                await _efContext.SaveChangesAsync();
                             }
 
                             // c. Tạo Câu hỏi (Question)
@@ -113,12 +114,12 @@ namespace ToeicMaster.API.Controllers
                             question.Answers.Add(new Answer { Label = "C", Content = optC });
                             question.Answers.Add(new Answer { Label = "D", Content = optD });
 
-                            _context.Questions.Add(question);
+                            _efContext.Questions.Add(question);
                             countSuccess++;
                         }
                         
                         // Lưu tất cả thay đổi
-                        await _context.SaveChangesAsync();
+                        await _efContext.SaveChangesAsync();
                     }
                 }
 
@@ -128,6 +129,94 @@ namespace ToeicMaster.API.Controllers
             {
                 return StatusCode(500, new { error = ex.Message });
             }
+        }
+
+        [HttpPost("import-part6")]
+        public async Task<IActionResult> ImportPart6(IFormFile file, [FromQuery] int testId)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File không hợp lệ");
+
+            // 1. Tìm hoặc tạo Part 6 (Text Completion)
+            var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 6);
+            if (part == null)
+            {
+                part = new Part { TestId = testId, Name = "Part 6: Text Completion", PartNumber = 6 };
+                _efContext.Parts.Add(part);
+                await _efContext.SaveChangesAsync();
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension.Rows;
+
+                    // Biến để theo dõi Group hiện tại
+                    string lastPassageContent = ""; 
+                    int currentGroupId = 0;
+
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        // Lấy nội dung đoạn văn ở Cột A
+                        var passageContent = worksheet.Cells[row, 1].Text?.Trim();
+                        if (string.IsNullOrEmpty(passageContent)) continue; // Bỏ qua dòng trống
+
+                        // --- LOGIC GOM NHÓM ---
+                        // Nếu đoạn văn này KHÁC đoạn văn của dòng trước -> Tạo Group mới
+                        if (passageContent != lastPassageContent)
+                        {
+                            var newGroup = new QuestionGroup
+                            {
+                                PartId = part.Id,
+                                TextContent = passageContent, // Lưu đoạn văn vào Group
+                                ImageUrl = null,
+                                AudioUrl = null
+                            };
+                            _efContext.QuestionGroups.Add(newGroup);
+                            await _efContext.SaveChangesAsync(); // Lưu để lấy ID
+                            
+                            currentGroupId = newGroup.Id;
+                            lastPassageContent = passageContent; // Cập nhật biến tạm
+                        }
+                        // ----------------------
+
+                        // Tạo câu hỏi (Gán vào currentGroupId)
+                        var questionNo = int.Parse(worksheet.Cells[row, 2].Text);
+                        var questionContent = worksheet.Cells[row, 3].Text; // Thường Part 6 nội dung câu hỏi nằm trong bài đọc, cột này có thể để trống
+                        var correctOpt = worksheet.Cells[row, 8].Text?.Trim().ToUpper();
+                        var explanation = worksheet.Cells[row, 9].Text;
+
+                        var question = new Question
+                        {
+                            GroupId = currentGroupId, // <--- GẮN VÀO GROUP VỪA TẠO
+                            QuestionNo = questionNo,
+                            Content = string.IsNullOrEmpty(questionContent) ? $"Question {questionNo}" : questionContent,
+                            CorrectOption = correctOpt,
+                            ShortExplanation = null,
+                            FullExplanation = explanation
+                        };
+                        _efContext.Questions.Add(question);
+                        await _efContext.SaveChangesAsync();
+
+                        // Lưu 4 đáp án
+                        var answers = new List<Answer>
+                        {
+                            new Answer { QuestionId = question.Id, Label = "A", Content = worksheet.Cells[row, 4].Text },
+                            new Answer { QuestionId = question.Id, Label = "B", Content = worksheet.Cells[row, 5].Text },
+                            new Answer { QuestionId = question.Id, Label = "C", Content = worksheet.Cells[row, 6].Text },
+                            new Answer { QuestionId = question.Id, Label = "D", Content = worksheet.Cells[row, 7].Text }
+                        };
+                        _efContext.Answers.AddRange(answers);
+                    }
+                    await _efContext.SaveChangesAsync();
+                }
+            }
+
+            return Ok("Import Part 6 thành công!");
         }
 
 

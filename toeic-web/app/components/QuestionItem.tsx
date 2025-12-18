@@ -82,7 +82,7 @@ export const QuestionItem = ({ q, onExplain, isExplaining }: QuestionItemProps) 
         {/* Gợi ý nhanh (Nếu có sẵn) */}
         {q.shortExplanation && (
           <div className="mb-3 text-sm text-green-800 bg-green-50 p-3 rounded-lg border border-green-200 flex items-start gap-2">
-            <span className="text-lg">💡</span>
+            <span className="text-lg"></span>
             <div>
               <strong>Gợi ý nhanh: </strong> {q.shortExplanation}
             </div>
@@ -106,7 +106,7 @@ export const QuestionItem = ({ q, onExplain, isExplaining }: QuestionItemProps) 
               </>
             ) : (
               <>
-                👉 Xem giải thích chi tiết bởi AI
+                 Xem giải thích chi tiết bởi AI
               </>
             )}
           </button>
@@ -117,7 +117,7 @@ export const QuestionItem = ({ q, onExplain, isExplaining }: QuestionItemProps) 
           <div className="mt-3 p-5 bg-slate-800 rounded-lg border border-slate-700 shadow-inner text-slate-200 text-sm leading-relaxed animate-fade-in">
             <div className="flex justify-between items-center mb-3 border-b border-slate-600 pb-2">
               <h4 className="text-yellow-400 font-bold flex items-center gap-2">
-                🤖 Phân tích chi tiết
+                 Phân tích chi tiết
               </h4>
               <button onClick={() => setShowFull(false)} className="text-gray-400 hover:text-white text-xs">
                 ✕ Thu gọn

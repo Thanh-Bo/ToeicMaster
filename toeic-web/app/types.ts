@@ -46,6 +46,9 @@ export interface ResultDetail {
     isCorrect: boolean;
     shortExplanation: string | null; // Mới
     fullExplanation: string | null;  // Mới
+
+    groupId: number | null;      // Để check gom nhóm
+    groupContent: string | null
     answers: { label: string; content: string }[];
   }[];
 }

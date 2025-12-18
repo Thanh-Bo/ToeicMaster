@@ -68,7 +68,7 @@ export default function ResultPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-xl font-medium text-blue-600 animate-pulse">
-          ⏳ Đang tải kết quả bài làm...
+           Đang tải kết quả bài làm...
         </div>
       </div>
     );
@@ -101,15 +101,39 @@ export default function ResultPage() {
 
         {/* BODY: Danh sách câu hỏi */}
         <div className="space-y-6">
-          {result.questions.map((q) => (
-            <QuestionItem 
-                key={q.questionId} 
-                q={q} 
-                onExplain={handleViewExplanation} 
-                isExplaining={loadingExplainId === q.questionId} // Chỉ loading đúng câu đang bấm
-            />
-          ))}
+    {result.questions.map((q, index) => {
+      // Logic kiểm tra xem có cần in đoạn văn không
+      // Chỉ in nếu câu này có GroupContent VÀ (là câu đầu tiên HOẶC khác Group với câu trước)
+      const prevQ = result.questions[index - 1];
+      const showGroupContent = q.groupContent && (!prevQ || prevQ.groupId !== q.groupId);
+
+      return (
+        <div key={q.questionId}>
+          
+          {/* PHẦN HIỂN THỊ ĐOẠN VĂN (Dành cho Part 6 & 7) */}
+          {showGroupContent && (
+            <div className="mb-6 bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+              <h3 className="font-bold text-gray-500 mb-2 uppercase text-xs tracking-wider">
+                Reading Passage (Đoạn văn)
+              </h3>
+              <div 
+                className="prose max-w-none text-gray-800 bg-gray-50 p-4 rounded border border-gray-200"
+                dangerouslySetInnerHTML={{ __html: q.groupContent || "" }} 
+              />
+            </div>
+          )}
+
+          {/* HIỂN THỊ CÂU HỎI (Dùng lại Component QuestionItem xịn xò bạn đã tách) */}
+          <QuestionItem 
+              q={q} 
+              onExplain={handleViewExplanation} 
+              isExplaining={loadingExplainId === q.questionId}
+          />
+          
         </div>
+      );
+    })}
+  </div>
       </div>
     </div>
   );

@@ -152,6 +152,7 @@ namespace ToeicMaster.API.Controllers
 
             var userAnswers = await _efContext.UserAnswers
                 .Include(ua => ua.Question).ThenInclude(q => q.Answers)
+                .Include(ua => ua.Question).ThenInclude(q => q.Group)
                 .Where(ua => ua.AttemptId == attemptId).ToListAsync();
 
             var result = new TestResultDetailDto
@@ -165,6 +166,10 @@ namespace ToeicMaster.API.Controllers
 
                     ShortExplanation = ua.Question.ShortExplanation, 
                     FullExplanation = ua.Question.FullExplanation,
+
+                    GroupId = ua.Question.GroupId,
+                    GroupContent = ua.Question.Group?.TextContent,
+
                     Answers = ua.Question.Answers.Select(a => new ResultAnswerDto { Label = a.Label, Content = a.Content }).ToList()
                 }).OrderBy(q => q.QuestionNo).ToList()
             };
