@@ -250,5 +250,51 @@ namespace ToeicMaster.API.Controllers
                 return StatusCode(500, "Lỗi khi gọi AI: " + ex.Message);
             }
         }
+
+        // 5. GET HISTORY - Lịch sử làm bài của user
+        [HttpGet("history")]
+        [Authorize]
+        public async Task<IActionResult> GetUserHistory()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+            var attempts = await _efContext.TestAttempts
+                .Include(a => a.Test)
+                .Where(a => a.UserId == userId)
+                .OrderByDescending(a => a.CompletedAt)
+                .Select(a => new HistoryItemDto
+                {
+                    AttemptId = a.Id,
+                    TestId = a.TestId,
+                    TestTitle = a.Test.Title,
+                    TotalScore = a.TotalScore,
+                    TotalQuestions = a.Test.TotalQuestions ?? 200,
+                    ListeningScore = a.ListeningScore,
+                    ReadingScore = a.ReadingScore,
+                    StartedAt = a.StartedAt,
+                    CompletedAt = a.CompletedAt,
+                    Status = a.Status ?? "COMPLETED"
+                })
+                .ToListAsync();
+
+            return Ok(new { success = true, data = attempts });
+        }
     }
+}
+
+// DTO for History
+public class HistoryItemDto
+{
+    public int AttemptId { get; set; }
+    public int TestId { get; set; }
+    public string TestTitle { get; set; } = "";
+    public int TotalScore { get; set; }
+    public int TotalQuestions { get; set; }
+    public int? ListeningScore { get; set; }
+    public int? ReadingScore { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime CompletedAt { get; set; }
+    public string Status { get; set; } = "COMPLETED";
 }

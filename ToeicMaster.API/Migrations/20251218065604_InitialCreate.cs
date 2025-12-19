@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ToeicMaster.API.Migrations
 {
     /// <inheritdoc />
-    public partial class AddExplanationColumn : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -96,9 +96,9 @@ namespace ToeicMaster.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     TestId = table.Column<int>(type: "int", nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "(getdate())"),
-                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TotalScore = table.Column<int>(type: "int", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(getdate())"),
+                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalScore = table.Column<int>(type: "int", nullable: false),
                     ListeningScore = table.Column<int>(type: "int", nullable: true),
                     ReadingScore = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true)
@@ -150,7 +150,7 @@ namespace ToeicMaster.API.Migrations
                     PartId = table.Column<int>(type: "int", nullable: false),
                     TextContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AudioUrl = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: true),
-                    ImageUrl = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", unicode: false, maxLength: 500, nullable: true),
                     Transcript = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -170,11 +170,13 @@ namespace ToeicMaster.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GroupId = table.Column<int>(type: "int", nullable: false),
-                    QuestionNo = table.Column<int>(type: "int", nullable: true),
+                    QuestionNo = table.Column<int>(type: "int", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     QuestionType = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
-                    CorrectOption = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: true),
-                    ScoreWeight = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 5.0m)
+                    CorrectOption = table.Column<string>(type: "nvarchar(max)", unicode: false, maxLength: 5, nullable: true),
+                    ScoreWeight = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 5.0m),
+                    ShortExplanation = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FullExplanation = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -183,27 +185,6 @@ namespace ToeicMaster.API.Migrations
                         name: "FK__Questions__Group__276EDEB3",
                         column: x => x.GroupId,
                         principalTable: "QuestionGroups",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AIExplanations",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    QuestionId = table.Column<int>(type: "int", nullable: false),
-                    ExplanationJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ModelUsed = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "(getdate())")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__AIExplan__3214EC075321B3F8", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK__AIExplana__Quest__35BCFE0A",
-                        column: x => x.QuestionId,
-                        principalTable: "Questions",
                         principalColumn: "Id");
                 });
 
@@ -257,8 +238,8 @@ namespace ToeicMaster.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AttemptId = table.Column<int>(type: "int", nullable: false),
                     QuestionId = table.Column<int>(type: "int", nullable: false),
-                    SelectedOption = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: true),
-                    IsCorrect = table.Column<bool>(type: "bit", nullable: true),
+                    SelectedOption = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false),
+                    IsCorrect = table.Column<bool>(type: "bit", nullable: false),
                     TextResponse = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AudioResponseUrl = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: true)
                 },
@@ -297,12 +278,6 @@ namespace ToeicMaster.API.Migrations
                         principalTable: "UserAnswers",
                         principalColumn: "Id");
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "UQ__AIExplan__0DC06FAD860DDD6C",
-                table: "AIExplanations",
-                column: "QuestionId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Answers_QuestionId",
@@ -382,9 +357,6 @@ namespace ToeicMaster.API.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AIExplanations");
-
             migrationBuilder.DropTable(
                 name: "Answers");
 

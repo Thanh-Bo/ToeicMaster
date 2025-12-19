@@ -66,8 +66,8 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 var app = builder.Build();
 
-// 2. Cấu hình Pipeline (Cách xử lý request)
-// Luôn bật Swagger (ngay cả khi không phải Development để bạn dễ test lúc này)
+
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -75,6 +75,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowNextJs");
 
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

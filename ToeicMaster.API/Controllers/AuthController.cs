@@ -146,6 +146,68 @@ namespace ToeicMaster.API.Controllers
             });
         }
 
+        // 5. UPDATE PROFILE
+        [Authorize]
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+
+            var userId = int.Parse(userIdStr);
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null) return NotFound();
+
+            // Validate
+            if (string.IsNullOrWhiteSpace(request.FullName))
+            {
+                return BadRequest(new { message = "Họ tên không được để trống." });
+            }
+
+            // Update
+            user.FullName = request.FullName.Trim();
+            await _context.SaveChangesAsync();
+
+            return Ok(new 
+            { 
+                message = "Cập nhật thông tin thành công!",
+                fullName = user.FullName
+            });
+        }
+
+        // 6. CHANGE PASSWORD
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+
+            var userId = int.Parse(userIdStr);
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null) return NotFound();
+
+            // Validate current password
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            {
+                return BadRequest(new { message = "Mật khẩu hiện tại không đúng." });
+            }
+
+            // Validate new password
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+            {
+                return BadRequest(new { message = "Mật khẩu mới phải có ít nhất 6 ký tự." });
+            }
+
+            // Update password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đổi mật khẩu thành công!" });
+        }
+
         // --- PRIVATE HELPER METHODS ---
 
         private string GenerateAccessToken(User user)

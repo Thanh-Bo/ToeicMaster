@@ -40,4 +40,14 @@ namespace ToeicMaster.API.Models.Admin
         public string Label { get; set; } = string.Empty; // A, B, C, D
         public string Content { get; set; } = string.Empty; // Nội dung đáp án
     }
+
+    // Request đơn giản để tạo Test mới (không kèm Parts)
+    public class CreateTestRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Slug { get; set; }
+        public string? Type { get; set; } // FULL_TEST, MINI_TEST, PRACTICE
+        public int? Duration { get; set; }
+        public int? TotalQuestions { get; set; }
+    }
 }

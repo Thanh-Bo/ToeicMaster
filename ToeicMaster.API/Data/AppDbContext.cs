@@ -39,6 +39,16 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserAnswer> UserAnswers { get; set; }
+    
+    public virtual DbSet<Bookmark> Bookmarks { get; set; }
+    
+    public virtual DbSet<Vocabulary> Vocabularies { get; set; }
+    
+    public virtual DbSet<UserVocabulary> UserVocabularies { get; set; }
+    
+    public virtual DbSet<PracticeSession> PracticeSessions { get; set; }
+    
+    public virtual DbSet<PracticeAnswer> PracticeAnswers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -266,6 +276,85 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__UserAnswe__Quest__3E52440B");
+        });
+
+        // Bookmark configuration
+        modelBuilder.Entity<Bookmark>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.QuestionId }).IsUnique();
+            
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Bookmarks)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Question)
+                .WithMany(q => q.Bookmarks)
+                .HasForeignKey(e => e.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Vocabulary configuration
+        modelBuilder.Entity<Vocabulary>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Word).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Meaning).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.Pronunciation).HasMaxLength(200);
+            entity.Property(e => e.PartOfSpeech).HasMaxLength(20);
+            entity.Property(e => e.Category).HasMaxLength(50);
+            
+            entity.HasOne(e => e.Question)
+                .WithMany(q => q.Vocabularies)
+                .HasForeignKey(e => e.QuestionId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // UserVocabulary configuration
+        modelBuilder.Entity<UserVocabulary>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.VocabularyId }).IsUnique();
+            
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.UserVocabularies)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Vocabulary)
+                .WithMany(v => v.UserVocabularies)
+                .HasForeignKey(e => e.VocabularyId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PracticeSession configuration
+        modelBuilder.Entity<PracticeSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).HasMaxLength(20);
+            
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.PracticeSessions)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PracticeAnswer configuration
+        modelBuilder.Entity<PracticeAnswer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SelectedOption).HasMaxLength(5);
+            
+            entity.HasOne(e => e.Session)
+                .WithMany(s => s.PracticeAnswers)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Question)
+                .WithMany(q => q.PracticeAnswers)
+                .HasForeignKey(e => e.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

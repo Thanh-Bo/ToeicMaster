@@ -7,6 +7,8 @@ export interface Answer {
 export interface Question {
   id: number;
   questionNo: number;
+  imageUrl: string | null;
+  audioUrl: string | null;
   content: string;
   answers: Answer[];
 }
@@ -51,4 +53,10 @@ export interface ResultDetail {
     groupContent: string | null
     answers: { label: string; content: string }[];
   }[];
+}
+export interface GroupedResult {
+  groupId: number;
+  groupContent: string | null;
+  imageUrl?: string | null;
+  questions: any[];
 }

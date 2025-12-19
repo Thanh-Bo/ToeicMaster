@@ -12,8 +12,8 @@ using ToeicMaster.API.Data;
 namespace ToeicMaster.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251215141932_UpdateQuestionExplanation")]
-    partial class UpdateQuestionExplanation
+    [Migration("20251218142747_AddShortAndFullExplanationToQuestion")]
+    partial class AddShortAndFullExplanationToQuestion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -106,13 +106,16 @@ namespace ToeicMaster.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AudioUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CorrectOption")
                         .HasMaxLength(5)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(5)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullExplanation")
                         .HasColumnType("nvarchar(max)");
@@ -120,7 +123,7 @@ namespace ToeicMaster.API.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("QuestionNo")
+                    b.Property<int>("QuestionNo")
                         .HasColumnType("int");
 
                     b.Property<string>("QuestionType")
@@ -134,6 +137,9 @@ namespace ToeicMaster.API.Migrations
                         .HasDefaultValue(5.0m);
 
                     b.Property<string>("ShortExplanation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Transcript")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id")
@@ -160,7 +166,7 @@ namespace ToeicMaster.API.Migrations
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PartId")
                         .HasColumnType("int");
@@ -296,7 +302,7 @@ namespace ToeicMaster.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("CompletedAt")
+                    b.Property<DateTime>("CompletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("ListeningScore")
@@ -305,7 +311,7 @@ namespace ToeicMaster.API.Migrations
                     b.Property<int?>("ReadingScore")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("StartedAt")
+                    b.Property<DateTime>("StartedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("(getdate())");
@@ -318,7 +324,7 @@ namespace ToeicMaster.API.Migrations
                     b.Property<int>("TestId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TotalScore")
+                    b.Property<int>("TotalScore")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -456,13 +462,14 @@ namespace ToeicMaster.API.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
 
-                    b.Property<bool?>("IsCorrect")
+                    b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
 
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
                     b.Property<string>("SelectedOption")
+                        .IsRequired()
                         .HasMaxLength(5)
                         .IsUnicode(false)
                         .HasColumnType("varchar(5)");
