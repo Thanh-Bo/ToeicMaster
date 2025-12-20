@@ -7,6 +7,8 @@ import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
 import { ResultDetail } from "../../types";
 import ResultRightSidebar from "@/app/components/ResultRightSidebar";
+import SaveVocabularyModal from "@/app/components/SaveVocabularyModal";
+import { CommentSection } from "@/app/components/comments/CommentSection";
 
 const BASE_URL = "http://localhost:5298";
 
@@ -36,6 +38,11 @@ export default function ResultPage() {
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Set<number>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<number | null>(null);
+  const [vocabModalOpen, setVocabModalOpen] = useState(false);
+  const [selectedQuestionForVocab, setSelectedQuestionForVocab] = useState<{
+    questionId: number;
+    content: string;
+  } | null>(null);
 
   // Load kết quả và gom nhóm theo Part
   useEffect(() => {
@@ -132,6 +139,15 @@ export default function ResultPage() {
     } finally {
       setBookmarkLoading(null);
     }
+  };
+
+  // Mở modal lưu từ vựng
+  const handleOpenVocabModal = (q: any) => {
+    setSelectedQuestionForVocab({
+      questionId: q.questionId,
+      content: q.content || ""
+    });
+    setVocabModalOpen(true);
   };
 
   // Xử lý xem giải thích AI
@@ -293,9 +309,9 @@ export default function ResultPage() {
         </div>
 
         {/* Danh sách đáp án */}
-        <div className={`space-y-2 ml-12 mb-4 ${partNum === 2 ? 'flex gap-3 space-y-0' : ''}`}>
-          {partNum === 2 ? (
-            // Part 2: Chỉ hiển thị nút A/B/C
+        <div className={`space-y-2 ml-12 mb-4 ${(partNum === 1 || partNum === 2) ? 'flex gap-3 space-y-0' : ''}`}>
+          {(partNum === 1 || partNum === 2) ? (
+            // Part 1 & 2: Chỉ hiển thị nút A/B/C/D (Part 2 chỉ có 3 đáp án)
             options.map((label) => {
               const userSelected = (q.userSelected || "").toString().toUpperCase();
               const isUserSelected = userSelected === label;
@@ -304,7 +320,7 @@ export default function ResultPage() {
               
               let btnClass = "border-gray-200 bg-gray-50 text-gray-400";
               if (isCorrect) btnClass = "border-green-500 bg-green-100 text-green-700 ring-2 ring-green-300";
-              else if (isUserSelected) btnClass = "border-red-500 bg-red-100 text-red-600 ring-2 ring-red-300";
+              else if (isUserSelected && !isCorrect) btnClass = "border-red-500 bg-red-100 text-red-600 ring-2 ring-red-300";
               
               return (
                 <div key={label} className={`flex-1 p-4 rounded-xl border-2 font-bold text-lg text-center ${btnClass}`}>
@@ -344,6 +360,14 @@ export default function ResultPage() {
             ) : (
               <>🏷️ Đánh dấu</>
             )}
+          </button>
+
+          {/* Nút Lưu từ vựng */}
+          <button
+            onClick={() => handleOpenVocabModal(q)}
+            className="inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors bg-purple-50 text-purple-600 hover:bg-purple-100"
+          >
+            📚 Lưu từ vựng
           </button>
 
           {/* Nút giải thích AI */}
@@ -611,6 +635,13 @@ export default function ResultPage() {
               )}
             </div>
           ))}
+
+          {/* === PHẦN BÌNH LUẬN === */}
+          {result?.testId && (
+            <div className="mt-12 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <CommentSection testId={result.testId} />
+            </div>
+          )}
         </div>
 
         {/* CỘT PHẢI: SIDEBAR */}
@@ -673,6 +704,17 @@ export default function ResultPage() {
           </div>
         )}
       </div>
+
+      {/* Modal lưu từ vựng */}
+      <SaveVocabularyModal
+        isOpen={vocabModalOpen}
+        onClose={() => {
+          setVocabModalOpen(false);
+          setSelectedQuestionForVocab(null);
+        }}
+        questionId={selectedQuestionForVocab?.questionId || 0}
+        initialExample={selectedQuestionForVocab?.content || ""}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ToeicMaster.API.Entities;
@@ -11,7 +11,7 @@ public partial class UserAnswer
 
     public int QuestionId { get; set; }
 
-    public string SelectedOption { get; set; }
+    public string SelectedOption { get; set; } = null!;
 
     public bool IsCorrect { get; set; }
 

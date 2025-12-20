@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ToeicMaster.API.Entities;
@@ -26,4 +26,6 @@ public partial class Test
     public virtual ICollection<Part> Parts { get; set; } = new List<Part>();
 
     public virtual ICollection<TestAttempt> TestAttempts { get; set; } = new List<TestAttempt>();
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

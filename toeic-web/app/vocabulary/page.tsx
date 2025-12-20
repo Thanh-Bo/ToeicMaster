@@ -129,7 +129,7 @@ export default function VocabularyPage() {
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
-            <form onSubmit={handleSearch} className="flex-1 min-w-[200px]">
+            <form onSubmit={handleSearch} className="flex-1 min-w-50]">
               <div className="relative">
                 <input
                   type="text"

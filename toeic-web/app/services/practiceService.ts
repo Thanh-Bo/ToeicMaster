@@ -1,53 +1,14 @@
 import axiosClient from "./axiosClient";
+import type { 
+  PracticeQuestion, 
+  PracticeSession, 
+  PracticeResult, 
+  PartInfo, 
+  PracticeHistoryItem 
+} from "../types";
 
-export interface PracticeQuestion {
-  id: number;
-  questionNo: number;
-  content: string;
-  audioUrl: string | null;
-  groupId: number;
-  groupContent: string | null;
-  groupImageUrl: string | null;
-  groupAudioUrl: string | null;
-  answers: { label: string; content: string }[];
-}
-
-export interface PracticeSession {
-  sessionId: number;
-  partNumber: number;
-  questions: PracticeQuestion[];
-  totalQuestions: number;
-}
-
-export interface PracticeResult {
-  sessionId: number;
-  partNumber: number;
-  totalQuestions: number;
-  correctAnswers: number;
-  accuracy: number;
-  timeSpent: number;
-  completedAt: string;
-}
-
-export interface PartInfo {
-  partNumber: number;
-  name: string;
-  description: string;
-  type: string;
-  icon: string;
-  totalQuestions: number;
-}
-
-export interface PracticeHistoryItem {
-  id: number;
-  partNumber: number;
-  totalQuestions: number;
-  correctAnswers: number;
-  accuracy: number;
-  timeSpentSeconds: number;
-  startedAt: string;
-  completedAt: string;
-}
+// Re-export types để các component có thể import từ service
+export type { PracticeQuestion, PracticeSession, PracticeResult, PartInfo, PracticeHistoryItem };
 
 export const practiceService = {
   // Lấy danh sách parts

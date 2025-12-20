@@ -1,20 +1,8 @@
 import axiosClient from "./axiosClient";
+import type { BookmarkItem } from "../types";
 
-export interface BookmarkItem {
-  id: number;
-  questionId: number;
-  note: string | null;
-  createdAt: string;
-  question: {
-    id: number;
-    questionNo: number;
-    content: string;
-    correctOption: string;
-    partNumber: number;
-    partName: string;
-    answers: { label: string; content: string }[];
-  };
-}
+// Re-export type để các component có thể import từ service
+export type { BookmarkItem };
 
 export const bookmarkService = {
   // Lấy danh sách bookmark

@@ -150,28 +150,54 @@ namespace ToeicMaster.API.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || attempt.UserId != int.Parse(userIdStr)) return Forbid();
 
+            // Lấy tất cả câu hỏi của bài thi
+            var allQuestions = await _efContext.Questions
+                .Include(q => q.Answers)
+                .Include(q => q.Group).ThenInclude(g => g.Part)
+                .Where(q => q.Group.Part.TestId == attempt.TestId)
+                .OrderBy(q => q.Group.Part.PartNumber)
+                .ThenBy(q => q.QuestionNo)
+                .ToListAsync();
+
+            // Lấy các câu trả lời của user
             var userAnswers = await _efContext.UserAnswers
-                .Include(ua => ua.Question).ThenInclude(q => q.Answers)
-                .Include(ua => ua.Question).ThenInclude(q => q.Group)
-                .Where(ua => ua.AttemptId == attemptId).ToListAsync();
+                .Where(ua => ua.AttemptId == attemptId)
+                .ToDictionaryAsync(ua => ua.QuestionId, ua => ua);
 
             var result = new TestResultDetailDto
             {
-                AttemptId = attempt.Id, TestTitle = attempt.Test.Title,
-                TotalScore = attempt.TotalScore , TotalQuestions = userAnswers.Count, CompletedAt = attempt.CompletedAt ,
-                Questions = userAnswers.Select(ua => new ResultQuestionDto
-                {
-                    QuestionId = ua.QuestionId, QuestionNo = ua.Question.QuestionNo , Content = ua.Question.Content,
-                    UserSelected = ua.SelectedOption , CorrectOption = ua.Question.CorrectOption, IsCorrect = ua.IsCorrect , 
+                AttemptId = attempt.Id,
+                TestId = attempt.TestId,
+                TestTitle = attempt.Test.Title,
+                TotalScore = attempt.TotalScore, 
+                TotalQuestions = allQuestions.Count, 
+                CompletedAt = attempt.CompletedAt,
+                Questions = allQuestions.Select(q => {
+                    var userAnswer = userAnswers.ContainsKey(q.Id) ? userAnswers[q.Id] : null;
+                    return new ResultQuestionDto
+                    {
+                        QuestionId = q.Id, 
+                        QuestionNo = q.QuestionNo, 
+                        Content = q.Content ?? "",
+                        UserSelected = userAnswer?.SelectedOption ?? "", 
+                        CorrectOption = q.CorrectOption ?? "", 
+                        IsCorrect = userAnswer?.IsCorrect ?? false,
 
-                    ShortExplanation = ua.Question.ShortExplanation, 
-                    FullExplanation = ua.Question.FullExplanation,
+                        ShortExplanation = q.ShortExplanation, 
+                        FullExplanation = q.FullExplanation,
 
-                    GroupId = ua.Question.GroupId,
-                    GroupContent = ua.Question.Group?.TextContent,
+                        GroupId = q.GroupId,
+                        GroupContent = q.Group?.TextContent,
+                        
+                        // Thông tin Part và media
+                        PartNumber = q.Group?.Part?.PartNumber ?? 5,
+                        PartName = q.Group?.Part?.Name ?? "Part 5",
+                        ImageUrl = q.Group?.ImageUrl,
+                        AudioUrl = q.Group?.AudioUrl,
 
-                    Answers = ua.Question.Answers.Select(a => new ResultAnswerDto { Label = a.Label, Content = a.Content }).ToList()
-                }).OrderBy(q => q.QuestionNo).ToList()
+                        Answers = q.Answers?.Select(a => new ResultAnswerDto { Label = a.Label ?? "", Content = a.Content ?? "" }).ToList() ?? new List<ResultAnswerDto>()
+                    };
+                }).ToList()
             };
             return Ok(result);
         }

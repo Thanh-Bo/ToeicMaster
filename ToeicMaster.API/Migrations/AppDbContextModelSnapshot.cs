@@ -95,6 +95,80 @@ namespace ToeicMaster.API.Migrations
                     b.ToTable("Bookmarks");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.Comment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TestId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentCommentId");
+
+                    b.HasIndex("TestId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.CommentLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CommentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CommentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("CommentLikes");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.Part", b =>
                 {
                     b.Property<int>("Id")
@@ -104,12 +178,11 @@ namespace ToeicMaster.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("PartNumber")
                         .HasColumnType("int");
@@ -214,8 +287,6 @@ namespace ToeicMaster.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CorrectOption")
-                        .HasMaxLength(5)
-                        .IsUnicode(false)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullExplanation")
@@ -228,9 +299,8 @@ namespace ToeicMaster.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("QuestionType")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("ScoreWeight")
                         .ValueGeneratedOnAdd()
@@ -260,13 +330,9 @@ namespace ToeicMaster.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AudioUrl")
-                        .HasMaxLength(500)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .IsUnicode(false)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PartId")
@@ -739,6 +805,49 @@ namespace ToeicMaster.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.Comment", b =>
+                {
+                    b.HasOne("ToeicMaster.API.Entities.Comment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId");
+
+                    b.HasOne("ToeicMaster.API.Entities.Test", "Test")
+                        .WithMany("Comments")
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ToeicMaster.API.Entities.User", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentComment");
+
+                    b.Navigation("Test");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.CommentLike", b =>
+                {
+                    b.HasOne("ToeicMaster.API.Entities.Comment", "Comment")
+                        .WithMany("CommentLikes")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ToeicMaster.API.Entities.User", "User")
+                        .WithMany("CommentLikes")
+                        .HasForeignKey("UserId")
+                        .IsRequired();
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.Part", b =>
                 {
                     b.HasOne("ToeicMaster.API.Entities.Test", "Test")
@@ -891,6 +1000,13 @@ namespace ToeicMaster.API.Migrations
                     b.Navigation("Question");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.Comment", b =>
+                {
+                    b.Navigation("CommentLikes");
+
+                    b.Navigation("Replies");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.Part", b =>
                 {
                     b.Navigation("QuestionGroups");
@@ -921,6 +1037,8 @@ namespace ToeicMaster.API.Migrations
 
             modelBuilder.Entity("ToeicMaster.API.Entities.Test", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Parts");
 
                     b.Navigation("TestAttempts");
@@ -934,6 +1052,10 @@ namespace ToeicMaster.API.Migrations
             modelBuilder.Entity("ToeicMaster.API.Entities.User", b =>
                 {
                     b.Navigation("Bookmarks");
+
+                    b.Navigation("CommentLikes");
+
+                    b.Navigation("Comments");
 
                     b.Navigation("PracticeSessions");
 

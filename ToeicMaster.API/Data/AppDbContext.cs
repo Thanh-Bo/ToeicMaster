@@ -49,6 +49,10 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<PracticeSession> PracticeSessions { get; set; }
     
     public virtual DbSet<PracticeAnswer> PracticeAnswers { get; set; }
+    
+    public virtual DbSet<Comment> Comments { get; set; }
+    
+    public virtual DbSet<CommentLike> CommentLikes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -78,8 +82,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Parts__3214EC076FCC33CD");
 
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Description).HasColumnType("nvarchar(max)"); // Mở rộng từ 500
+            entity.Property(e => e.Name).HasMaxLength(200); // Mở rộng từ 100
 
             entity.HasOne(d => d.Test).WithMany(p => p.Parts)
                 .HasForeignKey(d => d.TestId)
@@ -93,12 +97,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.GroupId, "IX_Questions_GroupId");
 
-            entity.Property(e => e.CorrectOption)
-                .HasMaxLength(5)
-                .IsUnicode(false);
-            entity.Property(e => e.QuestionType)
-                .HasMaxLength(20)
-                .IsUnicode(false);
+            entity.Property(e => e.CorrectOption).HasColumnType("nvarchar(max)"); // Mở rộng từ varchar(5)
+            entity.Property(e => e.QuestionType).HasMaxLength(50); // Mở rộng từ 20
             entity.Property(e => e.ScoreWeight)
                 .HasDefaultValue(5.0m)
                 .HasColumnType("decimal(5, 2)");
@@ -132,12 +132,11 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.PartId, "IX_QuestionGroups_PartId");
 
-            entity.Property(e => e.AudioUrl)
-                .HasMaxLength(500)
-                .IsUnicode(false);
-            entity.Property(e => e.ImageUrl)
-                .HasMaxLength(500)
-                .IsUnicode(false);
+            // Bỏ giới hạn độ dài để cho phép lưu text dài (NVARCHAR(MAX))
+            entity.Property(e => e.AudioUrl).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.ImageUrl).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.TextContent).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.Transcript).HasColumnType("nvarchar(max)");
 
             entity.HasOne(d => d.Part).WithMany(p => p.QuestionGroups)
                 .HasForeignKey(d => d.PartId)
@@ -355,6 +354,53 @@ public partial class AppDbContext : DbContext
                 .WithMany(q => q.PracticeAnswers)
                 .HasForeignKey(e => e.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Comment configuration
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TestId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ParentCommentId);
+            
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)").IsRequired();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            
+            entity.HasOne(e => e.Test)
+                .WithMany(t => t.Comments)
+                .HasForeignKey(e => e.TestId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.ParentComment)
+                .WithMany(c => c.Replies)
+                .HasForeignKey(e => e.ParentCommentId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        // CommentLike configuration
+        modelBuilder.Entity<CommentLike>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.CommentId, e.UserId }).IsUnique();
+            
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(e => e.Comment)
+                .WithMany(c => c.CommentLikes)
+                .HasForeignKey(e => e.CommentId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.CommentLikes)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         OnModelCreatingPartial(modelBuilder);

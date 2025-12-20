@@ -331,6 +331,155 @@ public class VocabularyController : ControllerBase
 
         return Ok(new { message = $"Đã import {newVocabs.Count} từ vựng" });
     }
+
+    /// <summary>
+    /// User lưu từ vựng từ câu hỏi (khi làm bài thi)
+    /// </summary>
+    [HttpPost("save-from-question")]
+    public async Task<IActionResult> SaveVocabularyFromQuestion([FromBody] SaveVocabFromQuestionRequest request)
+    {
+        var userId = GetUserId();
+
+        if (string.IsNullOrEmpty(request.Word) || string.IsNullOrEmpty(request.Meaning))
+            return BadRequest(new { error = "Word và Meaning là bắt buộc" });
+
+        // Kiểm tra từ đã tồn tại chưa
+        var existingVocab = await _context.Vocabularies
+            .FirstOrDefaultAsync(v => v.Word.ToLower() == request.Word.ToLower().Trim());
+
+        int vocabId;
+
+        if (existingVocab != null)
+        {
+            // Từ đã có trong hệ thống, chỉ cần link với user
+            vocabId = existingVocab.Id;
+        }
+        else
+        {
+            // Tạo từ mới
+            var newVocab = new Vocabulary
+            {
+                Word = request.Word.Trim(),
+                Pronunciation = request.Pronunciation,
+                PartOfSpeech = request.PartOfSpeech,
+                Meaning = request.Meaning.Trim(),
+                Example = request.Example,
+                ExampleTranslation = request.ExampleTranslation,
+                Category = request.Category ?? "user-saved",
+                Difficulty = request.Difficulty ?? 2,
+                QuestionId = request.QuestionId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Vocabularies.Add(newVocab);
+            await _context.SaveChangesAsync();
+            vocabId = newVocab.Id;
+        }
+
+        // Kiểm tra user đã lưu từ này chưa
+        var existingUserVocab = await _context.UserVocabularies
+            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.VocabularyId == vocabId);
+
+        if (existingUserVocab != null)
+        {
+            return Ok(new { message = "Từ vựng đã được lưu trước đó", vocabId, alreadySaved = true });
+        }
+
+        // Thêm vào danh sách học của user
+        var userVocab = new UserVocabulary
+        {
+            UserId = userId,
+            VocabularyId = vocabId,
+            Status = 0, // Chưa học
+            CorrectStreak = 0,
+            ReviewCount = 0,
+            NextReviewAt = DateTime.UtcNow // Sẵn sàng học ngay
+        };
+
+        _context.UserVocabularies.Add(userVocab);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Đã lưu từ vựng vào danh sách học", vocabId, alreadySaved = false });
+    }
+
+    /// <summary>
+    /// Lấy danh sách từ vựng user đã lưu
+    /// </summary>
+    [HttpGet("my-vocabulary")]
+    public async Task<IActionResult> GetMyVocabulary([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var userId = GetUserId();
+
+        var query = _context.UserVocabularies
+            .Where(uv => uv.UserId == userId)
+            .Include(uv => uv.Vocabulary)
+            .OrderByDescending(uv => uv.Id);
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(uv => new
+            {
+                uv.Vocabulary.Id,
+                uv.Vocabulary.Word,
+                uv.Vocabulary.Pronunciation,
+                uv.Vocabulary.PartOfSpeech,
+                uv.Vocabulary.Meaning,
+                uv.Vocabulary.Example,
+                uv.Vocabulary.ExampleTranslation,
+                uv.Vocabulary.Category,
+                uv.Vocabulary.Difficulty,
+                uv.Status,
+                uv.CorrectStreak,
+                uv.LastReviewedAt,
+                uv.NextReviewAt
+            })
+            .ToListAsync();
+
+        return Ok(new
+        {
+            items,
+            total,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling(total / (double)pageSize)
+        });
+    }
+
+    /// <summary>
+    /// Xóa từ vựng khỏi danh sách học của user
+    /// </summary>
+    [HttpDelete("my-vocabulary/{vocabId}")]
+    public async Task<IActionResult> RemoveFromMyVocabulary(int vocabId)
+    {
+        var userId = GetUserId();
+
+        var userVocab = await _context.UserVocabularies
+            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.VocabularyId == vocabId);
+
+        if (userVocab == null)
+            return NotFound(new { error = "Không tìm thấy từ vựng trong danh sách của bạn" });
+
+        _context.UserVocabularies.Remove(userVocab);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Đã xóa từ vựng khỏi danh sách học" });
+    }
+}
+
+public class SaveVocabFromQuestionRequest
+{
+    public string? Word { get; set; }
+    public string? Pronunciation { get; set; }
+    public string? PartOfSpeech { get; set; }
+    public string? Meaning { get; set; }
+    public string? Example { get; set; }
+    public string? ExampleTranslation { get; set; }
+    public string? Category { get; set; }
+    public int? Difficulty { get; set; }
+    public int? QuestionId { get; set; }
 }
 
 public class ReviewFlashcardRequest

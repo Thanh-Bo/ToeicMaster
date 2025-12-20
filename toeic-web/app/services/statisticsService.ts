@@ -1,59 +1,13 @@
 import axiosClient from "./axiosClient";
+import type {
+  DashboardStats,
+  PartAnalysis,
+  ProgressData,
+  StreakData
+} from "../types";
 
-export interface DashboardStats {
-  tests: {
-    total: number;
-    averageScore: number;
-    bestScore: number;
-    avgListening: number;
-    avgReading: number;
-  };
-  practice: {
-    totalSessions: number;
-    totalQuestions: number;
-    totalCorrect: number;
-    accuracy: number;
-    totalTimeMinutes: number;
-  };
-  bookmarks: number;
-  vocabulary: {
-    learned: number;
-    mastered: number;
-  };
-  recentActivity: {
-    testsLast7Days: number;
-    practiceLast7Days: number;
-  };
-}
-
-export interface PartAnalysis {
-  partNumber: number;
-  name: string;
-  type: string;
-  totalQuestions: number;
-  correctAnswers: number;
-  accuracy: number;
-  level: string;
-  testQuestions: number;
-  practiceQuestions: number;
-}
-
-export interface ProgressData {
-  date: string;
-  testScore: number | null;
-  listeningScore: number | null;
-  readingScore: number | null;
-  practiceAccuracy: number | null;
-  practiceQuestions: number;
-}
-
-export interface StreakData {
-  currentStreak: number;
-  longestStreak: number;
-  totalActiveDays: number;
-  last7Days: { date: string; dayName: string; hasActivity: boolean }[];
-  todayActive: boolean;
-}
+// Re-export types để các component có thể import từ service
+export type { DashboardStats, PartAnalysis, ProgressData, StreakData };
 
 export const statisticsService = {
   // Dashboard tổng quan
