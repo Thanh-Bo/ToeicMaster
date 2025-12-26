@@ -200,7 +200,7 @@ export default function HomePage() {
           { label: "Xếp hạng", href: "/leaderboard" },
           { label: "Lịch sử", href: "/history" },
         ]}
-        copyright="© 2024 TOEIC Master. Made with ❤️"
+        
       />
     </div>
   );

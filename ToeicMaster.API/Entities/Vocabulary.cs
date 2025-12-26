@@ -5,6 +5,7 @@ namespace ToeicMaster.API.Entities;
 
 public partial class Vocabulary
 {
+    public string? Icon { get; set; }
     public int Id { get; set; }
 
     public string Word { get; set; } = null!;

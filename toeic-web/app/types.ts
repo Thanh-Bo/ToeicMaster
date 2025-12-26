@@ -161,57 +161,51 @@ export interface BookmarkItem {
   };
 }
 
-// --------------------------------------------
-// 📚 Vocabulary Types (Từ vựng)
-// --------------------------------------------
+//// 1. Enum cho dễ quản lý trạng thái (Khớp với C#)
+export enum VocabularyStatus {
+  New = 0,
+  Learning = 1,
+  Review = 2,
+  Mastered = 3
+}
+
+// 2. Main Interface (Khớp 100% với C# VocabularyDto)
 export interface VocabularyItem {
+  icon : string ;
   id: number;
   word: string;
-  pronunciation: string | null;
-  partOfSpeech: string | null;
   meaning: string;
-  example: string | null;
-  exampleTranslation: string | null;
-  audioUrl: string | null;
-  imageUrl: string | null;
-  category: string | null;
-  difficulty: number;
-}
-
-export interface Flashcard extends VocabularyItem {
-  isNew: boolean;
-  isDueReview: boolean;
-}
-
-export interface VocabStats {
-  totalVocabulary: number;
-  learned: number;
-  learning: number;
-  review: number;
-  mastered: number;
-  dueForReview: number;
-  progress: number;
-}
-
-export interface SaveVocabFromQuestionRequest {
-  word: string;
   pronunciation?: string;
   partOfSpeech?: string;
-  meaning: string;
   example?: string;
   exampleTranslation?: string;
+  audioUrl?: string;
+  imageUrl?: string;      // ✅ Đã khớp với C#
   category?: string;
-  difficulty?: number;
-  questionId?: number;
+  difficulty: number;
+
+  // User Progress fields (Có thể null/undefined nếu user chưa học)
+  status: VocabularyStatus; 
+  nextReviewAt?: string;  // Date string ISO
 }
 
-export interface MyVocabularyItem extends VocabularyItem {
-  status: number;
-  correctStreak: number;
-  lastReviewedAt: string | null;
-  nextReviewAt: string | null;
+// 3. Stats Interface
+export interface VocabStats {
+  totalVocabulary: number;
+  learned: number;      // status > 0
+  learning: number;     // status = 1
+  review: number;       // status = 2
+  mastered: number;     // status = 3
+  dueForReview: number;
+  progressPercent: number; // Đổi tên cho khớp logic tính toán (%)
 }
 
+// 4. Flashcard (Dùng cho màn hình học)
+// Kế thừa VocabularyItem, thêm cờ logic hiển thị
+export interface Flashcard extends VocabularyItem {
+  isNew: boolean;       // Helper flag UI
+  isDueReview: boolean; // Helper flag UI
+}
 // --------------------------------------------
 // 📊 Statistics Types (Thống kê)
 // --------------------------------------------

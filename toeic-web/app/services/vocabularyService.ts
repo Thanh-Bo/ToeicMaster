@@ -3,12 +3,11 @@ import type {
   VocabularyItem,
   Flashcard,
   VocabStats,
-  SaveVocabFromQuestionRequest,
-  MyVocabularyItem
+
 } from "../types";
 
 // Re-export types để các component có thể import từ service
-export type { VocabularyItem, Flashcard, VocabStats, SaveVocabFromQuestionRequest, MyVocabularyItem };
+export type { VocabularyItem, Flashcard, VocabStats };
 
 export const vocabularyService = {
   // Lấy danh sách từ vựng
@@ -57,25 +56,5 @@ export const vocabularyService = {
     return response.data;
   },
 
-  // === USER VOCABULARY (Lưu từ bài thi) ===
 
-  // Lưu từ vựng từ câu hỏi
-  saveFromQuestion: async (data: SaveVocabFromQuestionRequest): Promise<{ message: string; vocabId: number; alreadySaved: boolean }> => {
-    const response = await axiosClient.post("/vocabulary/save-from-question", data);
-    return response.data;
-  },
-
-  // Lấy danh sách từ vựng đã lưu của user
-  getMyVocabulary: async (page = 1, pageSize = 20): Promise<{ items: MyVocabularyItem[]; total: number; totalPages: number }> => {
-    const response = await axiosClient.get("/vocabulary/my-vocabulary", {
-      params: { page, pageSize }
-    });
-    return response.data;
-  },
-
-  // Xóa từ vựng khỏi danh sách của user
-  removeFromMyVocabulary: async (vocabId: number) => {
-    const response = await axiosClient.delete(`/vocabulary/my-vocabulary/${vocabId}`);
-    return response.data;
-  }
 };

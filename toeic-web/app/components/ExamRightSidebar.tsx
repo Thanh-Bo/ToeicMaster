@@ -18,6 +18,7 @@ export default function ExamRightSidebar({
   isSubmitting,
   timeLeft,
   currentQuestionId 
+  
 }: Props) {
   // Format giây thành HH:MM:SS hoặc MM:SS
   const formatTime = (seconds: number) => {

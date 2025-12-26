@@ -76,7 +76,7 @@ namespace ToeicMaster.API.Controllers
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Hết hạn sau 7 ngày
             await _context.SaveChangesAsync();
-
+            
             return Ok(new AuthResponse
             {
                 Token = accessToken,
@@ -219,7 +219,8 @@ namespace ToeicMaster.API.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim("IsPremium", (user.IsPremium ?? false).ToString())
+                new Claim("IsPremium", (user.IsPremium ?? false).ToString()),
+                new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

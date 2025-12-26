@@ -30,9 +30,7 @@ export default function Footer({
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">
-              T
-            </div>
+           
             <span className="text-xl font-bold text-white">TOEIC Master</span>
           </div>
 

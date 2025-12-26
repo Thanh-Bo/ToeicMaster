@@ -2,281 +2,192 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { vocabularyService, VocabularyItem, VocabStats } from "../services/vocabularyService";
+import { vocabularyService, VocabularyItem } from "../services/vocabularyService";
+
+import { Search, Filter, Layers } from "lucide-react";
+import VocabularyCard from "../components/VocabularyCard";
+import VocabularyModal from "../components/VocabularyModal";
 
 export default function VocabularyPage() {
-  const [vocabularies, setVocabularies] = useState<VocabularyItem[]>([]);
-  const [stats, setStats] = useState<VocabStats | null>(null);
+  const [allVocabs, setAllVocabs] = useState<VocabularyItem[]>([]);
+  const [filteredVocabs, setFilteredVocabs] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State Filter
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState<{ category: string; count: number }[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [categories, setCategories] = useState<string[]>([]);
+  
+  // Modal State
+  const [selectedVocab, setSelectedVocab] = useState<VocabularyItem | null>(null);
+
+  // Stats
+  const [stats, setStats] = useState({ learned: 0, total: 0, percent: 0 });
 
   useEffect(() => {
-    loadCategories();
-    loadStats();
+    loadData();
   }, []);
 
-  useEffect(() => {
-    loadVocabularies();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, category, search]);
-
-  const loadCategories = async () => {
+  const loadData = async () => {
     try {
-      const data = await vocabularyService.getCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error("Failed to load categories:", error);
-    }
-  };
+      setLoading(true);
+      // Gọi API lấy hết (hoặc phân trang lớn) để làm Client-side filtering cho mượt
+      // Trong thực tế nếu > 1000 từ nên server-side filtering
+      const data = await vocabularyService.getVocabularies({ pageSize: 1000 });
+      setAllVocabs(data.items);
+      setFilteredVocabs(data.items);
 
-  const loadStats = async () => {
-    try {
-      const data = await vocabularyService.getStats();
-      setStats(data);
-    } catch (error) {
-      console.error("Failed to load stats:", error);
-    }
-  };
+      // Extract Categories
+      const cats = Array.from(new Set(data.items.map((v: VocabularyItem) => v.category || "Uncategorized"))) as string[];
+      setCategories(["All", ...cats]);
 
-  const loadVocabularies = async () => {
-    try {
-      const data = await vocabularyService.getVocabularies({
-        page,
-        pageSize: 20,
-        category: category || undefined,
-        search: search || undefined
+      // Calculate Stats (Fake stats if API not ready, or use API stats)
+      const learned = data.items.filter((v: any) => v.status === 3).length;
+      setStats({
+        learned,
+        total: data.items.length,
+        percent: data.items.length > 0 ? Math.round((learned / data.items.length) * 100) : 0
       });
-      setVocabularies(data.items);
-      setTotalPages(data.totalPages);
+
     } catch (error) {
-      console.error("Failed to load vocabularies:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    loadVocabularies();
-  };
+  // Filter Logic
+  useEffect(() => {
+    let result = allVocabs;
 
-  const getDifficultyStars = (difficulty: number) => {
-    return "⭐".repeat(difficulty) + "☆".repeat(5 - difficulty);
-  };
+    if (activeCategory !== "All") {
+      result = result.filter(v => v.category === activeCategory);
+    }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-green-50 to-teal-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
-      </div>
-    );
-  }
+    if (search) {
+      const lower = search.toLowerCase();
+      result = result.filter(v => 
+        v.word.toLowerCase().includes(lower) || 
+        v.meaning.toLowerCase().includes(lower)
+      );
+    }
+
+    setFilteredVocabs(result);
+  }, [search, activeCategory, allVocabs]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-50 to-teal-100 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">📚 Từ vựng TOEIC</h1>
-            <p className="text-gray-600 mt-1">Học từ vựng với flashcards và spaced repetition</p>
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+      {/* Header Background */}
+      <div className="bg-linear-to-r from-blue-700 to-indigo-800 text-white pt-10 pb-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Từ vựng TOEIC</h1>
+              <p className="text-blue-100 opacity-80">Chinh phục 600+ từ vựng cốt lõi</p>
+            </div>
+            <Link href="/vocabulary/flashcards" className="bg-white text-blue-700 px-5 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition flex items-center gap-2">
+               <Layers size={18}/> Học Flashcards
+            </Link>
+            <Link href="/" className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Quay lại trang chủ
+          </Link>
           </div>
-          <div className="flex gap-3">
-            <Link 
-              href="/vocabulary/flashcards" 
-              className="px-5 py-2.5 bg-linear-to-r from-green-500 to-teal-600 text-white font-medium rounded-xl shadow hover:shadow-lg transition"
-            >
-              🎴 Học Flashcards
-            </Link>
-            <Link href="/" className="px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition text-gray-700">
-              ← Trang chủ
-            </Link>
+
+          {/* Progress Bar (Phong cách Dashboard) */}
+          <div className="bg-black/20 rounded-2xl p-6 backdrop-blur-xs border border-white/10">
+            <div className="flex justify-between items-end mb-2">
+                <span className="text-sm font-medium text-blue-100">Tiến độ thành thạo</span>
+                <span className="text-2xl font-bold">{stats.learned} <span className="text-sm text-blue-200 font-normal">/ {stats.total} từ</span></span>
+            </div>
+            <div className="h-3 bg-black/20 rounded-full overflow-hidden">
+                <div 
+                    className="h-full bg-linear-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-1000" 
+                    style={{ width: `${stats.percent}%` }}
+                ></div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Stats */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-              <div className="text-2xl font-bold text-gray-800">{stats.totalVocabulary}</div>
-              <div className="text-gray-500 text-sm">Tổng từ</div>
+      {/* Main Content Area */}
+      <div className="max-w-6xl mx-auto px-4 -mt-10 relative z-10">
+        
+      
+
+        {/* Filters & Search */}
+        <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 mb-8 flex flex-col md:flex-row gap-2">
+            <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+                <input 
+                    type="text" 
+                    placeholder="Tìm kiếm từ vựng..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-gray-800 placeholder-gray-500"
+                />
             </div>
-            <div className="bg-blue-50 rounded-xl shadow-sm p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.learned}</div>
-              <div className="text-blue-700 text-sm">Đã học</div>
+            {/* Category Pills (Mobile scrollable) */}
+            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar max-w-full md:max-w-2xl">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all
+                            ${activeCategory === cat 
+                                ? "bg-blue-600 text-white shadow-md shadow-blue-200" 
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }
+                        `}
+                    >
+                        {cat === "All" ? "⭐ Tất cả" : cat}
+                    </button>
+                ))}
             </div>
-            <div className="bg-yellow-50 rounded-xl shadow-sm p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats.learning}</div>
-              <div className="text-yellow-700 text-sm">Đang học</div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+            <div className="text-center py-20">
+                <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-500">Đang tải dữ liệu...</p>
             </div>
-            <div className="bg-green-50 rounded-xl shadow-sm p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.mastered}</div>
-              <div className="text-green-700 text-sm">Thành thạo</div>
-            </div>
-            <div className="bg-red-50 rounded-xl shadow-sm p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.dueForReview}</div>
-              <div className="text-red-700 text-sm">Cần ôn tập</div>
-            </div>
-          </div>
         )}
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <form onSubmit={handleSearch} className="flex-1 min-w-50]">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm từ vựng..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </form>
-
-            <select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setPage(1);
-              }}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="">Tất cả chủ đề</option>
-              {categories.map((cat) => (
-                <option key={cat.category} value={cat.category}>
-                  {cat.category} ({cat.count})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Vocabulary List */}
-        {vocabularies.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">📖</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Không tìm thấy từ vựng</h3>
-            <p className="text-gray-600">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-4">
-              {vocabularies.map((vocab) => (
-                <div
-                  key={vocab.id}
-                  className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition"
-                >
-                  <div
-                    className="p-5 cursor-pointer"
-                    onClick={() => setExpandedId(expandedId === vocab.id ? null : vocab.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-xl font-bold text-gray-800">{vocab.word}</h3>
-                            {vocab.partOfSpeech && (
-                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                {vocab.partOfSpeech}
-                              </span>
-                            )}
-                            {vocab.audioUrl && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  new Audio(vocab.audioUrl!).play();
-                                }}
-                                className="text-green-500 hover:text-green-700"
-                              >
-                                🔊
-                              </button>
-                            )}
-                          </div>
-                          {vocab.pronunciation && (
-                            <p className="text-gray-500 text-sm mt-1">{vocab.pronunciation}</p>
-                          )}
-                          <p className="text-gray-700 mt-1">{vocab.meaning}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        {vocab.category && (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            {vocab.category}
-                          </span>
-                        )}
-                        <span className="text-xs" title={`Độ khó: ${vocab.difficulty}/5`}>
-                          {getDifficultyStars(vocab.difficulty)}
-                        </span>
-                        <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform ${expandedId === vocab.id ? "rotate-180" : ""}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expanded Content */}
-                  {expandedId === vocab.id && (
-                    <div className="px-5 pb-5 pt-0 border-t bg-gray-50">
-                      <div className="pt-4 space-y-3">
-                        {vocab.example && (
-                          <div>
-                            <p className="text-gray-700 italic">&ldquo;{vocab.example}&rdquo;</p>
-                            {vocab.exampleTranslation && (
-                              <p className="text-gray-500 text-sm mt-1">→ {vocab.exampleTranslation}</p>
-                            )}
-                          </div>
-                        )}
-                        {vocab.imageUrl && (
-                          <img src={vocab.imageUrl} alt={vocab.word} className="max-w-xs rounded-lg" />
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+        {/* Vocabulary Grid */}
+        {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredVocabs.map((vocab) => (
+                    <VocabularyCard 
+                        key={vocab.id} 
+                        vocab={vocab} 
+                        onClick={() => setSelectedVocab(vocab)}
+                    />
+                ))}
             </div>
+        )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className="px-4 py-2 bg-white rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md transition"
-                >
-                  ←
-                </button>
-                <span className="px-4 py-2 bg-white rounded-lg shadow">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 bg-white rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md transition"
-                >
-                  →
-                </button>
-              </div>
-            )}
-          </>
+        {/* Empty State */}
+        {!loading && filteredVocabs.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-dashed border-gray-300">
+                <div className="text-6xl mb-4 opacity-50">🔍</div>
+                <h3 className="text-xl font-bold text-gray-800">Không tìm thấy kết quả</h3>
+                <p className="text-gray-500">Thử thay đổi từ khóa hoặc bộ lọc danh mục</p>
+            </div>
         )}
       </div>
+
+      {/* Modal Detail */}
+      {selectedVocab && (
+        <VocabularyModal 
+            vocab={selectedVocab} 
+            isOpen={!!selectedVocab} 
+            onClose={() => setSelectedVocab(null)}
+            allVocabs={allVocabs}
+        />
+      )}
     </div>
   );
 }

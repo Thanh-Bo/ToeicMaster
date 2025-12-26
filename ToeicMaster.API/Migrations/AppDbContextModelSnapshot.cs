@@ -608,6 +608,7 @@ namespace ToeicMaster.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id")
@@ -727,6 +728,9 @@ namespace ToeicMaster.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExampleTranslation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Icon")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")

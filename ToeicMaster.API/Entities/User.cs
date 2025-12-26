@@ -5,6 +5,7 @@ namespace ToeicMaster.API.Entities;
 
 public partial class User
 {
+    public string Role { get; set; } = "User";
     public int Id { get; set; }
 
     public string? FullName { get; set; }
@@ -31,8 +32,7 @@ public partial class User
 
     public bool IsActive { get; set; }
 
-    public string? Role { get; set; }
-
+   
     public virtual ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
 
     public virtual ICollection<PracticeSession> PracticeSessions { get; set; } = new List<PracticeSession>();
