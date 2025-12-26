@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ToeicMaster.API.Data;
 
@@ -11,9 +12,11 @@ using ToeicMaster.API.Data;
 namespace ToeicMaster.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251226130541_scoreConversion")]
+    partial class scoreConversion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -381,28 +384,6 @@ namespace ToeicMaster.API.Migrations
                         .IsUnique();
 
                     b.ToTable("ReviewFeedbacks");
-                });
-
-            modelBuilder.Entity("ToeicMaster.API.Entities.ScoreConversion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CorrectCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ListeningScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ReadingScore")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ScoreConversions");
                 });
 
             modelBuilder.Entity("ToeicMaster.API.Entities.Tag", b =>

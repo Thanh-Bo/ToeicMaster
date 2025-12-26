@@ -4,7 +4,8 @@ using Microsoft.Extensions.Caching.Memory;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models.Admin;
-
+using ToeicMaster.API.Models.Exam;
+using ToeicMaster.API.Controllers;
 namespace ToeicMaster.API.Controllers
 {
     /// <summary>
@@ -96,10 +97,10 @@ namespace ToeicMaster.API.Controllers
                     t.TotalParticipants,
                     t.IsActive,
                     t.CreatedAt,
-                    Parts = t.Parts.Select(p => new 
-                    { 
-                        p.Id, 
-                        p.Name, 
+                    Parts = t.Parts.Select(p => new
+                    {
+                        p.Id,
+                        p.Name,
                         p.PartNumber,
                         QuestionsCount = p.QuestionGroups.SelectMany(g => g.Questions).Count()
                     }).OrderBy(p => p.PartNumber)
@@ -393,6 +394,8 @@ namespace ToeicMaster.API.Controllers
 
             return Ok(new { message = "Cập nhật Part thành công!", data = part });
         }
+
+  
     }
 
     // DTO cho UpdateTest

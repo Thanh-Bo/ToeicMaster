@@ -8,6 +8,7 @@ using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models;
 using ToeicMaster.API.Models.Exam;
+using ToeicMaster.API.Services;
 
 namespace ToeicMaster.API.Controllers
 {
@@ -15,17 +16,20 @@ namespace ToeicMaster.API.Controllers
     [ApiController]
     public class TestsController : ControllerBase
     {
+        
+        private readonly ToeicScoreService _scoreService;
         private readonly DapperContext _dapperContext;
         private readonly AppDbContext _efContext;
         private readonly IMemoryCache _cache;
         private readonly AiExplanationService _aiService;
 
-        public TestsController(DapperContext dapperContext, AppDbContext efContext, IMemoryCache cache , AiExplanationService aiService)
+        public TestsController(DapperContext dapperContext, AppDbContext efContext, IMemoryCache cache, AiExplanationService aiService, ToeicScoreService scoreService)
         {
             _dapperContext = dapperContext;
             _efContext = efContext;
             _cache = cache;
             _aiService = aiService;
+            _scoreService = scoreService;
         }
 
         // 1. GET LIST
@@ -81,16 +85,24 @@ namespace ToeicMaster.API.Controllers
                 var firstRow = flatData.First();
                 var testDetail = new TestDetailDto
                 {
-                    Id = firstRow.TestId, Title = firstRow.Title, Duration = firstRow.Duration,
+                    Id = firstRow.TestId,
+                    Title = firstRow.Title,
+                    Duration = firstRow.Duration,
                     Parts = flatData.GroupBy(r => r.PartId).Select(gPart => new PartDto
                     {
-                        Id = gPart.Key, Name = gPart.First().PartName,
+                        Id = gPart.Key,
+                        Name = gPart.First().PartName,
                         Groups = gPart.GroupBy(r => r.GroupId).Select(gGroup => new GroupDto
                         {
-                            Id = gGroup.Key, TextContent = gGroup.First().TextContent, ImageUrl = gGroup.First().ImageUrl, AudioUrl = gGroup.First().AudioUrl,
+                            Id = gGroup.Key,
+                            TextContent = gGroup.First().TextContent,
+                            ImageUrl = gGroup.First().ImageUrl,
+                            AudioUrl = gGroup.First().AudioUrl,
                             Questions = gGroup.GroupBy(r => r.QuestionId).Select(gQuestion => new QuestionDto
                             {
-                                Id = gQuestion.Key, QuestionNo = gQuestion.First().QuestionNo, Content = gQuestion.First().QuestionContent,
+                                Id = gQuestion.Key,
+                                QuestionNo = gQuestion.First().QuestionNo,
+                                Content = gQuestion.First().QuestionContent,
                                 Answers = gQuestion.Select(a => new AnswerDto { Label = a.Label, Content = a.AnswerContent }).ToList()
                             }).ToList()
                         }).ToList()
@@ -103,21 +115,31 @@ namespace ToeicMaster.API.Controllers
 
         // 3. SUBMIT
         [HttpPost("submit")]
-        [Authorize]
         public async Task<IActionResult> SubmitTest([FromBody] SubmitTestRequest request)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdStr == null) return Unauthorized();
             var userId = int.Parse(userIdStr);
 
-            var correctAnswers = await _efContext.Answers
-                .Include(a => a.Question).ThenInclude(q => q.Group).ThenInclude(g => g.Part)
-                .Where(a => a.Question.Group.Part.TestId == request.TestId && a.Label == a.Question.CorrectOption)
-                .ToDictionaryAsync(a => a.QuestionId, a => a.Label);
+            // Lấy thông tin câu hỏi kèm theo Part để biết câu đó là Listening hay Reading
+            var questionsInfo = await _efContext.Questions
+                .Include(q => q.Group).ThenInclude(g => g.Part)
+                .Where(q => q.Group.Part.TestId == request.TestId)
+                .ToDictionaryAsync(q => q.Id, q => new { q.CorrectOption, q.Group.Part.PartNumber });
 
-            int score = 0;
+            int listeningCorrect = 0;
+            int readingCorrect = 0;
             var userAnswersEntities = new List<UserAnswer>();
-            var attempt = new TestAttempt { UserId = userId, TestId = request.TestId, StartedAt = DateTime.UtcNow.AddMinutes(-120), CompletedAt = DateTime.UtcNow, Status = "COMPLETED" };
+
+            // Tạo attempt trước
+            var attempt = new TestAttempt
+            {
+                UserId = userId,
+                TestId = request.TestId,
+                StartedAt = DateTime.UtcNow.AddMinutes(-120),
+                CompletedAt = DateTime.UtcNow,
+                Status = "COMPLETED"
+            };
 
             _efContext.TestAttempts.Add(attempt);
             await _efContext.SaveChangesAsync();
@@ -125,18 +147,43 @@ namespace ToeicMaster.API.Controllers
             foreach (var ans in request.Answers)
             {
                 bool isCorrect = false;
-                if (correctAnswers.TryGetValue(ans.QuestionId, out string? correctLabel))
+                if (questionsInfo.TryGetValue(ans.QuestionId, out var qInfo))
                 {
-                    if (correctLabel == ans.SelectedOption) { isCorrect = true; score++; }
+                    if (qInfo.CorrectOption == ans.SelectedOption)
+                    {
+                        isCorrect = true;
+                        // Part 1-4 là Listening, Part 5-7 là Reading
+                        if (qInfo.PartNumber <= 4) listeningCorrect++;
+                        else readingCorrect++;
+                    }
                 }
-                userAnswersEntities.Add(new UserAnswer { AttemptId = attempt.Id, QuestionId = ans.QuestionId, SelectedOption = ans.SelectedOption, IsCorrect = isCorrect });
+                userAnswersEntities.Add(new UserAnswer
+                {
+                    AttemptId = attempt.Id,
+                    QuestionId = ans.QuestionId,
+                    SelectedOption = ans.SelectedOption,
+                    IsCorrect = isCorrect
+                });
             }
 
-            attempt.TotalScore = score;
+            var toeicScore = await _scoreService.CalculateScoreAsync(listeningCorrect, readingCorrect);
+
+            // Cập nhật điểm chuẩn vào database
+            attempt.TotalScore = toeicScore.TotalScore;
+            attempt.ListeningScore = toeicScore.ListeningScore;
+            attempt.ReadingScore = toeicScore.ReadingScore;
+
             _efContext.UserAnswers.AddRange(userAnswersEntities);
             await _efContext.SaveChangesAsync();
 
-            return Ok(new TestResultResponse { AttemptId = attempt.Id, TotalScore = score, TotalQuestions = correctAnswers.Count, Message = "Nộp bài thành công!" });
+            // Trả về TotalScore là điểm TOEIC (ví dụ 650), không phải số câu đúng
+            return Ok(new TestResultResponse
+            {
+                AttemptId = attempt.Id,
+                TotalScore = toeicScore.TotalScore, // Giờ là điểm 990
+                TotalQuestions = questionsInfo.Count,
+                Message = "Nộp bài thành công!"
+            });
         }
 
         // 4. GET RESULT
@@ -169,26 +216,27 @@ namespace ToeicMaster.API.Controllers
                 AttemptId = attempt.Id,
                 TestId = attempt.TestId,
                 TestTitle = attempt.Test.Title,
-                TotalScore = attempt.TotalScore, 
-                TotalQuestions = allQuestions.Count, 
+                TotalScore = attempt.TotalScore,
+                TotalQuestions = allQuestions.Count,
                 CompletedAt = attempt.CompletedAt,
-                Questions = allQuestions.Select(q => {
+                Questions = allQuestions.Select(q =>
+                {
                     var userAnswer = userAnswers.ContainsKey(q.Id) ? userAnswers[q.Id] : null;
                     return new ResultQuestionDto
                     {
-                        QuestionId = q.Id, 
-                        QuestionNo = q.QuestionNo, 
+                        QuestionId = q.Id,
+                        QuestionNo = q.QuestionNo,
                         Content = q.Content ?? "",
-                        UserSelected = userAnswer?.SelectedOption ?? "", 
-                        CorrectOption = q.CorrectOption ?? "", 
+                        UserSelected = userAnswer?.SelectedOption ?? "",
+                        CorrectOption = q.CorrectOption ?? "",
                         IsCorrect = userAnswer?.IsCorrect ?? false,
 
-                        ShortExplanation = q.ShortExplanation, 
+                        ShortExplanation = q.ShortExplanation,
                         FullExplanation = q.FullExplanation,
 
                         GroupId = q.GroupId,
                         GroupContent = q.Group?.TextContent,
-                        
+
                         // Thông tin Part và media
                         PartNumber = q.Group?.Part?.PartNumber ?? 5,
                         PartName = q.Group?.Part?.Name ?? "Part 5",
@@ -229,7 +277,7 @@ namespace ToeicMaster.API.Controllers
                 await Task.Delay(2000); // Nghỉ 2 giây giữa mỗi câu
             }
 
-            
+
             return Ok(new { Message = $"Đã cập nhật giải thích thành công cho {count} câu hỏi!", TotalUpdated = count });
         }
 
@@ -248,15 +296,15 @@ namespace ToeicMaster.API.Controllers
             // 2. Kiểm tra xem đã có giải thích chưa? (Nếu có rồi thì trả về luôn, đỡ tốn tiền AI)
             if (!string.IsNullOrEmpty(question.FullExplanation))
             {
-                return Ok(new 
-                { 
-                    shortExplanation = question.ShortExplanation, 
-                    fullExplanation = question.FullExplanation 
+                return Ok(new
+                {
+                    shortExplanation = question.ShortExplanation,
+                    fullExplanation = question.FullExplanation
                 });
             }
 
             // 3. Nếu chưa có, gọi AI tạo mới
-            try 
+            try
             {
                 var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(question, question.Answers.ToList());
 
@@ -265,10 +313,10 @@ namespace ToeicMaster.API.Controllers
                 question.FullExplanation = fullExp;
                 await _efContext.SaveChangesAsync();
 
-                return Ok(new 
-                { 
-                    shortExplanation = shortExp, 
-                    fullExplanation = fullExp 
+                return Ok(new
+                {
+                    shortExplanation = shortExp,
+                    fullExplanation = fullExp
                 });
             }
             catch (Exception ex)

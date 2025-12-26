@@ -17,7 +17,7 @@ public partial class AppDbContext : DbContext
     }
 
    
-
+    public DbSet<ScoreConversion> ScoreConversions { get; set; }
     public virtual DbSet<Answer> Answers { get; set; }
 
     public virtual DbSet<Part> Parts { get; set; }

@@ -28,8 +28,11 @@ export default function ResultRightSidebar({
       <div className="text-center mb-6">
         <p className="text-gray-500 text-xs mb-2 font-medium uppercase tracking-wider">Tổng điểm</p>
         <div className="text-4xl font-extrabold text-blue-600 mb-2 font-mono">
-          {totalScore}<span className="text-lg text-gray-400 font-normal">/{totalQuestions}</span>
+          {totalScore}<span className="text-lg text-gray-400 font-normal">/990</span>
         </div>
+        <p className="text-gray-400 text-[10px] font-bold">
+        ({correctCount}/{totalQuestions} câu đúng)
+      </p>
         
         {/* Progress circle */}
         <div className="relative w-20 h-20 mx-auto mb-3">

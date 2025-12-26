@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using OfficeOpenXml;
+using ToeicMaster.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddMemoryCache();
-
+builder.Services.AddScoped<ToeicScoreService>();
 
 builder.Services.AddHttpClient<AiExplanationService>();
 

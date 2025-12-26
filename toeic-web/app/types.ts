@@ -79,6 +79,8 @@ export interface ResultDetail {
   testTitle: string;
   totalScore: number;
   totalQuestions: number;
+  listeningScore?: number;  // Điểm Listening (5-495)
+  readingScore?: number;    // Điểm Reading (5-495)
   completedAt: string;
   questions: ResultQuestion[];
 }

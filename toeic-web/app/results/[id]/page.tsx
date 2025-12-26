@@ -12,7 +12,6 @@ import { CommentSection } from "@/app/components/comments/CommentSection";
 
 const BASE_URL = "http://localhost:5298";
 
-// Interface cho Part đã gom nhóm
 interface PartGroup {
   partNumber: number;
   partName: string;
@@ -52,12 +51,11 @@ export default function ResultPage() {
         const response = await testService.getResult(attemptId);
         setResult(response.data);
 
-        // Gom nhóm theo Part -> Group -> Questions
         if (response.data?.questions) {
           const partsMap = new Map<number, PartGroup>();
           
           response.data.questions.forEach((q: any) => {
-            const partNum = q.partNumber || 5; // Default Part 5 nếu không có
+            const partNum = q.partNumber || 5; 
             const partName = q.partName || `Part ${partNum}`;
             
             if (!partsMap.has(partNum)) {
@@ -82,10 +80,14 @@ export default function ResultPage() {
               part.groups.push(group);
             }
             
-            group.questions.push(q);
+            // Khởi tạo thêm các cờ state cho UI
+            group.questions.push({
+                ...q,
+                isExplanationOpen: false, // Trạng thái mở khung giải thích
+                isDetailOpen: false       // Trạng thái mở chi tiết
+            });
           });
           
-          // Sort by part number
           const sortedParts = Array.from(partsMap.values()).sort((a, b) => a.partNumber - b.partNumber);
           setPartGroups(sortedParts);
         }
@@ -101,7 +103,6 @@ export default function ResultPage() {
     fetchResult();
   }, [attemptId, router]);
 
-  // Load bookmarks status
   const loadBookmarkStatus = useCallback(async (questionIds: number[]) => {
     try {
       const result = await bookmarkService.checkBatch(questionIds);
@@ -118,7 +119,6 @@ export default function ResultPage() {
     }
   }, [result, loadBookmarkStatus]);
 
-  // Toggle bookmark
   const handleToggleBookmark = async (questionId: number) => {
     setBookmarkLoading(questionId);
     try {
@@ -141,7 +141,6 @@ export default function ResultPage() {
     }
   };
 
-  // Mở modal lưu từ vựng
   const handleOpenVocabModal = (q: any) => {
     setSelectedQuestionForVocab({
       questionId: q.questionId,
@@ -150,30 +149,83 @@ export default function ResultPage() {
     setVocabModalOpen(true);
   };
 
-  // Xử lý xem giải thích AI
+  // --- LOGIC MỚI: Xử lý Bật/Tắt Giải thích ---
+  // --- LOGIC MỚI ĐÃ SỬA ---
   const handleViewExplanation = async (qId: number) => {
+    // 1. Tìm vị trí câu hỏi trong mảng (Lưu index để update cho nhanh)
+    let partIndex = -1, groupIndex = -1, qIndex = -1;
+    let questionData: any = null;
+
+    partGroups.forEach((p, pIdx) => p.groups.forEach((g, gIdx) => g.questions.forEach((q, qIdx) => {
+        if (q.questionId === qId) {
+            questionData = q;
+            partIndex = pIdx; groupIndex = gIdx; qIndex = qIdx;
+        }
+    })));
+
+    if (!questionData) return;
+
+    // CASE 1: Nếu đang MỞ -> Đóng lại ngay lập tức (Ưu tiên cao nhất)
+    if (questionData.isExplanationOpen) {
+        setPartGroups(prev => {
+            // Copy mảng để update (Immutable)
+            const newParts = [...prev]; 
+            // Lưu ý: Cần clone object ở các cấp độ sâu hơn nếu muốn chuẩn React strict mode,
+            // nhưng ở đây ta làm nhanh bằng cách mutate object trong mảng copy (vẫn trigger render)
+            const targetQ = newParts[partIndex].groups[groupIndex].questions[qIndex];
+            targetQ.isExplanationOpen = false; 
+            return newParts;
+        });
+        return;
+    }
+
+    // CASE 2: Nếu đang ĐÓNG -> Muốn Mở
+    // 2a. Nếu đã có dữ liệu rồi (không cần fetch lại)
+    if (questionData.shortExplanation || questionData.fullExplanation) {
+        setPartGroups(prev => {
+            const newParts = [...prev];
+            const targetQ = newParts[partIndex].groups[groupIndex].questions[qIndex];
+            targetQ.isExplanationOpen = true;
+            return newParts;
+        });
+        return;
+    }
+
+    // 2b. Nếu chưa có dữ liệu -> Gọi API
     setLoadingExplainId(qId);
     try {
       const data = await testService.getQuestionExplanation(qId);
-      setPartGroups(prevParts => 
-        prevParts.map(part => ({
-          ...part,
-          groups: part.groups.map(group => ({
-            ...group,
-            questions: group.questions.map(q => 
-              q.questionId === qId 
-                ? { ...q, shortExplanation: data.shortExplanation, fullExplanation: data.fullExplanation }
-                : q
-            )
-          }))
-        }))
-      );
+      setPartGroups(prev => {
+        const newParts = [...prev];
+        const targetQ = newParts[partIndex].groups[groupIndex].questions[qIndex];
+        
+        targetQ.shortExplanation = data.shortExplanation;
+        targetQ.fullExplanation = data.fullExplanation;
+        targetQ.isExplanationOpen = true; 
+        
+        return newParts;
+      });
     } catch (error) {
       console.error(error);
-      alert("AI đang bận, vui lòng thử lại sau giây lát.");
+      alert("Không thể tải giải thích lúc này.");
     } finally {
       setLoadingExplainId(null);
     }
+  };
+
+  // --- LOGIC MỚI: Xử lý Bật/Tắt Chi tiết (Premium) ---
+  const handleToggleDetail = (qId: number) => {
+    setPartGroups(prev => prev.map(part => ({
+      ...part,
+      groups: part.groups.map(group => ({
+        ...group,
+        questions: group.questions.map(q => 
+          q.questionId === qId 
+            ? { ...q, isDetailOpen: !q.isDetailOpen }
+            : q
+        )
+      }))
+    })));
   };
 
   const handleScrollToQuestion = (qId: number) => {
@@ -188,7 +240,6 @@ export default function ResultPage() {
     }
   };
 
-  // Track câu hỏi đang xem khi scroll
   useEffect(() => {
     if (!result) return;
     
@@ -224,20 +275,17 @@ export default function ResultPage() {
 
   if (!result) return null;
 
-  // Tính toán thống kê
   const totalQuestions = result.questions?.length || 0;
   const correctCount = result.questions?.filter((q: any) => q.isCorrect).length || 0;
   const incorrectCount = result.questions?.filter((q: any) => q.userSelected && !q.isCorrect).length || 0;
   const skippedCount = result.questions?.filter((q: any) => !q.userSelected).length || 0;
   const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
-  // Tính điểm Listening/Reading (Part 1-4 là Listening, Part 5-7 là Reading)
   const listeningQuestions = result.questions?.filter((q: any) => (q.partNumber || 5) <= 4) || [];
   const readingQuestions = result.questions?.filter((q: any) => (q.partNumber || 5) >= 5) || [];
   const listeningCorrect = listeningQuestions.filter((q: any) => q.isCorrect).length;
   const readingCorrect = readingQuestions.filter((q: any) => q.isCorrect).length;
 
-  // Component hiển thị đáp án cho Result
   const AnswerOptionResult = ({ q, label, content }: { q: any; label: string; content: string }) => {
     const userSelected = (q.userSelected || "").toString().toUpperCase();
     const isUserSelected = userSelected === label;
@@ -271,7 +319,6 @@ export default function ResultPage() {
     );
   };
 
-  // Component câu hỏi cho Result
   const ResultQuestionItem = ({ q }: { q: any }) => {
     const partNum = q.partNumber || 5;
     const options = partNum === 2 ? ['A', 'B', 'C'] : ['A', 'B', 'C', 'D'];
@@ -286,7 +333,6 @@ export default function ResultPage() {
 
     return (
       <div className={`p-4 rounded-xl transition-colors ${currentQuestionId === q.questionId ? 'bg-blue-50 ring-2 ring-blue-200' : ''}`}>
-        {/* Header câu hỏi */}
         <div className="flex gap-3 mb-4">
           <span className={`shrink-0 w-10 h-10 font-bold rounded-full flex items-center justify-center text-sm shadow-sm
             ${q.isCorrect 
@@ -308,10 +354,8 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* Danh sách đáp án */}
         <div className={`space-y-2 ml-12 mb-4 ${(partNum === 1 || partNum === 2) ? 'flex gap-3 space-y-0' : ''}`}>
           {(partNum === 1 || partNum === 2) ? (
-            // Part 1 & 2: Chỉ hiển thị nút A/B/C/D (Part 2 chỉ có 3 đáp án)
             options.map((label) => {
               const userSelected = (q.userSelected || "").toString().toUpperCase();
               const isUserSelected = userSelected === label;
@@ -331,14 +375,13 @@ export default function ResultPage() {
               );
             })
           ) : (
-            // Part khác: Hiển thị đầy đủ
             options.map((label) => (
               <AnswerOptionResult key={label} q={q} label={label} content={getAnswerContent(label)} />
             ))
           )}
         </div>
 
-        {/* Nút bookmark và giải thích AI */}
+        {/* --- KHU VỰC NÚT TƯƠNG TÁC --- */}
         <div className="ml-12 flex flex-wrap items-center gap-3">
           {/* Nút Bookmark */}
           <button
@@ -362,48 +405,73 @@ export default function ResultPage() {
             )}
           </button>
 
-          {/* Nút Lưu từ vựng */}
-          <button
-            onClick={() => handleOpenVocabModal(q)}
-            className="inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors bg-purple-50 text-purple-600 hover:bg-purple-100"
+          {/* --- NÚT BẬT/TẮT GIẢI THÍCH CHÍNH --- */}
+          <button 
+            onClick={() => handleViewExplanation(q.questionId)}
+            disabled={loadingExplainId === q.questionId}
+            className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors
+              ${q.isExplanationOpen 
+                ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' // Style nút Đóng
+                : 'bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 border border-blue-200' // Style nút Xem
+              }`}
           >
-            📚 Lưu từ vựng
+            {loadingExplainId === q.questionId ? (
+              <>
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Đang phân tích...
+              </>
+            ) : q.isExplanationOpen ? (
+              <>✖ Đóng giải thích</>
+            ) : (
+              <>✨ Xem giải thích</>
+            )}
           </button>
-
-          {/* Nút giải thích AI */}
-          {!q.shortExplanation && !q.fullExplanation ? (
-            <button 
-              onClick={() => handleViewExplanation(q.questionId)}
-              disabled={loadingExplainId === q.questionId}
-              className="inline-flex items-center gap-2 text-sm text-blue-600 font-bold hover:text-blue-800 transition-colors bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100"
-            >
-              {loadingExplainId === q.questionId ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Đang phân tích...
-                </>
-              ) : (
-                <>✨ Xem giải thích AI</>
-              )}
-            </button>
-          ) : null}
         </div>
 
-        {/* Giải thích chi tiết */}
-        {(q.shortExplanation || q.fullExplanation) && (
-          <div className="ml-12 mt-3 bg-linear-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 animate-fadeIn">
+        {/* --- KHU VỰC HIỂN THỊ GIẢI THÍCH --- */}
+        {q.isExplanationOpen && (
+          <div className="ml-12 mt-4 bg-linear-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 animate-fadeIn relative">
+             {/* 1. GIẢI THÍCH NGẮN (Luôn hiện khi mở) */}
             {q.shortExplanation && (
-              <div className="mb-3 pb-3 border-b border-blue-200">
-                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded mr-2">GỢI Ý</span>
-                <span className="font-medium text-blue-900">{q.shortExplanation}</span>
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Gợi ý</span>
+                    <h4 className="font-bold text-blue-900 text-sm">Giải thích ngắn</h4>
+                </div>
+                <p className="text-blue-900 font-medium leading-relaxed">{q.shortExplanation}</p>
               </div>
             )}
-            {q.fullExplanation && (
-              <div className="prose prose-sm prose-blue max-w-none text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: q.fullExplanation }} />
+
+            {/* Nút phân cách để mở chi tiết */}
+            <div className="flex items-center justify-center my-4 relative">
+                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="w-full border-t border-blue-200"></div>
+                 </div>
+                 <div className="relative flex justify-center">
+                    <button 
+                        onClick={() => handleToggleDetail(q.questionId)}
+                        className="bg-white border border-blue-300 text-blue-700 text-xs font-bold px-4 py-1.5 rounded-full hover:bg-blue-50 hover:border-blue-400 transition-all flex items-center gap-1 shadow-xs"
+                    >
+                        {q.isDetailOpen ? (
+                            <>Thu gọn chi tiết ▲</>
+                        ) : (
+                            <>Xem giải thích chi tiết (Premium) ▼</>
+                        )}
+                    </button>
+                 </div>
+            </div>
+
+            {/* 2. GIẢI THÍCH CHI TIẾT (Hiện khi bấm nút Xem chi tiết) */}
+            {q.isDetailOpen && q.fullExplanation && (
+              <div className="pt-2 animate-fadeIn">
+                 <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-xs">
+                    <div className="prose prose-sm prose-blue max-w-none text-gray-700 leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: q.fullExplanation }} />
+                 </div>
+              </div>
             )}
           </div>
         )}
@@ -413,7 +481,6 @@ export default function ResultPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 lg:pb-10 font-sans">
-      {/* HEADER */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 text-gray-500 hover:text-blue-600 font-medium transition-colors">
@@ -432,7 +499,6 @@ export default function ResultPage() {
           </Link>
         </div>
         
-        {/* Progress Bar */}
         <div className="max-w-7xl mx-auto px-4 pb-3">
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="text-green-600 font-bold">✓ {correctCount} đúng</span>
@@ -446,7 +512,6 @@ export default function ResultPage() {
         </div>
       </header>
 
-      {/* SCORE SUMMARY CARDS */}
       <div className="max-w-7xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-linear-to-br from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-lg">
@@ -468,14 +533,11 @@ export default function ResultPage() {
         </div>
       </div>
 
-      {/* MAIN LAYOUT */}
       <div className="max-w-7xl mx-auto px-4 mt-8 flex flex-col lg:flex-row gap-8">
         
-        {/* CỘT TRÁI: NỘI DUNG */}
         <div className="w-full lg:w-3/4 space-y-10">
           {partGroups.map((part) => (
             <div key={part.partNumber} className="mb-10">
-              {/* Tiêu đề Part */}
               <div className="flex items-center gap-4 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">{part.partName}</h2>
                 <div className="h-1 flex-1 bg-gray-200 rounded-full"></div>
@@ -486,25 +548,21 @@ export default function ResultPage() {
                 )}
               </div>
 
-              {/* === PART 1: Photographs === */}
               {part.partNumber === 1 && (
                 <div className="space-y-6">
                   {part.groups.map((group) => (
                     <div key={group.groupId} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                      {/* Audio */}
                       {group.audioUrl && (
                         <div className="bg-linear-to-r from-green-600 to-teal-600 text-white p-4">
                           <audio controls src={`${BASE_URL}${group.audioUrl}`} className="w-full h-10" style={{ filter: 'invert(1)' }} />
                         </div>
                       )}
                       <div className="flex flex-col lg:flex-row">
-                        {/* Ảnh */}
                         {group.imageUrl && (
                           <div className="lg:w-1/2 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200 p-6">
                             <img src={`${BASE_URL}${group.imageUrl}`} alt="Part 1" className="w-full rounded-xl border shadow-sm" loading="lazy" />
                           </div>
                         )}
-                        {/* Câu hỏi */}
                         <div className={`${group.imageUrl ? 'lg:w-1/2' : 'w-full'} p-6 space-y-4`}>
                           {group.questions.map((q) => (
                             <div key={q.questionId} id={`question-${q.questionId}`}>
@@ -518,7 +576,6 @@ export default function ResultPage() {
                 </div>
               )}
 
-              {/* === PART 2: Question-Response === */}
               {part.partNumber === 2 && (
                 <div className="space-y-4">
                   {part.groups.map((group) => (
@@ -538,12 +595,10 @@ export default function ResultPage() {
                 </div>
               )}
 
-              {/* === PART 3 & 4: Conversations & Talks === */}
               {(part.partNumber === 3 || part.partNumber === 4) && (
                 <div className="space-y-8">
                   {part.groups.map((group) => (
                     <div key={group.groupId} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                      {/* Audio header */}
                       <div className="bg-linear-to-r from-green-600 to-teal-600 text-white p-4">
                         <div className="flex items-center gap-4">
                           <span className="font-medium text-sm">
@@ -556,7 +611,6 @@ export default function ResultPage() {
                       </div>
                       
                       <div className="flex flex-col lg:flex-row">
-                        {/* Ảnh/Transcript */}
                         {(group.imageUrl || group.groupContent) && (
                           <div className="lg:w-1/2 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200 p-6">
                             <div className="lg:sticky lg:top-36 space-y-4">
@@ -571,7 +625,6 @@ export default function ResultPage() {
                           </div>
                         )}
                         
-                        {/* Câu hỏi */}
                         <div className={`${(group.imageUrl || group.groupContent) ? 'lg:w-1/2' : 'w-full'} p-6 space-y-6`}>
                           {group.questions.map((q) => (
                             <div key={q.questionId} id={`question-${q.questionId}`}>
@@ -585,7 +638,6 @@ export default function ResultPage() {
                 </div>
               )}
 
-              {/* === PART 5: Incomplete Sentences === */}
               {part.partNumber === 5 && (
                 <div className="space-y-4">
                   {part.groups.map((group) => (
@@ -600,13 +652,11 @@ export default function ResultPage() {
                 </div>
               )}
 
-              {/* === PART 6 & 7: Reading === */}
               {(part.partNumber === 6 || part.partNumber === 7) && (
                 <div className="space-y-8">
                   {part.groups.map((group) => (
                     <div key={group.groupId} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                       <div className="flex flex-col lg:flex-row">
-                        {/* Đoạn văn */}
                         <div className="lg:w-1/2 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200 p-6">
                           <div className="lg:sticky lg:top-24 max-h-[80vh] overflow-y-auto custom-scrollbar">
                             <div className="mb-3 text-purple-600 font-bold text-xs uppercase tracking-widest">📖 Reading Passage</div>
@@ -620,7 +670,6 @@ export default function ResultPage() {
                           </div>
                         </div>
                         
-                        {/* Câu hỏi */}
                         <div className="lg:w-1/2 p-6 space-y-6">
                           {group.questions.map((q) => (
                             <div key={q.questionId} id={`question-${q.questionId}`}>
@@ -636,7 +685,6 @@ export default function ResultPage() {
             </div>
           ))}
 
-          {/* === PHẦN BÌNH LUẬN === */}
           {result?.testId && (
             <div className="mt-12 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
               <CommentSection testId={result.testId} />
@@ -644,7 +692,6 @@ export default function ResultPage() {
           )}
         </div>
 
-        {/* CỘT PHẢI: SIDEBAR */}
         <div className="hidden lg:block lg:w-1/4">
           <ResultRightSidebar 
             questions={result.questions || []}
@@ -656,7 +703,6 @@ export default function ResultPage() {
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAV */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="flex items-center justify-between px-4 py-3">
           <button onClick={() => setShowMobileNav(!showMobileNav)} className="flex items-center gap-2 text-gray-600">
@@ -676,7 +722,6 @@ export default function ResultPage() {
           </Link>
         </div>
         
-        {/* Mobile Question Palette */}
         {showMobileNav && (
           <div className="border-t border-gray-100 p-4 max-h-[50vh] overflow-y-auto bg-gray-50">
             {partGroups.map((part) => (
@@ -705,7 +750,6 @@ export default function ResultPage() {
         )}
       </div>
 
-      {/* Modal lưu từ vựng */}
       <SaveVocabularyModal
         isOpen={vocabModalOpen}
         onClose={() => {
