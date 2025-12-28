@@ -19,7 +19,6 @@ interface Props {
 
 const defaultNavLinks: NavLink[] = [
   { href: "/", label: "Đề thi" },
-  { href: "/practice", label: "Luyện tập" },
   { href: "/vocabulary", label: "Từ vựng" },
   { href: "/bookmarks", label: "Đánh dấu" },
   { href: "/statistics", label: "Thống kê" },

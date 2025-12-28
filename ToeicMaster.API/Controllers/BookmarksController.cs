@@ -28,7 +28,7 @@ public class BookmarksController : ControllerBase
     public async Task<IActionResult> GetBookmarks([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var userId = GetUserId();
-        
+
         var query = _context.Bookmarks
             .Where(b => b.UserId == userId)
             .Include(b => b.Question)
@@ -39,7 +39,7 @@ public class BookmarksController : ControllerBase
             .OrderByDescending(b => b.CreatedAt);
 
         var total = await query.CountAsync();
-        
+
         var bookmarks = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -55,6 +55,9 @@ public class BookmarksController : ControllerBase
                     b.Question.QuestionNo,
                     b.Question.Content,
                     b.Question.CorrectOption,
+                    TextContent = b.Question.Group.TextContent, // Đoạn văn cho Part 6, 7
+                    ImageUrl = b.Question.Group.ImageUrl,      // Hình ảnh cho Part 1
+                    AudioUrl = b.Question.Group.AudioUrl,
                     PartNumber = b.Question.Group.Part.PartNumber,
                     PartName = b.Question.Group.Part.Name,
                     Answers = b.Question.Answers.Select(a => new { a.Label, a.Content })
@@ -117,7 +120,7 @@ public class BookmarksController : ControllerBase
     public async Task<IActionResult> RemoveBookmark(int questionId)
     {
         var userId = GetUserId();
-        
+
         var bookmark = await _context.Bookmarks
             .FirstOrDefaultAsync(b => b.UserId == userId && b.QuestionId == questionId);
 
@@ -137,7 +140,7 @@ public class BookmarksController : ControllerBase
     public async Task<IActionResult> CheckBookmark(int questionId)
     {
         var userId = GetUserId();
-        
+
         var exists = await _context.Bookmarks
             .AnyAsync(b => b.UserId == userId && b.QuestionId == questionId);
 
@@ -151,7 +154,7 @@ public class BookmarksController : ControllerBase
     public async Task<IActionResult> CheckBookmarkBatch([FromBody] int[] questionIds)
     {
         var userId = GetUserId();
-        
+
         var bookmarked = await _context.Bookmarks
             .Where(b => b.UserId == userId && questionIds.Contains(b.QuestionId))
             .Select(b => b.QuestionId)

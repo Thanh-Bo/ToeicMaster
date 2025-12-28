@@ -11,10 +11,13 @@ export const testService = {
   },
 
   // 2. Lấy chi tiết đề (Cho trang thi)
-  getDetail: (id: number) => {
-    return axiosClient.get(`/tests/${id}/full`);
+  // app/services/testService.ts
+  getTestFull: (id: number, parts?: string | null) => {
+    const url = parts
+      ? `/tests/${id}/full?parts=${parts}`
+      : `/tests/${id}/full`;
+    return axiosClient.get(url);
   },
-  
   // 3. Nộp bài (Sẽ dùng sau)
   submit: (data: any) => {
     return axiosClient.post("/tests/submit", data);
@@ -25,15 +28,18 @@ export const testService = {
 
   // 4. Lấy giải thích câu hỏi
   getQuestionExplanation: async (questionId: number) => {
-   
-    const response = await axiosClient.post(`/Tests/explain-question/${questionId}`);
-    return response.data; 
-    
+    const response = await axiosClient.post(
+      `/Tests/explain-question/${questionId}`
+    );
+    return response.data;
   },
 
   // 5. Lấy lịch sử làm bài
-  getHistory: async (): Promise<{ success: boolean; data: TestHistoryItem[] }> => {
+  getHistory: async (): Promise<{
+    success: boolean;
+    data: TestHistoryItem[];
+  }> => {
     const response = await axiosClient.get("/tests/history");
     return response.data;
-  }
+  },
 };

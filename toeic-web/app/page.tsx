@@ -20,7 +20,7 @@ interface TestSummary {
 
 // Quick access features
 const quickFeatures = [
-  { icon: "🎯", title: "Luyện tập", description: "Theo từng Part", href: "/practice", iconBgColor: "bg-blue-100" },
+
   { icon: "📖", title: "Từ vựng", description: "Flashcards", href: "/vocabulary", iconBgColor: "bg-green-100" },
   { icon: "🔖", title: "Đánh dấu", description: "Câu hỏi khó", href: "/bookmarks", iconBgColor: "bg-orange-100" },
   { icon: "📊", title: "Thống kê", description: "Tiến độ học", href: "/statistics", iconBgColor: "bg-purple-100" },
@@ -193,7 +193,7 @@ export default function HomePage() {
       <Footer
         links={[
           { label: "Trang chủ", href: "/" },
-          { label: "Luyện tập", href: "/practice" },
+         
           { label: "Từ vựng", href: "/vocabulary" },
           { label: "Đánh dấu", href: "/bookmarks" },
           { label: "Thống kê", href: "/statistics" },

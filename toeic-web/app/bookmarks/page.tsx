@@ -14,7 +14,7 @@ export default function BookmarksPage() {
 
   useEffect(() => {
     loadBookmarks();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   const loadBookmarks = async () => {
@@ -31,7 +31,7 @@ export default function BookmarksPage() {
 
   const handleRemove = async (questionId: number) => {
     if (!confirm("Bạn có chắc muốn xóa bookmark này?")) return;
-    
+
     setRemoving(questionId);
     try {
       await bookmarkService.remove(questionId);
@@ -47,7 +47,7 @@ export default function BookmarksPage() {
     return new Date(dateStr).toLocaleString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
@@ -65,14 +65,19 @@ export default function BookmarksPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">🔖 Câu hỏi đã lưu</h1>
+            <h1 className="text-3xl font-bold text-gray-800">
+              🔖 Câu hỏi đã lưu
+            </h1>
             <p className="text-gray-600 mt-1">
-              {bookmarks.length > 0 
-                ? `Bạn đã đánh dấu ${bookmarks.length} câu hỏi` 
+              {bookmarks.length > 0
+                ? `Bạn đã đánh dấu ${bookmarks.length} câu hỏi`
                 : "Đánh dấu câu hỏi khó để ôn lại sau"}
             </p>
           </div>
-          <Link href="/" className="px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition text-gray-700">
+          <Link
+            href="/"
+            className="px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition text-gray-700"
+          >
             ← Trang chủ
           </Link>
         </div>
@@ -80,7 +85,9 @@ export default function BookmarksPage() {
         {bookmarks.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">🔖</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Chưa có bookmark nào</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              Chưa có bookmark nào
+            </h3>
             <p className="text-gray-600 mb-6">
               Khi làm bài, bạn có thể đánh dấu những câu hỏi khó để ôn lại sau
             </p>
@@ -103,7 +110,11 @@ export default function BookmarksPage() {
                   {/* Header */}
                   <div
                     className="p-5 cursor-pointer"
-                    onClick={() => setExpandedId(expandedId === bookmark.id ? null : bookmark.id)}
+                    onClick={() =>
+                      setExpandedId(
+                        expandedId === bookmark.id ? null : bookmark.id
+                      )
+                    }
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
@@ -134,23 +145,55 @@ export default function BookmarksPage() {
                           className="p-2 text-gray-400 hover:text-red-500 transition disabled:opacity-50"
                         >
                           {removing === bookmark.questionId ? (
-                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <svg
+                              className="animate-spin h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                           )}
                         </button>
                         <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform ${expandedId === bookmark.id ? "rotate-180" : ""}`}
+                          className={`w-5 h-5 text-gray-400 transition-transform ${
+                            expandedId === bookmark.id ? "rotate-180" : ""
+                          }`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -160,26 +203,78 @@ export default function BookmarksPage() {
                   {expandedId === bookmark.id && (
                     <div className="px-5 pb-5 pt-0 border-t bg-gray-50">
                       <div className="pt-4">
+                        <div className="mb-4">
+                          {/* Nếu là Part 1, 3, 4 có ảnh */}
+                          {bookmark.question.imageUrl && (
+                            <img
+                              src={`http://localhost:5298${bookmark.question.imageUrl}`}
+                              className="max-w-md rounded-lg mb-3 border"
+                              alt="Question context"
+                            />
+                          )}
+
+                          {/* Nếu là Listening */}
+                          {bookmark.question.audioUrl && (
+                            <div className="bg-white p-3 rounded-lg border mb-3">
+                              <p className="text-xs font-bold text-gray-400 mb-1 uppercase">
+                                Nghe lại:
+                              </p>
+                              <audio
+                                controls
+                                src={`http://localhost:5298${bookmark.question.audioUrl}`}
+                                className="w-full h-10"
+                              />
+                            </div>
+                          )}
+
+                          {/* Nếu là Part 6, 7 có đoạn văn */}
+                          {bookmark.question.textContent && (
+                            <div
+                              className="bg-white p-4 rounded-lg border text-sm text-gray-700 mb-3 max-h-60 overflow-y-auto prose prose-sm"
+                              dangerouslySetInnerHTML={{
+                                __html: bookmark.question.textContent,
+                              }}
+                            />
+                          )}
+                        </div>
                         {/* Answers */}
                         <div className="space-y-2 mb-4">
                           {bookmark.question.answers.map((answer) => {
-                            const isCorrect = answer.label.toUpperCase() === bookmark.question.correctOption?.toUpperCase();
+                            const isCorrect =
+                              answer.label.toUpperCase() ===
+                              bookmark.question.correctOption?.toUpperCase();
                             return (
                               <div
                                 key={answer.label}
                                 className={`flex items-center gap-3 p-3 rounded-lg ${
-                                  isCorrect ? "bg-green-50 border border-green-200" : "bg-white border"
+                                  isCorrect
+                                    ? "bg-green-50 border border-green-200"
+                                    : "bg-white border"
                                 }`}
                               >
-                                <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold ${
-                                  isCorrect ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
-                                }`}>
+                                <span
+                                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold ${
+                                    isCorrect
+                                      ? "bg-green-500 text-white"
+                                      : "bg-gray-200 text-gray-600"
+                                  }`}
+                                >
                                   {answer.label}
                                 </span>
-                                <span className={isCorrect ? "text-green-700" : "text-gray-700"}>
+                                <span
+                                  className={
+                                    isCorrect
+                                      ? "text-green-700"
+                                      : "text-gray-700"
+                                  }
+                                >
                                   {answer.content}
                                 </span>
-                                {isCorrect && <span className="ml-auto text-green-600 text-sm font-medium">✓ Đáp án đúng</span>}
+                                {isCorrect && (
+                                  <span className="ml-auto text-green-600 text-sm font-medium">
+                                    ✓ Đáp án đúng
+                                  </span>
+                                )}
                               </div>
                             );
                           })}
@@ -188,8 +283,12 @@ export default function BookmarksPage() {
                         {/* Note */}
                         {bookmark.note && (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            <span className="text-yellow-700 text-sm font-medium">📝 Ghi chú: </span>
-                            <span className="text-yellow-800">{bookmark.note}</span>
+                            <span className="text-yellow-700 text-sm font-medium">
+                              📝 Ghi chú:{" "}
+                            </span>
+                            <span className="text-yellow-800">
+                              {bookmark.note}
+                            </span>
                           </div>
                         )}
                       </div>

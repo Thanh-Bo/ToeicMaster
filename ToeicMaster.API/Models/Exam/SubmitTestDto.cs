@@ -13,7 +13,9 @@ namespace ToeicMaster.API.Models.Exam
     }
 
     public class TestResultResponse
-    {
+    {   
+        public int ListeningScore { get; set; }
+        public int ReadingScore { get; set; }
         public int AttemptId { get; set; }
         public int TotalScore { get; set; }
         public int TotalQuestions { get; set; }

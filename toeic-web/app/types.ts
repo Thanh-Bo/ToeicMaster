@@ -79,8 +79,8 @@ export interface ResultDetail {
   testTitle: string;
   totalScore: number;
   totalQuestions: number;
-  listeningScore?: number;  // Điểm Listening (5-495)
-  readingScore?: number;    // Điểm Reading (5-495)
+  listeningScore?: number; // Điểm Listening (5-495)
+  readingScore?: number; // Điểm Reading (5-495)
   completedAt: string;
   questions: ResultQuestion[];
 }
@@ -156,6 +156,9 @@ export interface BookmarkItem {
     id: number;
     questionNo: number;
     content: string;
+    audioUrl?: string;
+    imageUrl?: string;
+    textContent?: string;
     correctOption: string;
     partNumber: number;
     partName: string;
@@ -168,12 +171,12 @@ export enum VocabularyStatus {
   New = 0,
   Learning = 1,
   Review = 2,
-  Mastered = 3
+  Mastered = 3,
 }
 
 // 2. Main Interface (Khớp 100% với C# VocabularyDto)
 export interface VocabularyItem {
-  icon : string ;
+  icon: string;
   id: number;
   word: string;
   meaning: string;
@@ -182,22 +185,22 @@ export interface VocabularyItem {
   example?: string;
   exampleTranslation?: string;
   audioUrl?: string;
-  imageUrl?: string;      // ✅ Đã khớp với C#
+  imageUrl?: string; // ✅ Đã khớp với C#
   category?: string;
   difficulty: number;
 
   // User Progress fields (Có thể null/undefined nếu user chưa học)
-  status: VocabularyStatus; 
-  nextReviewAt?: string;  // Date string ISO
+  status: VocabularyStatus;
+  nextReviewAt?: string; // Date string ISO
 }
 
 // 3. Stats Interface
 export interface VocabStats {
   totalVocabulary: number;
-  learned: number;      // status > 0
-  learning: number;     // status = 1
-  review: number;       // status = 2
-  mastered: number;     // status = 3
+  learned: number; // status > 0
+  learning: number; // status = 1
+  review: number; // status = 2
+  mastered: number; // status = 3
   dueForReview: number;
   progressPercent: number; // Đổi tên cho khớp logic tính toán (%)
 }
@@ -205,7 +208,7 @@ export interface VocabStats {
 // 4. Flashcard (Dùng cho màn hình học)
 // Kế thừa VocabularyItem, thêm cờ logic hiển thị
 export interface Flashcard extends VocabularyItem {
-  isNew: boolean;       // Helper flag UI
+  isNew: boolean; // Helper flag UI
   isDueReview: boolean; // Helper flag UI
 }
 // --------------------------------------------
@@ -262,34 +265,33 @@ export interface StreakData {
   currentStreak: number;
   longestStreak: number;
   totalActiveDays: number;
-    last7Days: { date: string; dayName: string; hasActivity: boolean }[];
-    todayActive: boolean;
-  }
-  
-  // --------------------------------------------
-  // 💬 Comment Types (Bình luận)
-  // --------------------------------------------
-  export interface Comment {
-    id: number;
-    testId: number;
-    userId: number;
-    userName: string;
-    fullName: string; 
-    userAvatar?: string | null;
-    parentCommentId?: number | null;
-    content: string;
-    createdAt: string;
-    updatedAt?: string | null;
-    likeCount: number;
-    isLikedByCurrentUser: boolean;
-    replies: Comment[];
-  }
-  
-  export interface CommentListResponse {
-    items: Comment[];
-    total: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
-  }
-  
+  last7Days: { date: string; dayName: string; hasActivity: boolean }[];
+  todayActive: boolean;
+}
+
+// --------------------------------------------
+// 💬 Comment Types (Bình luận)
+// --------------------------------------------
+export interface Comment {
+  id: number;
+  testId: number;
+  userId: number;
+  userName: string;
+  fullName: string;
+  userAvatar?: string | null;
+  parentCommentId?: number | null;
+  content: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  likeCount: number;
+  isLikedByCurrentUser: boolean;
+  replies: Comment[];
+}
+
+export interface CommentListResponse {
+  items: Comment[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}

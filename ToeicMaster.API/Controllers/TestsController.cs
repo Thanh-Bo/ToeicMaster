@@ -16,7 +16,7 @@ namespace ToeicMaster.API.Controllers
     [ApiController]
     public class TestsController : ControllerBase
     {
-        
+
         private readonly ToeicScoreService _scoreService;
         private readonly DapperContext _dapperContext;
         private readonly AppDbContext _efContext;
@@ -56,31 +56,56 @@ namespace ToeicMaster.API.Controllers
             }
         }
 
-        // 2. GET FULL (CACHE)
         [HttpGet("{id}/full")]
-        public async Task<IActionResult> GetTestFull(int id)
+        public async Task<IActionResult> GetTestFull(int id, [FromQuery] string? parts = null)
         {
-            string cacheKey = $"test_full_{id}";
-            if (_cache.TryGetValue(cacheKey, out TestDetailDto? cachedData)) return Ok(new { success = true, data = cachedData });
+            // 1. Phân tách chuỗi "1,2,5" thành danh sách số nguyên [1, 2, 5]
+            List<int> partNumbers = new List<int>();
+            if (!string.IsNullOrEmpty(parts))
+            {
+                try
+                {
+                    partNumbers = parts.Split(',').Select(int.Parse).ToList();
+                }
+                catch { return BadRequest(new { message = "Định dạng danh sách Part không hợp lệ (ví dụ đúng: 1,2,5)" }); }
+            }
 
+            // 2. Tạo Cache Key động dựa trên danh sách Part để tránh lấy nhầm dữ liệu
+            // Nếu không truyền parts, cache key là test_full_10
+            // Nếu truyền parts=1,2, cache key là test_full_10_p1,2
+            string cacheKey = $"test_full_{id}" + (partNumbers.Any() ? $"_p{string.Join(",", partNumbers)}" : "");
+
+            if (_cache.TryGetValue(cacheKey, out TestDetailDto? cachedData))
+                return Ok(new { success = true, data = cachedData });
+
+            // 3. Sửa câu lệnh SQL để thêm điều kiện lọc p.PartNumber
             var sql = @"
-                SELECT t.Id AS TestId, t.Title, t.Duration,
-                       p.Id AS PartId, p.Name AS PartName,
-                       qg.Id AS GroupId, qg.TextContent, qg.ImageUrl, qg.AudioUrl,
-                       q.Id AS QuestionId, q.QuestionNo, q.Content AS QuestionContent,
-                       a.Label, a.Content AS AnswerContent
-                FROM Tests t
-                JOIN Parts p ON t.Id = p.TestId
-                JOIN QuestionGroups qg ON p.Id = qg.PartId
-                JOIN Questions q ON qg.Id = q.GroupId
-                JOIN Answers a ON q.Id = a.QuestionId
-                WHERE t.Id = @Id
-                ORDER BY p.PartNumber, q.QuestionNo, a.Label";
+        SELECT t.Id AS TestId, t.Title, t.Duration,
+               p.Id AS PartId, p.Name AS PartName, p.PartNumber,
+               qg.Id AS GroupId, qg.TextContent, qg.ImageUrl, qg.AudioUrl,
+               q.Id AS QuestionId, q.QuestionNo, q.Content AS QuestionContent,
+               a.Label, a.Content AS AnswerContent
+        FROM Tests t
+        JOIN Parts p ON t.Id = p.TestId
+        JOIN QuestionGroups qg ON p.Id = qg.PartId
+        JOIN Questions q ON qg.Id = q.GroupId
+        JOIN Answers a ON q.Id = a.QuestionId
+        WHERE t.Id = @Id ";
+
+            // Thêm điều kiện lọc PartNumber vào SQL nếu có yêu cầu
+            if (partNumbers.Any())
+            {
+                sql += " AND p.PartNumber IN @PartNumbers ";
+            }
+
+            sql += " ORDER BY p.PartNumber, q.QuestionNo, a.Label";
 
             using (var connection = _dapperContext.CreateConnection())
             {
-                var flatData = await connection.QueryAsync<dynamic>(sql, new { Id = id });
-                if (!flatData.Any()) return NotFound(new { message = "Không tìm thấy đề thi" });
+                // Truyền tham số PartNumbers vào Dapper
+                var flatData = await connection.QueryAsync<dynamic>(sql, new { Id = id, PartNumbers = partNumbers });
+
+                if (!flatData.Any()) return NotFound(new { message = "Không tìm thấy nội dung phù hợp" });
 
                 var firstRow = flatData.First();
                 var testDetail = new TestDetailDto
@@ -92,6 +117,7 @@ namespace ToeicMaster.API.Controllers
                     {
                         Id = gPart.Key,
                         Name = gPart.First().PartName,
+                        // Chú ý mapping thêm PartNumber nếu DTO của bạn có trường này
                         Groups = gPart.GroupBy(r => r.GroupId).Select(gGroup => new GroupDto
                         {
                             Id = gGroup.Key,
@@ -108,11 +134,11 @@ namespace ToeicMaster.API.Controllers
                         }).ToList()
                     }).ToList()
                 };
+
                 _cache.Set(cacheKey, testDetail, TimeSpan.FromMinutes(30));
                 return Ok(new { success = true, data = testDetail });
             }
         }
-
         // 3. SUBMIT
         [HttpPost("submit")]
         public async Task<IActionResult> SubmitTest([FromBody] SubmitTestRequest request)

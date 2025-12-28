@@ -516,15 +516,15 @@ export default function ResultPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-linear-to-br from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-lg">
             <p className="text-blue-100 text-xs uppercase tracking-wider mb-1">Tổng điểm</p>
-            <p className="text-3xl font-extrabold">{result.totalScore}<span className="text-lg opacity-70">/{totalQuestions}</span></p>
+            <p className="text-3xl font-extrabold">{result.totalScore}<span className="text-lg opacity-70">/990</span></p>
           </div>
           <div className="bg-linear-to-br from-green-500 to-emerald-600 text-white p-5 rounded-2xl shadow-lg">
             <p className="text-green-100 text-xs uppercase tracking-wider mb-1">🎧 Listening</p>
-            <p className="text-3xl font-extrabold">{listeningCorrect}<span className="text-lg opacity-70">/{listeningQuestions.length}</span></p>
+            <p className="text-3xl font-extrabold">{listeningCorrect}<span className="text-lg opacity-70">/445</span></p>
           </div>
           <div className="bg-linear-to-br from-purple-500 to-violet-600 text-white p-5 rounded-2xl shadow-lg">
             <p className="text-purple-100 text-xs uppercase tracking-wider mb-1">📖 Reading</p>
-            <p className="text-3xl font-extrabold">{readingCorrect}<span className="text-lg opacity-70">/{readingQuestions.length}</span></p>
+            <p className="text-3xl font-extrabold">{readingCorrect}<span className="text-lg opacity-70">/445</span></p>
           </div>
           <div className="bg-linear-to-br from-orange-500 to-amber-600 text-white p-5 rounded-2xl shadow-lg">
             <p className="text-orange-100 text-xs uppercase tracking-wider mb-1">Tỉ lệ đúng</p>
