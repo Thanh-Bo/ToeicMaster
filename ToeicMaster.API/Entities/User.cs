@@ -30,9 +30,15 @@ public partial class User
 
     public DateTime? RefreshTokenExpiryTime { get; set; }
 
+    // Lưu mã 6 số (VD: "123456"). Để null vì bình thường không có mã.
+    public string? OtpCode { get; set; }
+
+    // Lưu thời gian hết hạn (VD: 10:05). Để null vì bình thường không cần.
+    public DateTime? OtpExpiryTime { get; set; }
+    
     public bool IsActive { get; set; }
 
-   
+
     public virtual ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
 
     public virtual ICollection<PracticeSession> PracticeSessions { get; set; } = new List<PracticeSession>();

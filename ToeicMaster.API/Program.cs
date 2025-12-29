@@ -19,6 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Đăng ký Swagger (Swashbuckle) để test API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ToeicScoreService>();

@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import { authService } from "../services/authService";
@@ -22,10 +28,15 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    fullName: string
+  ) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
+  loginWithGoogle: (credential: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           // Load user từ cookie trước
           setUser(JSON.parse(userCookie));
-          
+
           // Sau đó refresh từ API để đảm bảo data mới nhất
           const response = await authService.getMe();
           const userData = response.data;
@@ -74,14 +85,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    const isProtectedRoute = protectedRoutes.some(route => 
-      pathname.startsWith(route) && pathname !== "/"
+    const isProtectedRoute = protectedRoutes.some(
+      (route) => pathname.startsWith(route) && pathname !== "/"
     );
 
     if (isProtectedRoute && !user) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
   }, [user, loading, pathname, router]);
+  const loginWithGoogle = async (credential: string) => {
+    try {
+      // 1. Gọi API Backend (authService đã viết)
+      const data = await authService.loginGoogle(credential);
+
+      const { token, user: userData } = data; // Hoặc response.data tùy implement
+
+      // LƯU COOKIE THAY VÌ LOCALSTORAGE
+      Cookies.set("token", token, { expires: 7 });
+      // Google thường không trả refreshToken theo flow này, nếu có thì lưu
+      Cookies.set("user", JSON.stringify(userData), { expires: 7 });
+      setUser(data.user);
+
+      // 4. Redirect
+      router.push("/");
+    } catch (error) {
+      console.error("Google Login Error in Context:", error);
+      throw error; // Ném lỗi ra để component hiển thị
+    }
+  };
 
   const handleLogout = () => {
     Cookies.remove("token");
@@ -97,11 +128,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Cookies.set("token", token, { expires: 7 });
     Cookies.set("refreshToken", refreshToken, { expires: 7 });
     Cookies.set("user", JSON.stringify(userData), { expires: 7 });
-    
+
     setUser(userData);
   };
 
-  const register = async (email: string, password: string, fullName: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    fullName: string
+  ) => {
     await authService.register({ email, password, fullName });
   };
 
@@ -140,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshUser,
         updateUser,
+        loginWithGoogle,
       }}
     >
       {children}

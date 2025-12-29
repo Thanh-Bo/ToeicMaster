@@ -35,6 +35,8 @@ export default function ProfilePage() {
     totalTime: 0,
   });
 
+
+  
   // Init edit form when user loads
   useEffect(() => {
     if (user) {
