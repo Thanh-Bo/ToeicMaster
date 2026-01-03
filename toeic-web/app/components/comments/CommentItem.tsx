@@ -114,26 +114,26 @@ export function CommentItem({
       <div className="flex-1">
         {!isEditing ? (
           <>
-            <div className="rounded-lg bg-gray-100 p-3">
+            <div className="rounded-lg bg-gray-100 dark:bg-zinc-700 p-3">
               <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline">
-                    <span className="font-semibold text-gray-800">{comment.userName}</span>
-                    <span className="ml-3 text-xs text-gray-500">
+                    <span className="font-semibold text-gray-800 dark:text-white">{comment.userName}</span>
+                    <span className="ml-3 text-xs text-gray-500 dark:text-gray-400">
                         {formatRelativeTime(comment.createdAt)}
                         {comment.updatedAt && " (đã chỉnh sửa)"}
                     </span>
                 </div>
                  {isOwner && !isDeleting && (
                   <div className="relative" ref={menuRef}>
-                    <button onClick={() => setShowMenu(!showMenu)} className="rounded-full p-1 text-gray-500 hover:bg-gray-200">
+                    <button onClick={() => setShowMenu(!showMenu)} className="rounded-full p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600">
                       <MoreVertical size={16} />
                     </button>
                     {showMenu && (
-                      <div className="absolute right-0 z-10 mt-1 w-32 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                        <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <div className="absolute right-0 z-10 mt-1 w-32 rounded-md bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-slate-600">
+                        <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
                           <Edit size={14} className="mr-2" /> Chỉnh sửa
                         </button>
-                        <button onClick={handleDelete} className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                        <button onClick={handleDelete} className="flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700">
                           <Trash2 size={14} className="mr-2" /> Xóa
                         </button>
                       </div>
@@ -141,16 +141,16 @@ export function CommentItem({
                   </div>
                 )}
               </div>
-              <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+              <p className="mt-1 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{comment.content}</p>
             </div>
 
             {/* Actions */}
-            <div className="mt-1 flex items-center space-x-4 text-xs font-medium text-gray-500">
-              <button onClick={handleLike} className={cn("inline-flex items-center hover:text-blue-600", isLiked && "text-blue-600")}>
+            <div className="mt-1 flex items-center space-x-4 text-xs font-medium text-gray-500 dark:text-gray-400">
+              <button onClick={handleLike} className={cn("inline-flex items-center hover:text-blue-600 dark:hover:text-blue-400", isLiked && "text-blue-600 dark:text-blue-400")}>
                 <ThumbsUp size={14} className={cn("mr-1", isLiked && "fill-current")} /> {likeCount}
               </button>
               {!isReply && (
-                <button onClick={() => setIsReplying(!isReplying)} className="hover:text-gray-900">
+                <button onClick={() => setIsReplying(!isReplying)} className="hover:text-gray-900 dark:hover:text-gray-200">
                   Trả lời
                 </button>
               )}
@@ -181,7 +181,7 @@ export function CommentItem({
         
         {/* Render Replies */}
         {!isReply && comment.replies && comment.replies.length > 0 && (
-          <div className="mt-3 space-y-3 border-l-2 border-gray-200 pl-4">
+          <div className="mt-3 space-y-3 border-l-2 border-gray-200 dark:border-slate-600 pl-4">
             {comment.replies.map(reply => (
               <CommentItem
                 key={reply.id}

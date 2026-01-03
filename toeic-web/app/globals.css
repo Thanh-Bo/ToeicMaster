@@ -1,28 +1,72 @@
 @import "tailwindcss";
 
+.perspective-1000 { perspective: 1000px; }
+.transform-style-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; }
+.rotate-y-180 { transform: rotateY(180deg); }
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Light Mode Colors */
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --accent-primary: #0891b2;
+  --accent-secondary: #2563eb;
+  --bg-light: #f0f9ff;
+  
+  /* Chart Colors */
+  --chart-cyan: #06b6d4;
+  --chart-blue: #2563eb;
+  --chart-purple: #7c3aed;
+  --chart-orange: #f97316;
+  
+  /* Gradient Hero Light */
+  --gradient-hero-start: #fb7185;
+  --gradient-hero-end: #ec4899;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Only apply system preference when no explicit theme class is set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light):not(.dark) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+/* Dark mode - must come after media query to ensure it overrides */
+html.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  
+  /* Dark Mode Colors */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --accent-primary: #06b6d4;
+  --accent-secondary: #3b82f6;
+  --bg-light: #1e293b;
+  
+  /* Chart Colors - Bright for dark mode */
+  --chart-cyan: #06b6d4;
+  --chart-blue: #3b82f6;
+  --chart-purple: #a78bfa;
+  --chart-orange: #fb923c;
+  
+  /* Gradient Hero Dark */
+  --gradient-hero-start: #dc2626;
+  --gradient-hero-end: #be185d;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Fix placeholder text quá mờ - tăng độ đậm */
@@ -31,15 +75,30 @@ input::placeholder {
   opacity: 1 !important;
 }
 
+html.dark input::placeholder {
+  color: #cbd5e1 !important; /* gray-400 cho dark mode */
+}
+
 /* Fix prose text trong Reading Passage bị mờ */
 .prose {
   color: #374151 !important; /* gray-700 - text đậm hơn */
+}
+
+html.dark .prose {
+  color: #cbd5e1 !important; /* gray-400 cho dark mode */
 }
 
 .prose p,
 .prose span,
 .prose div {
   color: #1f2937 !important; /* gray-800 - dễ đọc hơn */
+  opacity: 1 !important;
+}
+
+html.dark .prose p,
+html.dark .prose span,
+html.dark .prose div {
+  color: #e2e8f0 !important; /* gray-200 cho dark mode */
   opacity: 1 !important;
 }
 

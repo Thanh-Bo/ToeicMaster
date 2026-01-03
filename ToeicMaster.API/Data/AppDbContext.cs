@@ -16,7 +16,7 @@ public partial class AppDbContext : DbContext
     {
     }
 
-   
+
     public DbSet<ScoreConversion> ScoreConversions { get; set; }
     public virtual DbSet<Answer> Answers { get; set; }
 
@@ -27,7 +27,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<QuestionGroup> QuestionGroups { get; set; }
 
     public virtual DbSet<ReviewFeedback> ReviewFeedbacks { get; set; }
-
+    public DbSet<Topic> Topics { get; set; }
+    public DbSet<WordFamily> WordFamilies { get; set; } 
     public virtual DbSet<Tag> Tags { get; set; }
 
     public virtual DbSet<Test> Tests { get; set; }
@@ -39,19 +40,19 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserAnswer> UserAnswers { get; set; }
-    
+
     public virtual DbSet<Bookmark> Bookmarks { get; set; }
-    
+
     public virtual DbSet<Vocabulary> Vocabularies { get; set; }
-    
+
     public virtual DbSet<UserVocabulary> UserVocabularies { get; set; }
-    
+
     public virtual DbSet<PracticeSession> PracticeSessions { get; set; }
-    
+
     public virtual DbSet<PracticeAnswer> PracticeAnswers { get; set; }
-    
+
     public virtual DbSet<Comment> Comments { get; set; }
-    
+
     public virtual DbSet<CommentLike> CommentLikes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -60,7 +61,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        
+
 
         modelBuilder.Entity<Answer>(entity =>
         {
@@ -282,12 +283,12 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.UserId, e.QuestionId }).IsUnique();
-            
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Bookmarks)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Question)
                 .WithMany(q => q.Bookmarks)
                 .HasForeignKey(e => e.QuestionId)
@@ -302,8 +303,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Meaning).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Pronunciation).HasMaxLength(200);
             entity.Property(e => e.PartOfSpeech).HasMaxLength(20);
-            entity.Property(e => e.Category).HasMaxLength(50);
-            
+           
+
             entity.HasOne(e => e.Question)
                 .WithMany(q => q.Vocabularies)
                 .HasForeignKey(e => e.QuestionId)
@@ -315,12 +316,12 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.UserId, e.VocabularyId }).IsUnique();
-            
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.UserVocabularies)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Vocabulary)
                 .WithMany(v => v.UserVocabularies)
                 .HasForeignKey(e => e.VocabularyId)
@@ -332,7 +333,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).HasMaxLength(20);
-            
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.PracticeSessions)
                 .HasForeignKey(e => e.UserId)
@@ -344,12 +345,12 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.SelectedOption).HasMaxLength(5);
-            
+
             entity.HasOne(e => e.Session)
                 .WithMany(s => s.PracticeAnswers)
                 .HasForeignKey(e => e.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Question)
                 .WithMany(q => q.PracticeAnswers)
                 .HasForeignKey(e => e.QuestionId)
@@ -363,21 +364,21 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.TestId);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.ParentCommentId);
-            
+
             entity.Property(e => e.Content).HasColumnType("nvarchar(max)").IsRequired();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
-            
+
             entity.HasOne(e => e.Test)
                 .WithMany(t => t.Comments)
                 .HasForeignKey(e => e.TestId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.ParentComment)
                 .WithMany(c => c.Replies)
                 .HasForeignKey(e => e.ParentCommentId)
@@ -389,14 +390,14 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.CommentId, e.UserId }).IsUnique();
-            
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(e => e.Comment)
                 .WithMany(c => c.CommentLikes)
                 .HasForeignKey(e => e.CommentId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.CommentLikes)
                 .HasForeignKey(e => e.UserId)

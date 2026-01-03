@@ -6,8 +6,8 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
 
 import { TestDetail } from "@/app/types"; // Đảm bảo bạn có type này
-import ExamRightSidebar from "@/app/components/ExamRightSidebar";
-import AnswerOption from "@/app/components/AnswerOption";
+import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
+import AnswerOption from "@/app/components/tests/AnswerOption";
 import { ListChecks, PlayCircle } from "lucide-react";
 import { testService } from "@/app/services/testService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
@@ -219,7 +219,7 @@ const formatTime = (seconds: number) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-zinc-700 mx-auto mb-4"></div>
           <p className="text-blue-600 font-bold text-lg">
             ⏳ Đang tải đề thi...
           </p>
@@ -236,13 +236,13 @@ const formatTime = (seconds: number) => {
     );
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-24 lg:pb-20 font-sans">
+    <main className="min-h-screen bg-white dark:bg-zinc-900 pb-24 lg:pb-20 font-sans">
       {/* HEADER Sticky */}
-      <header className="bg-white shadow-sm border-b border-gray-200 p-3 sticky top-0 z-50">
+      <header className="bg-white dark:bg-zinc-900 shadow-sm border-b border-gray-200 dark:border-zinc-700 p-3 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
           <Link
             href="/"
-            className="text-gray-500 hover:text-blue-600 font-medium flex items-center gap-2"
+            className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 font-medium flex items-center gap-2"
           >
             <svg
               className="w-5 h-5"
@@ -262,15 +262,15 @@ const formatTime = (seconds: number) => {
 
           {/* Center: Title + Timer (mobile) */}
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold text-gray-800 truncate max-w-50 md:max-w-md">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate max-w-50 md:max-w-md">
               {testData.title}
             </h1>
             {/* Mobile Timer Badge */}
             <div
               className={`lg:hidden px-3 py-1 rounded-full font-bold text-sm ${
                 timeLeft <= 300
-                  ? "bg-red-100 text-red-600 animate-pulse"
-                  : "bg-blue-100 text-blue-600"
+                  ? "bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 animate-pulse"
+                  : "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400"
               }`}
             >
               {durationParam === "0" ? " Đã làm: " : " Còn lại: "}
@@ -280,7 +280,7 @@ const formatTime = (seconds: number) => {
 
           {/* Right: Progress + Submit */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-400">
               <span className="font-bold text-blue-600">{answeredCount}</span>
               <span>/</span>
               <span>{totalQuestions}</span>
@@ -297,7 +297,7 @@ const formatTime = (seconds: number) => {
 
         {/* Progress Bar */}
         <div className="max-w-7xl mx-auto px-4 mt-2">
-          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-600 transition-all duration-300"
               style={{
@@ -314,7 +314,7 @@ const formatTime = (seconds: number) => {
 
       {/* Warning when time is low */}
       {durationParam !== "0" && timeLeft <= 300 && timeLeft > 0 && (
-        <div className="bg-red-500 text-white text-center py-2 text-sm font-medium animate-pulse sticky top-17.5 z-40">
+        <div className="bg-red-500 dark:bg-red-600 text-white text-center py-2 text-sm font-medium animate-pulse sticky top-17.5 z-40">
           ⚠️ Còn dưới {Math.ceil(timeLeft / 60)} phút! Hãy kiểm tra và nộp bài.
         </div>
       )}
@@ -330,20 +330,12 @@ const formatTime = (seconds: number) => {
               <div key={part.id} className="mb-12">
                 {/* Header của Part */}
                 <div className="flex items-center gap-4 mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {part.name}
                   </h2>
-                  <div className="h-1 flex-1 bg-gray-200 rounded-full"></div>
-                  {partNum <= 4 && (
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
-                      🎧 Listening
-                    </span>
-                  )}
-                  {partNum >= 5 && (
-                    <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
-                      📖 Reading
-                    </span>
-                  )}
+                  <div className="h-1 flex-1 bg-gray-200 dark:bg-zinc-700 rounded-full"></div>
+                  
+                 
                 </div>
 
                 {/* === PART 1: Photographs === */}
@@ -352,8 +344,8 @@ const formatTime = (seconds: number) => {
                     {/* Audio Player chung cho Part */}
                     {part.groups[0]?.audioUrl && (
                       <div className="sticky top-24 z-30 mb-6">
-                        <div className="bg-gray-800 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
-                          <PlayCircle className="text-green-400" />
+                        <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
+                          <PlayCircle className="text-blue-400" />
                           <span className="text-sm font-medium">
                             Part 1 Audio
                           </span>
@@ -370,10 +362,10 @@ const formatTime = (seconds: number) => {
                       {part.groups.map((group) => (
                         <div
                           key={group.id}
-                          className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+                          className="rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                         >
                           <div className="flex flex-col md:flex-row">
-                            <div className="md:w-1/2 bg-gray-50 p-4 flex items-center justify-center">
+                            <div className="md:w-1/2 bg-white dark:bg-zinc-900  p-4 flex items-center justify-center">
                               {group.imageUrl && (
                                 <img
                                   src={`${BASE_URL}${group.imageUrl}`}
@@ -382,7 +374,7 @@ const formatTime = (seconds: number) => {
                                 />
                               )}
                             </div>
-                            <div className="md:w-1/2 p-6 space-y-6">
+                            <div className="md:w-1/2 bg-white dark:bg-zinc-900 p-6 space-y-6">
                               {group.questions.map((q) => (
                                 <div
                                   key={q.id}
@@ -390,7 +382,7 @@ const formatTime = (seconds: number) => {
                                   onClick={() => setCurrentQuestionId(q.id)}
                                   className={`p-4 rounded-xl transition-all ${
                                     currentQuestionId === q.id
-                                      ? "bg-blue-50 ring-2 ring-blue-200"
+                                      ? ""
                                       : ""
                                   }`}
                                 >
@@ -399,12 +391,12 @@ const formatTime = (seconds: number) => {
                                       className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                         userAnswers[q.id]
                                           ? "bg-blue-600 text-white"
-                                          : "bg-gray-200 text-gray-700"
+                                          : "bg-zinc-700 text-gray-300"
                                       }`}
                                     >
                                       {q.questionNo}
                                     </span>
-                                    <p className="text-gray-500 text-sm">
+                                    <p className="text-gray-700 dark:text-gray-400 text-sm">
                                       Chọn đáp án đúng:
                                     </p>
                                   </div>
@@ -417,8 +409,8 @@ const formatTime = (seconds: number) => {
                                         }
                                         className={`py-2 px-4 rounded-lg border font-bold transition-all ${
                                           userAnswers[q.id] === label
-                                            ? "bg-blue-600 text-white border-blue-600"
-                                            : "hover:bg-gray-100 border-gray-300 text-gray-700"
+                                            ? "bg-blue-600 text-white "
+                                            : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
                                         }`}
                                       >
                                         {label}
@@ -440,8 +432,8 @@ const formatTime = (seconds: number) => {
                   <>
                     {part.groups[0]?.audioUrl && (
                       <div className="sticky top-24 z-30 mb-6">
-                        <div className="bg-gray-800 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
-                          <PlayCircle className="text-green-400" />
+                        <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
+                          <PlayCircle className="text-blue-400" />
                           <span className="text-sm font-medium">
                             Part 2 Audio
                           </span>
@@ -457,7 +449,7 @@ const formatTime = (seconds: number) => {
                       {part.groups.map((group) => (
                         <div
                           key={group.id}
-                          className="bg-white rounded-xl shadow-sm border p-6"
+                          className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
                         >
                           {group.questions.map((q) => (
                             <div
@@ -465,7 +457,7 @@ const formatTime = (seconds: number) => {
                               id={`question-${q.id}`}
                               onClick={() => setCurrentQuestionId(q.id)}
                               className={`p-4 rounded-lg ${
-                                currentQuestionId === q.id ? "bg-blue-50" : ""
+                                currentQuestionId === q.id ? "" : ""
                               }`}
                             >
                               <div className="flex gap-4 items-center mb-3">
@@ -473,12 +465,12 @@ const formatTime = (seconds: number) => {
                                   className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                     userAnswers[q.id]
                                       ? "bg-blue-600 text-white"
-                                      : "bg-gray-200"
+                                      : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                   }`}
                                 >
                                   {q.questionNo}
                                 </span>
-                                <span className="text-gray-500 italic text-sm">
+                                <span className="text-gray-600 dark:text-gray-400 italic text-sm">
                                   Nghe và chọn đáp án
                                 </span>
                               </div>
@@ -491,8 +483,8 @@ const formatTime = (seconds: number) => {
                                     }
                                     className={`flex-1 py-3 rounded-lg border font-bold ${
                                       userAnswers[q.id] === label
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "hover:bg-gray-50 border-gray-300"
+                                        ? "bg-blue-600 text-white border-zinc-700"
+                                        : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
                                     }`}
                                   >
                                     {label}
@@ -517,8 +509,8 @@ const formatTime = (seconds: number) => {
                     {(partNum === 3 || partNum === 4) &&
                       part.groups[0]?.audioUrl && (
                         <div className="sticky top-24 z-30 mb-6">
-                          <div className="bg-gray-800 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
-                            <PlayCircle className="text-green-400" />
+                          <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
+                            <PlayCircle className="text-blue-400" />
                             <span className="text-sm font-medium">
                               Part {partNum} Audio
                             </span>
@@ -535,12 +527,12 @@ const formatTime = (seconds: number) => {
                       {part.groups.map((group) => (
                         <div
                           key={group.id}
-                          className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+                          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                         >
                           {/* Group Context (Image/Text) */}
                           <div className="flex flex-col lg:flex-row">
                             {(group.imageUrl || group.textContent) && (
-                              <div className="lg:w-1/2 bg-gray-50 p-6 border-b lg:border-b-0 lg:border-r border-gray-200">
+                              <div className="lg:w-1/2 bg-gray-50 dark:bg-zinc-900 p-6 border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
                                 <div className="lg:sticky lg:top-36 max-h-[80vh] overflow-y-auto">
                                   {group.imageUrl && (
                                     <img
@@ -551,7 +543,7 @@ const formatTime = (seconds: number) => {
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="prose prose-sm max-w-none bg-white p-4 rounded border text-gray-800"
+                                      className="max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-sm [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
@@ -576,7 +568,7 @@ const formatTime = (seconds: number) => {
                                   onClick={() => setCurrentQuestionId(q.id)}
                                   className={`p-4 rounded-xl transition-colors ${
                                     currentQuestionId === q.id
-                                      ? "bg-blue-50 ring-2 ring-blue-200"
+                                      ? ""
                                       : ""
                                   }`}
                                 >
@@ -585,12 +577,12 @@ const formatTime = (seconds: number) => {
                                       className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                         userAnswers[q.id]
                                           ? "bg-blue-600 text-white"
-                                          : "bg-gray-200"
+                                          : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                       }`}
-                                    >
+                                    > 
                                       {q.questionNo}
                                     </span>
-                                    <p className="font-medium text-gray-800 pt-1">
+                                    <p className="font-medium text-gray-900 dark:text-white pt-1">
                                       {q.content}
                                     </p>
                                   </div>
@@ -625,7 +617,7 @@ const formatTime = (seconds: number) => {
                     {part.groups.map((group) => (
                       <div
                         key={group.id}
-                        className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6"
+                        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
                       >
                         {group.questions.map((q) => (
                           <div
@@ -634,7 +626,7 @@ const formatTime = (seconds: number) => {
                             onClick={() => setCurrentQuestionId(q.id)}
                             className={`p-4 rounded-xl transition-colors ${
                               currentQuestionId === q.id
-                                ? "bg-blue-50 ring-2 ring-blue-200"
+                                ? ""
                                 : ""
                             }`}
                           >
@@ -643,12 +635,12 @@ const formatTime = (seconds: number) => {
                                 className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                   userAnswers[q.id]
                                     ? "bg-blue-600 text-white"
-                                    : "bg-gray-200"
+                                    : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                 }`}
                               >
                                 {q.questionNo}
                               </span>
-                              <p className="font-medium text-gray-800 text-lg pt-1">
+                              <p className="font-medium text-gray-900 dark:text-white text-lg pt-1">
                                 {q.content}
                               </p>
                             </div>
@@ -696,11 +688,11 @@ const formatTime = (seconds: number) => {
       </div>
           
       {/* MOBILE BOTTOM NAV */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 shadow-lg z-50">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => setShowMobileNav(!showMobileNav)}
-            className="flex items-center gap-2 text-gray-600"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400"
           >
             <ListChecks className="w-6 h-6" />
             <span className="font-medium">
@@ -710,7 +702,7 @@ const formatTime = (seconds: number) => {
 
           <div
             className={`font-bold ${
-              timeLeft <= 300 ? "text-red-600" : "text-gray-800"
+              timeLeft <= 300 ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-white"
             }`}
           >
             {formatTime(timeLeft)}
@@ -732,10 +724,10 @@ const formatTime = (seconds: number) => {
           onClick={() => setShowMobileNav(false)}
         >
           <div
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 max-h-[70vh] overflow-y-auto"
+            className="absolute bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 rounded-t-2xl p-4 max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-bold mb-4">Danh sách câu hỏi</h3>
+            <h3 className="font-bold mb-4 text-gray-900 dark:text-white">Danh sách câu hỏi</h3>
             <ExamRightSidebar
               parts={testData?.parts || []}
               userAnswers={userAnswers}

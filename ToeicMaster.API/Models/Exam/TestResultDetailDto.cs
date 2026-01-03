@@ -3,6 +3,7 @@ namespace ToeicMaster.API.Models.Exam
 
     public class TestResultDetailDto
     {
+        public int TimeTaken { get; set; }
         public int AttemptId { get; set; }
         public int TestId { get; set; }
         public string TestTitle { get; set; }

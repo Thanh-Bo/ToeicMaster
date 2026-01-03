@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
+import dynamic from "next/dynamic";
+
+// Load ThemeToggle dynamically to ensure ThemeProvider is mounted first
+const ThemeToggle = dynamic(() => import("../common/ThemeToggle").then(mod => ({ default: mod.ThemeToggle })), {
+  ssr: false,
+  loading: () => <div className="w-9 h-9" /> // Placeholder
+});
 
 interface NavLink {
   href: string;
@@ -22,7 +29,7 @@ const defaultNavLinks: NavLink[] = [
   { href: "/vocabulary", label: "Từ vựng" },
   { href: "/bookmarks", label: "Đánh dấu" },
   { href: "/statistics", label: "Thống kê" },
-  { href: "/leaderboard", label: "Xếp hạng" },
+
   { href: "/history", label: "Lịch sử" },
 ];
 
@@ -40,11 +47,11 @@ export default function PageHeader({
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
+    <header className="bg-white/80 dark:bg-zinc-900 backdrop-blur-md shadow-sm dark:shadow-md sticky top-0 z-50 border-b border-gray-100 dark:border-zinc-700">
       <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-800 hidden sm:block">
+          <span className="text-xl font-bold text-gray-800 dark:text-white hidden sm:block">
             {logoText}
           </span>
         </Link>
@@ -56,29 +63,30 @@ export default function PageHeader({
             <Link
               key={link.href}
               href={link.href}
-              className="text-gray-600 hover:text-blue-600 font-medium text-sm hidden md:block"
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm hidden md:block"
             >
               {link.label}
             </Link>
           ))}
 
+<ThemeToggle />
           {/* User Section */}
           {user ? (
             <div className="flex items-center gap-3">
               <Link
                 href="/profile"
-                className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition"
+                className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
               >
                 <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {user.fullName?.charAt(0)?.toUpperCase() || "U"}
                 </div>
-                <span className="font-medium text-gray-700 text-sm hidden sm:block">
+                <span className="font-medium text-gray-700 dark:text-gray-200 text-sm hidden sm:block">
                   {user.fullName}
                 </span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-red-600 transition"
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
                 title="Đăng xuất"
               >
                 <svg
@@ -100,13 +108,13 @@ export default function PageHeader({
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="text-gray-600 hover:text-blue-600 font-medium text-sm px-3 py-2"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm px-3 py-2"
               >
                 Đăng nhập
               </Link>
               <Link
                 href="/register"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm shadow-md shadow-blue-200"
+                className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition font-medium text-sm shadow-md shadow-blue-200 dark:shadow-blue-900/50"
               >
                 Đăng ký miễn phí
               </Link>

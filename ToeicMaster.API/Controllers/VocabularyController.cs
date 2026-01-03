@@ -22,22 +22,201 @@ public class VocabularyController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    // ==========================================
+    // 1. NHÓM API: TOPIC & HỌC TẬP (CLIENT)
+    // ==========================================
+
     /// <summary>
-    /// Lấy danh sách từ vựng (có phân trang & filter)
+    /// Lấy danh sách Topic kèm tiến độ học
     /// </summary>
+    [HttpGet("topics")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopics()
+    {
+        // Lấy User Id an toàn (tránh lỗi nếu chưa đăng nhập)
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        int userId = userIdStr != null ? int.Parse(userIdStr) : 0;
+
+        var topics = await _context.Topics
+            .Select(t => new TopicDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Level = t.Level,
+                LevelRange = t.LevelRange,
+                ImageUrl = t.ImageUrl,
+                TotalWords = t.Vocabularies.Count,
+                // Tính số từ user đã học (Status > 0)
+                LearnedWords = userId == 0 ? 0 : t.Vocabularies
+                    .Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Status > 0))
+            })
+            .ToListAsync();
+
+        return Ok(topics);
+    }
+
+    /// <summary>
+    /// Lấy từ vựng của 1 Topic để vào học (Flashcard Mode)
+    /// </summary>
+    [HttpGet("topics/{topicId}/words")]
+    public async Task<IActionResult> GetWordsByTopic(int topicId)
+    {
+        var userId = GetUserId();
+
+        var words = await _context.Vocabularies
+            .Where(v => v.TopicId == topicId)
+            .Include(v => v.WordFamilies) // Quan trọng: Lấy WordFamily
+            .Select(v => new VocabularyDto
+            {
+                Id = v.Id,
+                Word = v.Word,
+                Meaning = v.Meaning,
+                Pronunciation = v.Pronunciation,
+                PartOfSpeech = v.PartOfSpeech,
+                Example = v.Example,
+                ExampleTranslation = v.ExampleTranslation,
+                AudioUrl = v.AudioUrl,
+                ImageUrl = v.ImageUrl,
+                TopicId = v.TopicId,
+                
+                // Map danh sách WordFamily
+                WordFamilies = v.WordFamilies.Select(wf => new WordFamilyDto 
+                { 
+                    Word = wf.Word, 
+                    PartOfSpeech = wf.PartOfSpeech, 
+                    Meaning = wf.Meaning 
+                }).ToList(),
+
+                // Lấy trạng thái học của user (0: New, 1: Learning...)
+                Status = v.UserVocabularies
+                    .Where(uv => uv.UserId == userId)
+                    .Select(uv => uv.Status)
+                    .FirstOrDefault() 
+            })
+            .ToListAsync();
+
+        return Ok(words);
+    }
+
+    /// <summary>
+    /// Lấy Flashcards ôn tập (Spaced Repetition)
+    /// </summary>
+    [HttpGet("flashcards")]
+    public async Task<IActionResult> GetFlashcards([FromQuery] int count = 20, [FromQuery] int? topicId = null)
+    {
+        var userId = GetUserId();
+        var now = DateTime.UtcNow;
+
+        // 1. Lấy từ đến hạn ôn tập (Due Review)
+        var dueReviewIds = await _context.UserVocabularies
+            .Where(uv => uv.UserId == userId && uv.NextReviewAt <= now && uv.Status < 3) // Chưa Mastered
+            .OrderBy(uv => uv.NextReviewAt)
+            .Take(count)
+            .Select(uv => uv.VocabularyId)
+            .ToListAsync();
+
+        // 2. Lấy thêm từ mới (New) nếu chưa đủ số lượng
+        var newWordIds = new List<int>();
+        int needed = count - dueReviewIds.Count;
+
+        if (needed > 0)
+        {
+            var learnedIds = await _context.UserVocabularies
+                .Where(uv => uv.UserId == userId)
+                .Select(uv => uv.VocabularyId)
+                .ToListAsync();
+
+            var query = _context.Vocabularies.AsQueryable();
+            
+            if (topicId.HasValue)
+                query = query.Where(v => v.TopicId == topicId.Value);
+
+            newWordIds = await query
+                .Where(v => !learnedIds.Contains(v.Id)) // Chưa học
+                .OrderBy(v => Guid.NewGuid()) // Random
+                .Take(needed)
+                .Select(v => v.Id)
+                .ToListAsync();
+        }
+
+        var finalIds = dueReviewIds.Concat(newWordIds).Distinct().ToList();
+
+        // Query lấy chi tiết
+        var flashcards = await _context.Vocabularies
+            .Where(v => finalIds.Contains(v.Id))
+            .Include(v => v.WordFamilies)
+            .Select(v => new VocabularyDto
+            {
+                Id = v.Id,
+                Word = v.Word,
+                Meaning = v.Meaning,
+                Pronunciation = v.Pronunciation,
+                PartOfSpeech = v.PartOfSpeech,
+                Example = v.Example,
+                ExampleTranslation = v.ExampleTranslation,
+                AudioUrl = v.AudioUrl,
+                ImageUrl = v.ImageUrl,
+                WordFamilies = v.WordFamilies.Select(wf => new WordFamilyDto 
+                { 
+                    Word = wf.Word, PartOfSpeech = wf.PartOfSpeech, Meaning = wf.Meaning 
+                }).ToList(),
+                
+                // Set trạng thái giả lập cho UI: 2 (Review) hoặc 0 (New)
+                Status = dueReviewIds.Contains(v.Id) ? 2 : 0 
+            })
+            .ToListAsync();
+
+        // Shuffle kết quả trả về
+        var shuffled = flashcards.OrderBy(x => Guid.NewGuid()).ToList();
+
+        return Ok(new { cards = shuffled, reviewCount = dueReviewIds.Count, newCount = newWordIds.Count });
+    }
+
+    /// <summary>
+    /// Cập nhật trạng thái học (Learning/Mastered)
+    /// </summary>
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
+    {
+        var userId = GetUserId();
+        var userVocab = await _context.UserVocabularies
+            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.VocabularyId == id);
+
+        if (userVocab == null)
+        {
+            userVocab = new UserVocabulary { UserId = userId, VocabularyId = id, CreatedAt = DateTime.UtcNow };
+            _context.UserVocabularies.Add(userVocab);
+        }
+
+        userVocab.Status = request.Status;
+        userVocab.LastReviewedAt = DateTime.UtcNow;
+        
+        // Logic đơn giản: Mastered = 30 ngày sau, Learning = 1 ngày sau
+        userVocab.NextReviewAt = request.Status == 3 
+            ? DateTime.UtcNow.AddDays(30) 
+            : DateTime.UtcNow.AddDays(1);
+
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Status updated" });
+    }
+
+    // ==========================================
+    // 2. NHÓM API: QUẢN LÝ (ADMIN / SEARCH)
+    // ==========================================
+
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetVocabularies(
-        [FromQuery] string? category,
+        [FromQuery] int? topicId, // Đã sửa thành int?
         [FromQuery] int? difficulty,
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var query = _context.Vocabularies.AsQueryable();
+        var query = _context.Vocabularies.Include(v => v.Topic).AsQueryable();
 
-        if (!string.IsNullOrEmpty(category))
-            query = query.Where(v => v.Category == category);
+        if (topicId.HasValue)
+            query = query.Where(v => v.TopicId == topicId.Value);
 
         if (difficulty.HasValue)
             query = query.Where(v => v.Difficulty == difficulty.Value);
@@ -51,20 +230,21 @@ public class VocabularyController : ControllerBase
             .OrderBy(v => v.Word)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(v => new
+            .Select(v => new VocabularyDto
             {
-                v.Id,
-                v.Word,
-                v.Pronunciation,
-                v.PartOfSpeech,
-                v.Meaning,
-                v.Example,
-                v.ExampleTranslation,
-                v.AudioUrl,
-                v.ImageUrl,
-                v.Category,
-                v.Difficulty,
-                v.Icon
+                Id = v.Id,
+                Word = v.Word,
+                Pronunciation = v.Pronunciation,
+                PartOfSpeech = v.PartOfSpeech,
+                Meaning = v.Meaning,
+                Example = v.Example,
+                ExampleTranslation = v.ExampleTranslation,
+                AudioUrl = v.AudioUrl,
+                ImageUrl = v.ImageUrl,
+                TopicId = v.TopicId,
+                Tocpic = v.Topic != null ? v.Topic.Title : null, // Hiển thị tên Topic
+                Difficulty = v.Difficulty,
+                Icon = v.Icon
             })
             .ToListAsync();
 
@@ -78,204 +258,6 @@ public class VocabularyController : ControllerBase
         });
     }
 
-    /// <summary>
-    /// Lấy các category từ vựng
-    /// </summary>
-    [HttpGet("categories")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetCategories()
-    {
-        var categories = await _context.Vocabularies
-            .Where(v => v.Category != null)
-            .GroupBy(v => v.Category)
-            .Select(g => new
-            {
-                Category = g.Key,
-                Count = g.Count()
-            })
-            .ToListAsync();
-
-        return Ok(categories);
-    }
-
-    /// <summary>
-    /// Lấy flashcards để học (Spaced Repetition)
-    /// </summary>
-    [HttpGet("flashcards")]
-    public async Task<IActionResult> GetFlashcards([FromQuery] int count = 20, [FromQuery] string? category = null)
-    {
-        var userId = GetUserId();
-
-        // Ưu tiên: 1. Từ chưa học, 2. Từ đến hạn review, 3. Random
-        var now = DateTime.UtcNow;
-
-        // Từ đã học của user
-        var learnedVocabIds = await _context.UserVocabularies
-            .Where(uv => uv.UserId == userId)
-            .Select(uv => uv.VocabularyId)
-            .ToListAsync();
-
-        // Từ đến hạn review
-        var dueForReview = await _context.UserVocabularies
-            .Where(uv => uv.UserId == userId && uv.NextReviewAt <= now && uv.Status < 3)
-            .OrderBy(uv => uv.NextReviewAt)
-            .Take(count / 2)
-            .Select(uv => uv.VocabularyId)
-            .ToListAsync();
-
-        // Từ mới chưa học
-        var query = _context.Vocabularies.AsQueryable();
-
-        if (!string.IsNullOrEmpty(category))
-            query = query.Where(v => v.Category == category);
-
-        var newWords = await query
-            .Where(v => !learnedVocabIds.Contains(v.Id))
-            .OrderBy(v => Guid.NewGuid())
-            .Take(count - dueForReview.Count)
-            .Select(v => v.Id)
-            .ToListAsync();
-
-        var vocabIds = dueForReview.Concat(newWords).Distinct().ToList();
-
-        var flashcards = await _context.Vocabularies
-            .Where(v => vocabIds.Contains(v.Id))
-            .Select(v => new
-            {
-                v.Id,
-                v.Word,
-                v.Pronunciation,
-                v.PartOfSpeech,
-                v.Meaning,
-                v.Example,
-                v.ExampleTranslation,
-                v.AudioUrl,
-                v.ImageUrl,
-                v.Category,
-                v.Difficulty,
-                IsNew = !learnedVocabIds.Contains(v.Id),
-                IsDueReview = dueForReview.Contains(v.Id)
-            })
-            .ToListAsync();
-
-        // Shuffle
-        var shuffled = flashcards.OrderBy(x => Guid.NewGuid()).ToList();
-
-        return Ok(new
-        {
-            cards = shuffled,
-            newCount = newWords.Count,
-            reviewCount = dueForReview.Count
-        });
-    }
-
-    /// <summary>
-    /// Cập nhật tiến độ học từ vựng
-    /// </summary>
-    [HttpPost("flashcards/{vocabId}/review")]
-    public async Task<IActionResult> ReviewFlashcard(int vocabId, [FromBody] ReviewFlashcardRequest request)
-    {
-        var userId = GetUserId();
-
-        var vocab = await _context.Vocabularies.FindAsync(vocabId);
-        if (vocab == null)
-            return NotFound(new { error = "Từ vựng không tồn tại" });
-
-        var userVocab = await _context.UserVocabularies
-            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.VocabularyId == vocabId);
-
-        if (userVocab == null)
-        {
-            userVocab = new UserVocabulary
-            {
-                UserId = userId,
-                VocabularyId = vocabId,
-                Status = 0,
-                CorrectStreak = 0,
-                ReviewCount = 0
-            };
-            _context.UserVocabularies.Add(userVocab);
-        }
-
-        userVocab.ReviewCount++;
-        userVocab.LastReviewedAt = DateTime.UtcNow;
-
-        // Spaced Repetition Algorithm (simplified)
-        if (request.Remembered)
-        {
-            userVocab.CorrectStreak++;
-
-            // Tính interval dựa trên streak
-            var intervals = new[] { 1, 3, 7, 14, 30, 60 }; // days
-            var intervalIndex = Math.Min(userVocab.CorrectStreak - 1, intervals.Length - 1);
-            var daysToAdd = intervals[Math.Max(0, intervalIndex)];
-
-            userVocab.NextReviewAt = DateTime.UtcNow.AddDays(daysToAdd);
-
-            // Update status
-            if (userVocab.CorrectStreak >= 5)
-                userVocab.Status = 3; // Mastered
-            else if (userVocab.CorrectStreak >= 3)
-                userVocab.Status = 2; // Review
-            else
-                userVocab.Status = 1; // Learning
-        }
-        else
-        {
-            userVocab.CorrectStreak = 0;
-            userVocab.Status = 1; // Back to Learning
-            userVocab.NextReviewAt = DateTime.UtcNow.AddMinutes(10); // Review soon
-        }
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            status = userVocab.Status,
-            correctStreak = userVocab.CorrectStreak,
-            nextReview = userVocab.NextReviewAt
-        });
-    }
-
-    /// <summary>
-    /// Thống kê học từ vựng
-    /// </summary>
-    [HttpGet("stats")]
-    public async Task<IActionResult> GetVocabularyStats()
-    {
-        var userId = GetUserId();
-
-        var totalVocab = await _context.Vocabularies.CountAsync();
-
-        var userStats = await _context.UserVocabularies
-            .Where(uv => uv.UserId == userId)
-            .GroupBy(uv => uv.Status)
-            .Select(g => new { Status = g.Key, Count = g.Count() })
-            .ToListAsync();
-
-        var learning = userStats.FirstOrDefault(s => s.Status == 1)?.Count ?? 0;
-        var review = userStats.FirstOrDefault(s => s.Status == 2)?.Count ?? 0;
-        var mastered = userStats.FirstOrDefault(s => s.Status == 3)?.Count ?? 0;
-        var totalLearned = learning + review + mastered;
-
-        var dueForReview = await _context.UserVocabularies
-            .CountAsync(uv => uv.UserId == userId && uv.NextReviewAt <= DateTime.UtcNow && uv.Status < 3);
-
-        return Ok(new
-        {
-            totalVocabulary = totalVocab,
-            learned = totalLearned,
-            learning,
-            review,
-            mastered,
-            dueForReview,
-            progress = totalVocab > 0 ? Math.Round((double)mastered / totalVocab * 100, 1) : 0
-        });
-    }
-
-    /// <summary>
-    /// Thêm từ vựng mới (Admin)
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> AddVocabulary([FromBody] AddVocabularyRequest request)
     {
@@ -285,17 +267,31 @@ public class VocabularyController : ControllerBase
         var vocab = new Vocabulary
         {
             Word = request.Word.Trim(),
+            Meaning = request.Meaning.Trim(),
             Pronunciation = request.Pronunciation,
             PartOfSpeech = request.PartOfSpeech,
-            Meaning = request.Meaning.Trim(),
             Example = request.Example,
             ExampleTranslation = request.ExampleTranslation,
             AudioUrl = request.AudioUrl,
             ImageUrl = request.ImageUrl,
-            Category = request.Category,
+            TopicId = request.TopicId,
             Difficulty = request.Difficulty ?? 1,
-            QuestionId = request.QuestionId
+            Icon = request.Icon
         };
+
+        // Thêm WordFamily nếu có
+        if (request.WordFamilies != null)
+        {
+            foreach (var wf in request.WordFamilies)
+            {
+                vocab.WordFamilies.Add(new WordFamily 
+                { 
+                    Word = wf.Word, 
+                    PartOfSpeech = wf.PartOfSpeech, 
+                    Meaning = wf.Meaning 
+                });
+            }
+        }
 
         _context.Vocabularies.Add(vocab);
         await _context.SaveChangesAsync();
@@ -303,37 +299,46 @@ public class VocabularyController : ControllerBase
         return Ok(new { message = "Đã thêm từ vựng", vocabId = vocab.Id });
     }
 
-    /// <summary>
-    /// Import từ vựng hàng loạt
-    /// </summary>
     [HttpPost("import")]
     public async Task<IActionResult> ImportVocabulary([FromBody] List<AddVocabularyRequest> vocabularies)
     {
         if (vocabularies == null || !vocabularies.Any())
-            return BadRequest(new { error = "Danh sách từ vựng trống" });
+            return BadRequest(new { error = "Danh sách trống" });
 
-        // 1. Lấy danh sách từ đã có trong DB để so sánh (Lấy Word chuỗi thường)
         var existingWords = await _context.Vocabularies
             .Select(v => v.Word.ToLower())
             .ToListAsync();
 
-        var newVocabs = vocabularies
-            .Where(v => !string.IsNullOrEmpty(v.Word) && !string.IsNullOrEmpty(v.Meaning))
-            .Where(v => !existingWords.Contains(v.Word!.ToLower().Trim()))
-            .Select(v => new Vocabulary
+        var newVocabs = new List<Vocabulary>();
+
+        foreach (var v in vocabularies)
+        {
+            if (string.IsNullOrEmpty(v.Word) || string.IsNullOrEmpty(v.Meaning)) continue;
+            if (existingWords.Contains(v.Word.ToLower().Trim())) continue;
+
+            var vocab = new Vocabulary
             {
-                Word = v.Word!.Trim(),
+                Word = v.Word.Trim(),
+                Meaning = v.Meaning.Trim(),
                 Pronunciation = v.Pronunciation,
                 PartOfSpeech = v.PartOfSpeech,
-                Meaning = v.Meaning!.Trim(),
                 Example = v.Example,
                 ExampleTranslation = v.ExampleTranslation,
-                AudioUrl = v.AudioUrl,
-                Category = v.Category,
-                Difficulty = v.Difficulty ?? 1,
-                Icon = v.Icon,
-            })
-            .ToList();
+                TopicId = v.TopicId,
+                Difficulty = v.Difficulty ?? 1
+            };
+
+            // Import Word Families
+            if (v.WordFamilies != null)
+            {
+                foreach(var wf in v.WordFamilies)
+                {
+                    vocab.WordFamilies.Add(new WordFamily { Word = wf.Word, PartOfSpeech = wf.PartOfSpeech, Meaning = wf.Meaning });
+                }
+            }
+
+            newVocabs.Add(vocab);
+        }
 
         if (newVocabs.Any())
         {
@@ -344,88 +349,46 @@ public class VocabularyController : ControllerBase
         return Ok(new { message = $"Đã import {newVocabs.Count} từ vựng" });
     }
 
-
-    // Cập nhật từ vựng
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")] // Giả sử có role
     public async Task<IActionResult> UpdateVocabulary(int id, [FromBody] UpdateVocabularyRequest request)
     {
         var vocab = await _context.Vocabularies.FindAsync(id);
         if (vocab == null) return NotFound();
 
-        vocab.Word = request.Word;
-        vocab.Meaning = request.Meaning;
-        // ... update các trường khác
+        vocab.Word = request.Word ?? vocab.Word;
+        vocab.Meaning = request.Meaning ?? vocab.Meaning;
+        vocab.Example = request.Example ?? vocab.Example;
+        // ... (Map các trường khác nếu cần)
+
         await _context.SaveChangesAsync();
         return Ok(new { message = "Cập nhật thành công" });
     }
 
-    // Xóa từ vựng
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteVocabulary(int id)
     {
         var vocab = await _context.Vocabularies.FindAsync(id);
         if (vocab == null) return NotFound();
 
-        // Lưu ý: Cần xóa ràng buộc UserVocabularies trước nếu không có Cascade Delete
+        // Xóa UserVocabularies liên quan trước (nếu không có Cascade DB)
+        var relatedUserVocabs = _context.UserVocabularies.Where(uv => uv.VocabularyId == id);
+        _context.UserVocabularies.RemoveRange(relatedUserVocabs);
+
         _context.Vocabularies.Remove(vocab);
         await _context.SaveChangesAsync();
         return Ok(new { message = "Xóa thành công" });
     }
-    /// <summary>
-    /// Xóa TOÀN BỘ từ vựng và tiến độ học (Chỉ Admin)
-    /// </summary>
+
     [HttpDelete("delete-all")]
-    [Authorize(Roles = "Admin")] // Quan trọng: Chỉ Admin mới được xóa
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAllVocabularies()
     {
-        try
-        {
-            // Bước 1: Xóa bảng con trước (UserVocabularies - Tiến độ học của user)
-            // Nếu không xóa bảng này trước, SQL sẽ báo lỗi khóa ngoại (Foreign Key)
-            await _context.UserVocabularies.ExecuteDeleteAsync();
-
-            // Bước 2: Xóa bảng cha (Vocabularies - Từ vựng)
-            await _context.Vocabularies.ExecuteDeleteAsync();
-
-            // Bước 3 (Tùy chọn): Reset ID về 1 (Dành cho SQL Server)
-            // Nếu bạn muốn ID bắt đầu lại từ 1, hãy chạy lệnh này. Nếu không thì bỏ qua.
-            try
-            {
-                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Vocabularies', RESEED, 0)");
-                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('UserVocabularies', RESEED, 0)");
-            }
-            catch
-            {
-                // Bỏ qua lỗi này nếu database không phải SQL Server hoặc không đủ quyền
-            }
-
-            return Ok(new { message = "Đã xóa sạch toàn bộ từ vựng và reset hệ thống." });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
+        await _context.UserVocabularies.ExecuteDeleteAsync();
+        await _context.WordFamilies.ExecuteDeleteAsync(); // Xóa bảng con trước
+        await _context.Vocabularies.ExecuteDeleteAsync();
+        return Ok(new { message = "Đã xóa sạch hệ thống từ vựng." });
     }
 
-
-    [HttpPost("reset-progress")]
-    public async Task<IActionResult> ResetProgress([FromBody] List<int> vocabIds)
-    {
-        var userId = GetUserId();
-        var items = await _context.UserVocabularies
-            .Where(uv => uv.UserId == userId && vocabIds.Contains(uv.VocabularyId))
-            .ToListAsync();
-
-        if (!items.Any()) return NotFound("Không tìm thấy dữ liệu để reset");
-
-        _context.UserVocabularies.RemoveRange(items); // Xóa hẳn để học lại như mới
-                                                      // Hoặc update về status 0 tùy logic của bạn
-
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Đã reset tiến độ học" });
-    }
-
-
+    // --- CÁC HELPER CLASSES (Để ở cuối file hoặc tách ra file riêng) ---
+    public class UpdateStatusRequest { public int Status { get; set; } }
 }

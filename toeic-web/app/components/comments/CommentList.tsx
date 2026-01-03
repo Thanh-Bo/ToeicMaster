@@ -21,7 +21,7 @@ export function CommentList({
 
   if (!comments || comments.length === 0) {
     return (
-      <div className="py-8 text-center text-gray-500">
+      <div className="py-8 text-center text-gray-500 dark:text-gray-400">
         <p className="text-lg">💬 Chưa có bình luận nào</p>
         <p className="mt-1">Hãy là người đầu tiên bình luận!</p>
       </div>

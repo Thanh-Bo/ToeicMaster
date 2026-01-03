@@ -26,13 +26,17 @@ public partial class Vocabulary
 
     public int? QuestionId { get; set; }
 
-    public string? Category { get; set; }
+    public int? TopicId { get; set; } 
+    public virtual Topic? Topic { get; set; }
 
+    // Thêm danh sách WordFamily
+    public virtual ICollection<WordFamily> WordFamilies { get; set; } = new List<WordFamily>();
+
+    public virtual ICollection<UserVocabulary> UserVocabularies { get; set; } = new List<UserVocabulary>();
     public int Difficulty { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public virtual Question? Question { get; set; }
 
-    public virtual ICollection<UserVocabulary> UserVocabularies { get; set; } = new List<UserVocabulary>();
 }

@@ -513,6 +513,9 @@ namespace ToeicMaster.API.Migrations
                     b.Property<int>("TestId")
                         .HasColumnType("int");
 
+                    b.Property<int>("TimeTaken")
+                        .HasColumnType("int");
+
                     b.Property<int>("TotalScore")
                         .HasColumnType("int");
 
@@ -527,6 +530,37 @@ namespace ToeicMaster.API.Migrations
                     b.HasIndex(new[] { "UserId" }, "IX_TestAttempts_UserId");
 
                     b.ToTable("TestAttempts");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.Topic", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LevelRange")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Topics");
                 });
 
             modelBuilder.Entity("ToeicMaster.API.Entities.Transaction", b =>
@@ -742,10 +776,6 @@ namespace ToeicMaster.API.Migrations
                     b.Property<string>("AudioUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Category")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -780,6 +810,9 @@ namespace ToeicMaster.API.Migrations
                     b.Property<int?>("QuestionId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TopicId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Word")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -789,7 +822,38 @@ namespace ToeicMaster.API.Migrations
 
                     b.HasIndex("QuestionId");
 
+                    b.HasIndex("TopicId");
+
                     b.ToTable("Vocabularies");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.WordFamily", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Meaning")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PartOfSpeech")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("VocabularyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Word")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VocabularyId");
+
+                    b.ToTable("WordFamilies");
                 });
 
             modelBuilder.Entity("QuestionTag", b =>
@@ -1029,7 +1093,24 @@ namespace ToeicMaster.API.Migrations
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("ToeicMaster.API.Entities.Topic", "Topic")
+                        .WithMany("Vocabularies")
+                        .HasForeignKey("TopicId");
+
                     b.Navigation("Question");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.WordFamily", b =>
+                {
+                    b.HasOne("ToeicMaster.API.Entities.Vocabulary", "Vocabulary")
+                        .WithMany("WordFamilies")
+                        .HasForeignKey("VocabularyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vocabulary");
                 });
 
             modelBuilder.Entity("ToeicMaster.API.Entities.Comment", b =>
@@ -1081,6 +1162,11 @@ namespace ToeicMaster.API.Migrations
                     b.Navigation("UserAnswers");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.Topic", b =>
+                {
+                    b.Navigation("Vocabularies");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.User", b =>
                 {
                     b.Navigation("Bookmarks");
@@ -1106,6 +1192,8 @@ namespace ToeicMaster.API.Migrations
             modelBuilder.Entity("ToeicMaster.API.Entities.Vocabulary", b =>
                 {
                     b.Navigation("UserVocabularies");
+
+                    b.Navigation("WordFamilies");
                 });
 #pragma warning restore 612, 618
         }

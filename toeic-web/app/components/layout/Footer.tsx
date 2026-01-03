@@ -25,13 +25,13 @@ export default function Footer({
   copyright = `© ${new Date().getFullYear()} TOEIC Master. All rights reserved.`,
 }: Props) {
   return (
-    <footer className="bg-gray-900 text-gray-400 py-12 mt-12">
+    <footer className="bg-gray-900 dark:bg-zinc-900 text-gray-400 dark:text-gray-500 py-12 mt-12 border-t border-gray-800 dark:border-zinc-800">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
            
-            <span className="text-xl font-bold text-white">TOEIC Master</span>
+            <span className="text-xl font-bold text-white dark:text-white">TOEIC Master</span>
           </div>
 
           {/* Links */}
@@ -40,7 +40,7 @@ export default function Footer({
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-300 transition text-sm"
               >
                 {link.label}
               </Link>
@@ -49,7 +49,7 @@ export default function Footer({
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+        <div className="border-t border-gray-800 dark:border-zinc-700 mt-8 pt-8 text-center text-sm text-gray-400 dark:text-gray-500">
           {copyright}
         </div>
       </div>

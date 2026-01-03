@@ -74,6 +74,9 @@ export interface ResultQuestion {
 }
 
 export interface ResultDetail {
+  timeLeft?: number; // Thời gian còn lại khi nộp bài (giây)
+  duration?: number; // Tổng thời gian quy định (phút)
+  timeTaken?: number;
   attemptId: number;
   testId: number;
   testTitle: string;
@@ -148,12 +151,14 @@ export interface PracticeHistoryItem {
 // 🔖 Bookmark Types
 // --------------------------------------------
 export interface BookmarkItem {
+  sourceTestName?: string;
   id: number;
   questionId: number;
   note: string | null;
   createdAt: string;
   question: {
     id: number;
+    groupId: number;
     questionNo: number;
     content: string;
     audioUrl?: string;
@@ -165,18 +170,25 @@ export interface BookmarkItem {
     answers: { label: string; content: string }[];
   };
 }
+// types.ts
 
-//// 1. Enum cho dễ quản lý trạng thái (Khớp với C#)
+// 1. Enum trạng thái (Giữ nguyên hoặc mapping lại theo UI mới)
 export enum VocabularyStatus {
-  New = 0,
-  Learning = 1,
-  Review = 2,
-  Mastered = 3,
+  New = 0,        // Chưa học (Màu trắng)
+  Learning = 1,   // Đang học / Hay quên (Màu vàng/cam)
+  Review = 2,     // Cần ôn tập (Màu đỏ - logic SRS)
+  Mastered = 3,   // Đã thuộc (Màu xanh)
 }
 
-// 2. Main Interface (Khớp 100% với C# VocabularyDto)
+// 2. Word Family (Mới - Cần cho mặt sau Flashcard)
+export interface WordFamily {
+  word: string;
+  partOfSpeech: string; // n, v, adj...
+  meaning?: string; // Optional
+}
+
+// 3. Main Vocabulary Item (Cập nhật)
 export interface VocabularyItem {
-  icon: string;
   id: number;
   word: string;
   meaning: string;
@@ -185,31 +197,46 @@ export interface VocabularyItem {
   example?: string;
   exampleTranslation?: string;
   audioUrl?: string;
-  imageUrl?: string; // ✅ Đã khớp với C#
-  category?: string;
-  difficulty: number;
+  imageUrl?: string;
+  
+  // Quan trọng cho bài học theo chủ đề
+  topicId?: number; 
+  
+  // Quan trọng cho Flashcard mặt sau
+  wordFamilies: WordFamily[]; 
 
-  // User Progress fields (Có thể null/undefined nếu user chưa học)
+  // User Progress
   status: VocabularyStatus;
-  nextReviewAt?: string; // Date string ISO
+  isBookmarked: boolean; // Để user bookmark từ khó
+  nextReviewAt?: string;
 }
 
-// 3. Stats Interface
+// 4. Topic (Mới - Dùng cho màn hình Home Vocabulary)
+export interface Topic {
+  id: number;
+  title: string;
+  slug?: string;
+  description?: string;
+  thumbnailUrl?: string;
+  
+  // Thông tin phân cấp
+  level: 'Basic' | 'Intermediate' | 'Advanced';
+  levelRange: string; // "0-450"
+
+  // Tiến độ
+  totalWords: number;
+  learnedWords: number; // Số từ đã Mastered hoặc Learning
+  isCompleted: boolean; // Đã xong bài Test chưa
+}
+
+// 5. VocabStats (Giữ nguyên dùng cho Dashboard)
 export interface VocabStats {
   totalVocabulary: number;
-  learned: number; // status > 0
-  learning: number; // status = 1
-  review: number; // status = 2
-  mastered: number; // status = 3
+  learned: number;
+  learning: number;
+  mastered: number;
   dueForReview: number;
-  progressPercent: number; // Đổi tên cho khớp logic tính toán (%)
-}
-
-// 4. Flashcard (Dùng cho màn hình học)
-// Kế thừa VocabularyItem, thêm cờ logic hiển thị
-export interface Flashcard extends VocabularyItem {
-  isNew: boolean; // Helper flag UI
-  isDueReview: boolean; // Helper flag UI
+  progressPercent: number;
 }
 // --------------------------------------------
 // 📊 Statistics Types (Thống kê)

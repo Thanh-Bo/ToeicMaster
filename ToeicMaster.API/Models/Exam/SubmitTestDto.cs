@@ -4,6 +4,7 @@ namespace ToeicMaster.API.Models.Exam
     {
         public int TestId { get; set; }
         public List<UserAnswerDto> Answers { get; set; } = new();
+        public int Duration { get; set; }
     }
 
     public class UserAnswerDto

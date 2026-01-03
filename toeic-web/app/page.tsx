@@ -24,7 +24,7 @@ const quickFeatures = [
   { icon: "📖", title: "Từ vựng", description: "Flashcards", href: "/vocabulary", iconBgColor: "bg-green-100" },
   { icon: "🔖", title: "Đánh dấu", description: "Câu hỏi khó", href: "/bookmarks", iconBgColor: "bg-orange-100" },
   { icon: "📊", title: "Thống kê", description: "Tiến độ học", href: "/statistics", iconBgColor: "bg-purple-100" },
-  { icon: "🏆", title: "Xếp hạng", description: "Top điểm cao", href: "/leaderboard", iconBgColor: "bg-yellow-100" },
+ 
   { icon: "📋", title: "Lịch sử", description: "Bài đã làm", href: "/history", iconBgColor: "bg-indigo-100" },
 ];
 
@@ -67,40 +67,36 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-blue-50 to-white">
+    <div className="min-h-screen  bg-blue-50  dark:bg-zinc-900 ">
       {/* HEADER */}
       <PageHeader />
 
       {/* HERO BANNER */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-700"></div>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-300 rounded-full blur-3xl"></div>
-        </div>
+        <div className="absolute inset-0  bg-blue-600  dark:bg-zinc-900 "></div>
         
         <div className="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-white/90 text-sm mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/20 dark:bg-zinc-700/40 backdrop-blur-sm px-4 py-1.5 rounded-full text-white/90 dark:text-zinc-200 text-sm mb-6">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              Miễn phí 100% • Không giới hạn
+              Giải đề miễn phí 100% • Không giới hạn
             </div>
             
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-bold text-white dark:text-white mb-4 leading-tight">
               Luyện thi TOEIC <br className="hidden md:block"/>
-              <span className="text-yellow-300">hiệu quả & thông minh</span>
+              <span className="text-blue-300 dark:text-blue-400">hiệu quả & thông minh</span>
             </h1>
             
-            <p className="text-blue-100 text-lg max-w-xl mx-auto mb-8">
+            <p className="text-blue-100 dark:text-zinc-300 text-lg max-w-xl mx-auto mb-8">
               Kho đề thi chuẩn format ETS, giải thích chi tiết bằng AI, 
               giúp bạn đạt 900+ điểm TOEIC nhanh chóng.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="#tests" className="bg-white text-blue-600 px-8 py-3 rounded-xl font-bold hover:bg-blue-50 transition shadow-lg">
+              <a href="#tests" className="bg-white dark:bg-blue-600 text-blue-600 dark:text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-700 transition shadow-lg">
                 Bắt đầu luyện thi →
               </a>
-              <Link href="/register" className="bg-white/10 backdrop-blur-sm text-white px-8 py-3 rounded-xl font-medium hover:bg-white/20 transition border border-white/30">
+              <Link href="/register" className="bg-white/10 dark:bg-zinc-700/40 backdrop-blur-sm text-white dark:text-zinc-100 px-8 py-3 rounded-xl font-medium hover:bg-white/20 dark:hover:bg-zinc-600/60 transition border border-white/30 dark:border-zinc-600">
                 Tạo tài khoản miễn phí
               </Link>
             </div>
@@ -109,16 +105,16 @@ export default function HomePage() {
           {/* Stats */}
           <div className="mt-12 grid grid-cols-3 gap-4 max-w-lg mx-auto">
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-white">{tests.length}+</div>
-              <div className="text-blue-200 text-sm">Đề thi</div>
+              <div className="text-2xl md:text-3xl font-bold text-white dark:text-white">{tests.length}+</div>
+              <div className="text-blue-200 dark:text-zinc-300 text-sm">Đề thi</div>
             </div>
-            <div className="text-center border-x border-white/20">
-              <div className="text-2xl md:text-3xl font-bold text-white">{tests.reduce((sum, t) => sum + (t.totalQuestions || 0), 0)}+</div>
-              <div className="text-blue-200 text-sm">Câu hỏi</div>
+            <div className="text-center border-x border-white/20 dark:border-zinc-600">
+              <div className="text-2xl md:text-3xl font-bold text-white dark:text-white">{tests.reduce((sum, t) => sum + (t.totalQuestions || 0), 0)}+</div>
+              <div className="text-blue-200 dark:text-zinc-300 text-sm">Câu hỏi</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-white">AI</div>
-              <div className="text-blue-200 text-sm">Giải thích</div>
+              <div className="text-2xl md:text-3xl font-bold text-white dark:text-white">AI</div>
+              <div className="text-blue-200 dark:text-zinc-300 text-sm">Giải thích</div>
             </div>
           </div>
         </div>
@@ -126,7 +122,7 @@ export default function HomePage() {
 
       {/* QUICK ACCESS FEATURES */}
       <section className="max-w-6xl mx-auto px-4 py-12 -mt-8 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="flex justify-center  gap-4">
           {quickFeatures.map((feature) => (
             <FeatureCard key={feature.href} {...feature} />
           ))}
@@ -138,20 +134,20 @@ export default function HomePage() {
         {/* Header + Filter */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">📚 Thư viện đề thi</h2>
-            <p className="text-gray-500">Chọn một đề để bắt đầu luyện tập ngay</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Thư viện đề thi</h2>
+            <p className="text-gray-500 dark:text-gray-400">Chọn một đề để bắt đầu luyện tập ngay</p>
           </div>
           
           {/* Filter Tabs */}
-          <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+          <div className="flex gap-2 bg-gray-100 dark:bg-zinc-700 p-1 rounded-lg">
             {filterTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition
                   ${filter === tab.key 
-                    ? "bg-white text-blue-600 shadow-sm" 
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm" 
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                   }`}
               >
                 {tab.label}
@@ -197,7 +193,7 @@ export default function HomePage() {
           { label: "Từ vựng", href: "/vocabulary" },
           { label: "Đánh dấu", href: "/bookmarks" },
           { label: "Thống kê", href: "/statistics" },
-          { label: "Xếp hạng", href: "/leaderboard" },
+         
           { label: "Lịch sử", href: "/history" },
         ]}
         

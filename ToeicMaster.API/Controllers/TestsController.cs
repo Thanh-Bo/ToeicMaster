@@ -164,6 +164,7 @@ namespace ToeicMaster.API.Controllers
                 TestId = request.TestId,
                 StartedAt = DateTime.UtcNow.AddMinutes(-120),
                 CompletedAt = DateTime.UtcNow,
+                TimeTaken = request.Duration,
                 Status = "COMPLETED"
             };
 
@@ -240,6 +241,7 @@ namespace ToeicMaster.API.Controllers
             var result = new TestResultDetailDto
             {
                 AttemptId = attempt.Id,
+                TimeTaken = attempt.TimeTaken,
                 TestId = attempt.TestId,
                 TestTitle = attempt.Test.Title,
                 TotalScore = attempt.TotalScore,
@@ -381,6 +383,111 @@ namespace ToeicMaster.API.Controllers
 
             return Ok(new { success = true, data = attempts });
         }
+
+        /// </summary>
+    [HttpGet("topics")]
+    public async Task<IActionResult> GetTopics()
+    {
+         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+        var topics = await _efContext.Topics
+            .Select(t => new TopicDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Level = t.Level,
+                LevelRange = t.LevelRange,
+                ImageUrl = t.ImageUrl,
+                TotalWords = t.Vocabularies.Count,
+                // Đếm số từ user đã học (có record trong UserVocabulary và status > 0)
+                LearnedWords = t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Status > 0))
+            })
+            .ToListAsync();
+
+        return Ok(topics);
+    }
+    /// <summary>
+    /// Lấy danh sách từ vựng thuộc 1 Topic (kèm WordFamily)
+    /// </summary>
+    [HttpGet("topics/{topicId}/words")]
+    public async Task<IActionResult> GetWordsByTopic(int topicId)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+
+        var words = await _efContext.Vocabularies
+            .Where(v => v.TopicId == topicId)
+            .Include(v => v.WordFamilies) // Quan trọng: Include bảng con
+            .Select(v => new VocabularyDto
+            {
+                Id = v.Id,
+                Word = v.Word,
+                Meaning = v.Meaning,
+                Pronunciation = v.Pronunciation,
+                PartOfSpeech = v.PartOfSpeech,
+                Example = v.Example,
+                ExampleTranslation = v.ExampleTranslation,
+                AudioUrl = v.AudioUrl,
+                ImageUrl = v.ImageUrl,
+                
+                // Map WordFamilies
+                WordFamilies = v.WordFamilies.Select(wf => new WordFamilyDto 
+                { 
+                    Word = wf.Word, 
+                    PartOfSpeech = wf.PartOfSpeech,
+                    Meaning = wf.Meaning 
+                }).ToList(),
+
+                // Lấy status hiện tại của user
+                Status = v.UserVocabularies
+                    .Where(uv => uv.UserId == userId)
+                    .Select(uv => uv.Status)
+                    .FirstOrDefault() // Mặc định là 0 (New) nếu null
+            })
+            .ToListAsync();
+
+        return Ok(words);
+    }
+    public class UpdateStatusRequest { public int Status { get; set; } }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateWordStatus(int id, [FromBody] UpdateStatusRequest request)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+        var userVocab = await _efContext.UserVocabularies
+            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.VocabularyId == id);
+
+        if (userVocab == null)
+        {
+            userVocab = new UserVocabulary 
+            { 
+                UserId = userId, 
+                VocabularyId = id, 
+                CreatedAt = DateTime.UtcNow 
+            };
+            _efContext.UserVocabularies.Add(userVocab);
+        }
+
+        userVocab.Status = request.Status; // 1: Learning, 3: Mastered
+        userVocab.LastReviewedAt = DateTime.UtcNow;
+        
+        // Nếu set là Mastered, có thể đẩy ngày review ra xa
+        if (request.Status == 3) 
+            userVocab.NextReviewAt = DateTime.UtcNow.AddDays(30);
+        else 
+            userVocab.NextReviewAt = DateTime.UtcNow.AddDays(1);
+
+        await _efContext.SaveChangesAsync();
+        return Ok(new { message = "Status updated" });
+    }
+
     }
 }
 

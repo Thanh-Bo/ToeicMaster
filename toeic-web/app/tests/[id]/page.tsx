@@ -76,8 +76,9 @@ export default function TestOverviewPage() {
   if (loading) return <div className="p-10 text-center">Đang tải thông tin...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 px-4 py-10">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl border border-gray-100 dark:border-zinc-700 overflow-hidden">
         {/* Header */}
         <div className="bg-blue-600 p-8 text-white">
           <Link href="/" className="text-blue-100 hover:text-white mb-4 inline-block">
@@ -91,10 +92,10 @@ export default function TestOverviewPage() {
           {/* Chọn Parts */}
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">Chọn phần luyện tập</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white">Chọn phần luyện tập</h3>
               <button 
                 onClick={handleToggleAll}
-                className="text-sm text-blue-600 font-semibold hover:underline"
+                className="text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline"
               >
                 {toggleAll ? "Bỏ chọn tất cả" : "Chọn tất cả"}
               </button>
@@ -105,8 +106,8 @@ export default function TestOverviewPage() {
                   key={part.id} 
                   className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedParts.includes(part.id) 
-                    ? "border-blue-500 bg-blue-50" 
-                    : "border-gray-100 hover:border-gray-200"
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-600" 
+                    : "border-gray-100 dark:border-zinc-700 hover:border-gray-200 dark:hover:border-zinc-600"
                   }`}
                 >
                   <input
@@ -116,7 +117,7 @@ export default function TestOverviewPage() {
                     className="hidden"
                   />
                   <span className={`w-6 h-6 rounded-md border-2 flex items-center justify-center mr-3 ${
-                    selectedParts.includes(part.id) ? "bg-blue-600 border-blue-600" : "border-gray-300"
+                    selectedParts.includes(part.id) ? "bg-blue-600 border-blue-600" : "border-gray-300 dark:border-zinc-600"
                   }`}>
                     {selectedParts.includes(part.id) && (
                       <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,7 +125,7 @@ export default function TestOverviewPage() {
                       </svg>
                     )}
                   </span>
-                  <span className="font-medium text-gray-700">{part.name}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{part.name}</span>
                 </label>
               ))}
             </div>
@@ -132,7 +133,7 @@ export default function TestOverviewPage() {
 
           {/* Chọn Thời gian */}
           <div>
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Giới hạn thời gian</h3>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Giới hạn thời gian</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {DURATIONS.map((d) => (
                 <button
@@ -141,7 +142,7 @@ export default function TestOverviewPage() {
                   className={`p-3 rounded-xl border-2 text-sm font-bold transition-all ${
                     duration === d.value 
                     ? "border-blue-600 bg-blue-600 text-white shadow-lg" 
-                    : "border-gray-100 text-gray-600 hover:border-gray-200"
+                    : "border-gray-100 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:border-gray-200 dark:hover:border-zinc-600"
                   }`}
                 >
                   {d.label}
@@ -155,15 +156,16 @@ export default function TestOverviewPage() {
             onClick={handleStart}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl text-xl shadow-xl transition-all transform hover:-translate-y-1 active:scale-95"
           >
-            BẮT ĐẦU LÀM BÀI 🚀
+            BẮT ĐẦU LÀM BÀI 
           </button>
+        </div>
         </div>
       </div>
 
       {/* Phần bình luận */}
       <div className="mt-10">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">Thảo luận về đề thi</h3>
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Thảo luận về đề thi</h3>
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-700 p-6">
           <CommentSection testId={testId} />
         </div>
       </div>

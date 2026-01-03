@@ -1,328 +1,574 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { bookmarkService, BookmarkItem } from "../services/bookmarkService";
+import {
+  Trash2,
+  Filter,
+  Calendar,
+  ArrowUpDown,
+  BookOpen,
+  PlayCircle,
+  X,
+  Edit,
+} from "lucide-react";
+import SidebarFilterItem from "../components/boomarks/SidebarFilterItem";
+import BookmarkNoteModal from "../components/boomarks/BookmarkNoteModal";
+import ReviewTestModal from "../components/boomarks/ReviewTestModal";
+import ReviewSetupModal from "../components/boomarks/ReviewSetupModal";
 
 export default function BookmarksPage() {
+  const router = useRouter();
+
+  // --- STATE ---
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
+  const [stats, setStats] = useState<{
+    total: number;
+    parts: Record<number, number>;
+  }>({ total: 0, parts: {} });
   const [loading, setLoading] = useState(true);
+
+  // Filter States
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedPart, setSelectedPart] = useState<number | null>(null);
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [selectedDate, setSelectedDate] = useState<string>(""); // Lưu ngày dạng YYYY-MM-DD
+
+  // UI States
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [removing, setRemoving] = useState<number | null>(null);
 
+  const [editModalData, setEditModalData] = useState<{
+    questionId: number;
+    note: string;
+  } | null>(null);
+
+
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
+  const [isTestOpen, setIsTestOpen] = useState(false);
+  const [reviewQuestions, setReviewQuestions] = useState<BookmarkItem[]>([]);
+
+  // Handler khi bấm nút "Ôn tập ngẫu nhiên" trên Toolbar
+  const handleOpenReview = () => {
+    // Logic "Thông minh": Nếu chưa chọn gì -> Có thể alert nhắc nhở hoặc mặc định là All
+    // Ở đây ta cứ mở Modal Setup lên, nó sẽ tự fetch theo filter hiện tại
+    setIsSetupOpen(true);
+  };
+
+  // Handler khi bấm "Bắt đầu ôn" trong Setup Modal
+  const handleStartReviewSession = (selectedQuestions: BookmarkItem[]) => {
+    setReviewQuestions(selectedQuestions);
+    setIsSetupOpen(false); // Đóng setup
+    setIsTestOpen(true);   // Mở bài test
+  };
+
+  const handleUpdateNote = async (newNote: string) => {
+    if (!editModalData) return;
+
+    // 1. Gọi API (Dùng hàm add vì backend hỗ trợ update nếu đã tồn tại)
+    try {
+      await bookmarkService.add(editModalData.questionId, newNote);
+
+      // 2. Cập nhật giao diện ngay lập tức (Optimistic Update)
+      setBookmarks((prev) =>
+        prev.map((b) =>
+          b.questionId === editModalData.questionId
+            ? { ...b, note: newNote } // Thay note cũ bằng note mới
+            : b
+        )
+      );
+
+      // 3. Đóng modal
+      setEditModalData(null);
+    } catch (error) {
+      console.error("Lỗi cập nhật note:", error);
+      alert("Không thể cập nhật ghi chú");
+    }
+  };
+  // --- 1. Load Stats (Chỉ chạy 1 lần khi mount) ---
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await bookmarkService.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Lỗi tải thống kê:", error);
+      }
+    };
+    fetchStats();
+  }, [bookmarks.length]); // Reload stats nếu số lượng bookmark thay đổi
+
+  // --- 2. Load Bookmarks (Chạy khi filter thay đổi) ---
   useEffect(() => {
     loadBookmarks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, selectedPart, sortOrder, selectedDate]);
 
   const loadBookmarks = async () => {
+    setLoading(true);
     try {
-      const data = await bookmarkService.getBookmarks(page, 20);
+      // Xử lý ngày: Nếu chọn ngày cụ thể, tạo range từ 00:00 đến 23:59
+      let fromDate, toDate;
+      if (selectedDate) {
+        fromDate = `${selectedDate}T00:00:00`;
+        toDate = `${selectedDate}T23:59:59`;
+      }
+
+      const data = await bookmarkService.getBookmarks(
+        page,
+        20,
+        selectedPart,
+        sortOrder,
+        fromDate,
+        toDate
+      );
       setBookmarks(data.items);
       setTotalPages(data.totalPages);
     } catch (error) {
-      console.error("Failed to load bookmarks:", error);
+      console.error("Lỗi tải bookmark:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemove = async (questionId: number) => {
-    if (!confirm("Bạn có chắc muốn xóa bookmark này?")) return;
+  // --- HELPER: Format Date & Time ---
+  const formatDateTime = (isoString: string) => {
+    const date = new Date(isoString);
+    // Format ngày: 12/02/2024
+    const dateStr = date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    // Format giờ: 14:20
+    const timeStr = date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
+    return { dateStr, timeStr };
+  };
+
+  // --- HANDLERS ---
+  const handleRemove = async (questionId: number) => {
+    if (!confirm("Xóa câu hỏi này khỏi bookmark?")) return;
     setRemoving(questionId);
     try {
       await bookmarkService.remove(questionId);
       setBookmarks((prev) => prev.filter((b) => b.questionId !== questionId));
+      // Cập nhật lại stats ở client luôn cho mượt (optional)
     } catch (error) {
-      console.error("Failed to remove bookmark:", error);
+      alert("Xóa thất bại");
     } finally {
       setRemoving(null);
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const handleRemoveAll = async () => {
+    if (!confirm("CẢNH BÁO: Xóa TẤT CẢ bookmark?")) return;
+    setLoading(true);
+    try {
+      await bookmarkService.removeAll();
+      setBookmarks([]);
+      setStats({ total: 0, parts: {} });
+    } catch (error) {
+      alert("Lỗi khi xóa tất cả");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-yellow-50 to-orange-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-linear-to-br from-yellow-50 to-orange-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 font-sans">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
-              🔖 Câu hỏi đã lưu
+            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-2">
+              <button
+                onClick={() => router.push("/")}
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+              >
+                Trang chủ
+              </button>
+              <span>/</span>
+              <span>Bookmarks</span>
+            </div>
+            <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white flex items-center gap-2">
+              <BookOpen className="text-blue-600 dark:text-blue-400" /> Kho lưu trữ
+              <span className="text-lg bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full">
+                {stats.total} câu
+              </span>
             </h1>
-            <p className="text-gray-600 mt-1">
-              {bookmarks.length > 0
-                ? `Bạn đã đánh dấu ${bookmarks.length} câu hỏi`
-                : "Đánh dấu câu hỏi khó để ôn lại sau"}
-            </p>
           </div>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition text-gray-700"
+
+          <button
+            disabled={bookmarks.length === 0}
+            onClick={handleOpenReview}
+            className=" bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg  transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ← Trang chủ
-          </Link>
+            <PlayCircle size={20} /> Ôn tập ngẫu nhiên
+          </button>
         </div>
 
-        {bookmarks.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">🔖</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Chưa có bookmark nào
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Khi làm bài, bạn có thể đánh dấu những câu hỏi khó để ôn lại sau
-            </p>
-            <Link
-              href="/tests"
-              className="inline-block px-6 py-3 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 transition"
-            >
-              Làm bài thi thử
-            </Link>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* --- LEFT SIDEBAR (FILTERS & STATS) --- */}
+          <div className="lg:w-1/4">
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-4 sticky top-24">
+              <h3 className="font-bold text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-4 px-2">
+                Bộ lọc kỹ năng
+              </h3>
+
+              <SidebarFilterItem
+                label="Tất cả"
+                partNum={null}
+                count={stats.total}
+                isActive={selectedPart === null}
+                onClick={setSelectedPart}
+                icon={<Filter size={16} />}
+              />
+
+              <div className="my-3 border-t border-gray-100 dark:border-slate-700"></div>
+
+              <div className="space-y-1">
+                <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-1 uppercase">
+                  Listening
+                </h4>
+                {[1, 2, 3, 4].map((num) => (
+                  <SidebarFilterItem
+                    key={num}
+                    label={`Part ${num}`}
+                    partNum={num}
+                    count={stats.parts[num] || 0} // Show số lượng từ API
+                    isActive={selectedPart === num}
+                    onClick={setSelectedPart}
+                  />
+                ))}
+              </div>
+
+              <div className="space-y-1 mt-4">
+                <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-1 uppercase">
+                  Reading
+                </h4>
+                {[5, 6, 7].map((num) => (
+                  <SidebarFilterItem
+                    key={num}
+                    label={`Part ${num}`}
+                    partNum={num}
+                    count={stats.parts[num] || 0}
+                    isActive={selectedPart === num}
+                    onClick={setSelectedPart}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-        ) : (
-          <>
-            {/* Bookmarks List */}
-            <div className="space-y-4">
-              {bookmarks.map((bookmark) => (
-                <div
-                  key={bookmark.id}
-                  className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition"
-                >
-                  {/* Header */}
-                  <div
-                    className="p-5 cursor-pointer"
-                    onClick={() =>
-                      setExpandedId(
-                        expandedId === bookmark.id ? null : bookmark.id
-                      )
-                    }
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4">
-                        <span className="w-10 h-10 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center font-bold shrink-0">
-                          {bookmark.question.questionNo}
-                        </span>
-                        <div className="flex-1">
-                          <p className="text-gray-800 line-clamp-2">
-                            {bookmark.question.content || "Câu hỏi nghe"}
-                          </p>
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              Part {bookmark.question.partNumber}
-                            </span>
-                            <span className="text-gray-400 text-xs">
-                              Lưu: {formatDate(bookmark.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemove(bookmark.questionId);
-                          }}
-                          disabled={removing === bookmark.questionId}
-                          className="p-2 text-gray-400 hover:text-red-500 transition disabled:opacity-50"
-                        >
-                          {removing === bookmark.questionId ? (
-                            <svg
-                              className="animate-spin h-5 w-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          )}
-                        </button>
-                        <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform ${
-                            expandedId === bookmark.id ? "rotate-180" : ""
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
+
+          {/* --- MAIN CONTENT --- */}
+          <div className="lg:w-3/4">
+            {/* Toolbar: Date & Sort */}
+            <div className="bg-white dark:bg-zinc-800 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                {/* Date Picker Section */}
+                <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-600">
+                  <Calendar size={18} className="text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Ngày lưu:
+                  </span>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="bg-transparent text-sm outline-none text-gray-800 dark:text-white"
+                  />
+                  {selectedDate && (
+                    <button
+                      onClick={() => setSelectedDate("")}
+                      className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-zinc-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-600">
+                    <ArrowUpDown size={16} />
+                    <select
+                      value={sortOrder}
+                      onChange={(e) =>
+                        setSortOrder(e.target.value as "newest" | "oldest")
+                      }
+                      className="bg-transparent border-none outline-none text-sm cursor-pointer dark:text-white"
+                    >
+                      <option value="newest">Mới nhất</option>
+                      <option value="oldest">Cũ nhất</option>
+                    </select>
                   </div>
 
-                  {/* Expanded Content */}
-                  {expandedId === bookmark.id && (
-                    <div className="px-5 pb-5 pt-0 border-t bg-gray-50">
-                      <div className="pt-4">
-                        <div className="mb-4">
-                          {/* Nếu là Part 1, 3, 4 có ảnh */}
-                          {bookmark.question.imageUrl && (
-                            <img
-                              src={`http://localhost:5298${bookmark.question.imageUrl}`}
-                              className="max-w-md rounded-lg mb-3 border"
-                              alt="Question context"
-                            />
-                          )}
+                  {bookmarks.length > 0 && (
+                    <button
+                      onClick={handleRemoveAll}
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition"
+                      title="Xóa tất cả"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
 
-                          {/* Nếu là Listening */}
-                          {bookmark.question.audioUrl && (
-                            <div className="bg-white p-3 rounded-lg border mb-3">
-                              <p className="text-xs font-bold text-gray-400 mb-1 uppercase">
-                                Nghe lại:
-                              </p>
-                              <audio
-                                controls
-                                src={`http://localhost:5298${bookmark.question.audioUrl}`}
-                                className="w-full h-10"
-                              />
-                            </div>
-                          )}
-
-                          {/* Nếu là Part 6, 7 có đoạn văn */}
-                          {bookmark.question.textContent && (
+            {/* List */}
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 dark:border-blue-400 border-t-transparent"></div>
+              </div>
+            ) : bookmarks.length === 0 ? (
+              <div className="text-center py-20 bg-white dark:bg-zinc-800 rounded-2xl border border-dashed border-gray-300 dark:border-zinc-700">
+                <div className="text-6xl mb-4">📭</div>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                  Không có dữ liệu
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {selectedDate
+                    ? `Không có bookmark nào trong ngày ${
+                        formatDateTime(selectedDate).dateStr
+                      }`
+                    : "Chưa có bookmark nào."}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {bookmarks.map((item) => {
+                  const { dateStr, timeStr } = formatDateTime(item.createdAt);
+                  return (
+                    <div
+                      key={item.id}
+                      className={`bg-white dark:bg-zinc-800 rounded-xl border transition-all duration-200 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-zinc-900
+                            ${
+                              expandedId === item.id
+                                ? "ring-2 ring-blue-400 dark:ring-blue-500 border-transparent shadow-lg"
+                                : "border-gray-200 dark:border-slate-700"
+                            }
+                            `}
+                    >
+                      <div
+                        className="p-5 cursor-pointer"
+                        onClick={() =>
+                          setExpandedId(expandedId === item.id ? null : item.id)
+                        }
+                      >
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex gap-4 flex-1">
                             <div
-                              className="bg-white p-4 rounded-lg border text-sm text-gray-700 mb-3 max-h-60 overflow-y-auto prose prose-sm"
-                              dangerouslySetInnerHTML={{
-                                __html: bookmark.question.textContent,
-                              }}
-                            />
-                          )}
-                        </div>
-                        {/* Answers */}
-                        <div className="space-y-2 mb-4">
-                          {bookmark.question.answers.map((answer) => {
-                            const isCorrect =
-                              answer.label.toUpperCase() ===
-                              bookmark.question.correctOption?.toUpperCase();
-                            return (
-                              <div
-                                key={answer.label}
-                                className={`flex items-center gap-3 p-3 rounded-lg ${
-                                  isCorrect
-                                    ? "bg-green-50 border border-green-200"
-                                    : "bg-white border"
-                                }`}
-                              >
-                                <span
-                                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold ${
-                                    isCorrect
-                                      ? "bg-green-500 text-white"
-                                      : "bg-gray-200 text-gray-600"
-                                  }`}
-                                >
-                                  {answer.label}
-                                </span>
-                                <span
-                                  className={
-                                    isCorrect
-                                      ? "text-green-700"
-                                      : "text-gray-700"
-                                  }
-                                >
-                                  {answer.content}
-                                </span>
-                                {isCorrect && (
-                                  <span className="ml-auto text-green-600 text-sm font-medium">
-                                    ✓ Đáp án đúng
+                              className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 font-bold border
+                                            ${
+                                              item.question.partNumber <= 4
+                                                ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700"
+                                                : "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+                                            }
+                                        `}
+                            >
+                              <span className="text-[10px] uppercase">
+                                Part
+                              </span>
+                              <span className="text-lg leading-none">
+                                {item.question.partNumber}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                {/* Hiển thị Ngày và Giờ riêng biệt */}
+                                <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-700 px-2 py-0.5 rounded">
+                                  <Calendar size={12} />
+                                  <span>{dateStr}</span>
+                                  <span className="w-1 h-1 bg-gray-400 dark:bg-zinc-600 rounded-full"></span>
+                                  <span className="text-gray-700 dark:text-gray-300 font-bold">
+                                    {timeStr}
+                                  </span>
+                                </div>
+
+                                {item.sourceTestName && (
+                                  <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-700 truncate max-w-[150px]">
+                                    {item.sourceTestName}
                                   </span>
                                 )}
                               </div>
-                            );
-                          })}
-                        </div>
+                              <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">
+                                Câu {item.question.questionNo} :{" "}
+                                {item.question.content ||
+                                  "(Câu hỏi hình ảnh/âm thanh)"}
+                              </h4>
+                              {/* --- PHẦN HIỂN THỊ NOTE & NÚT EDIT (ĐÃ SỬA) --- */}
+                              {item.note && (
+                                <div className="mt-2 flex items-center gap-2 group">
+                                  <p className="text-sm text-yellow-800 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900 px-3 py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700 flex items-center gap-2">
+                                    <span> {item.note}</span>
+                                  </p>
 
-                        {/* Note */}
-                        {bookmark.note && (
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            <span className="text-yellow-700 text-sm font-medium">
-                              📝 Ghi chú:{" "}
-                            </span>
-                            <span className="text-yellow-800">
-                              {bookmark.note}
-                            </span>
+                                  {/* Nút Bút Chì */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Chặn click lan ra ngoài (để không mở accordion)
+                                      setEditModalData({
+                                        questionId: item.questionId,
+                                        note: item.note || "",
+                                      });
+                                    }}
+                                    className="p-1.5 text-gray-400 dark:text-gray-500 bg-blue-50 dark:bg-blue-900 rounded-full transition opacity-100"
+                                    title="Sửa ghi chú"
+                                  >
+                                    <Edit size={14} />
+                                  </button>
+                                </div>
+                              )}
+                              {/* Nếu chưa có note thì hiện nút thêm (Optional) */}
+                              {!item.note && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditModalData({
+                                      questionId: item.questionId,
+                                      note: "",
+                                    });
+                                  }}
+                                  className="mt-2 text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition"
+                                >
+                                  <Edit size={12} /> Thêm ghi chú
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemove(item.questionId);
+                            }}
+                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-full transition"
+                          >
+                            {removing === item.questionId ? (
+                              <div className="animate-spin h-4 w-4 border-2 border-red-500 dark:border-red-400 border-t-transparent rounded-full" />
+                            ) : (
+                              <Trash2 size={18} />
+                            )}
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Expanded Content (Details) - Phần này giữ nguyên như cũ */}
+                      {expandedId === item.id && (
+                        <div className="px-5 pb-5 pt-2 border-t border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 rounded-b-xl">
+                          {/* Nội dung chi tiết câu hỏi (copy lại phần render Audio/Image/Text/Answers như cũ) */}
+                          {item.question.imageUrl && (
+                            <img
+                              src={`http://localhost:5298${item.question.imageUrl}`}
+                              className="max-w-xs rounded-lg border shadow-sm mb-4 mt-2"
+                              alt="Q"
+                            />
+                          )}
+                          {item.question.audioUrl && (
+                            <audio
+                              controls
+                              className="w-full h-8 mb-4 mt-2"
+                              src={`http://localhost:5298${item.question.audioUrl}`}
+                            />
+                          )}
+                          {item.question.textContent && (
+                            <div
+                              className="mb-4 p-4 bg-white dark:bg-zinc-700 rounded border border-gray-200 dark:border-zinc-600 text-sm text-gray-800 dark:text-gray-100 max-h-40 overflow-y-auto"
+                              dangerouslySetInnerHTML={{
+                                __html: item.question.textContent,
+                              }}
+                            />
+                          )}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {item.question.answers.map((ans) => {
+                              const isCorrect =
+                                ans.label === item.question.correctOption;
+                              return (
+                                <div
+                                  key={ans.label}
+                                  className={`p-3 rounded-lg border flex gap-3 items-center ${
+                                    isCorrect
+                                      ? "bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200"
+                                      : "bg-white dark:bg-zinc-700 border-gray-200 dark:border-zinc-600 text-gray-600 dark:text-gray-300"
+                                  }`}
+                                >
+                                  <span
+                                    className={`font-bold w-6 h-6 flex items-center justify-center rounded ${
+                                      isCorrect
+                                        ? "bg-green-600 dark:bg-green-700 text-white"
+                                        : "bg-gray-200 dark:bg-zinc-700 dark:text-gray-400"
+                                    }`}
+                                  >
+                                    {ans.label}
+                                  </span>
+                                  <span>{ans.content}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-8">
                 <button
-                  onClick={() => setPage(page - 1)}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md transition"
+                  className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
                 >
-                  ←
+                  Trước
                 </button>
-                <span className="px-4 py-2 bg-white rounded-lg shadow">
+                <span className="px-4 py-2 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400 font-bold rounded border border-blue-200 dark:border-blue-700">
                   {page} / {totalPages}
                 </span>
                 <button
-                  onClick={() => setPage(page + 1)}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-white rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md transition"
+                  className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
                 >
-                  →
+                  Sau
                 </button>
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
+      <BookmarkNoteModal
+        isOpen={!!editModalData} // Mở khi có data
+        onClose={() => setEditModalData(null)}
+        onSave={handleUpdateNote}
+        defaultNote={editModalData?.note || ""}
+      />
+
+      <ReviewSetupModal 
+          isOpen={isSetupOpen}
+          onClose={() => setIsSetupOpen(false)}
+          currentPart={selectedPart}
+          currentSort={sortOrder}
+          fromDate={selectedDate ? `${selectedDate}T00:00:00` : undefined}
+          toDate={selectedDate ? `${selectedDate}T23:59:59` : undefined}
+          onStartReview={handleStartReviewSession}
+       />
+
+       <ReviewTestModal
+          isOpen={isTestOpen}
+          onClose={() => setIsTestOpen(false)}
+          questions={reviewQuestions}
+       />
+
     </div>
+    
   );
 }

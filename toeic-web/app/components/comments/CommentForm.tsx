@@ -74,8 +74,8 @@ export function CommentForm({
   
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center rounded-lg border-2 border-dashed bg-gray-50 p-6 text-center text-gray-500">
-        <a href="/login" className="font-semibold text-blue-600 hover:underline">
+      <div className="flex items-center justify-center rounded-lg border-2 border-dashed bg-gray-50 dark:bg-zinc-800 dark:border-slate-700 p-6 text-center text-gray-500 dark:text-gray-400">
+        <a href="/login" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
           Đăng nhập
         </a>
         &nbsp;để tham gia thảo luận.
@@ -97,8 +97,8 @@ export function CommentForm({
             onFocus={handleFocus}
             placeholder={placeholder}
             className={cn(
-              "w-full resize-none overflow-hidden rounded-lg border-gray-300 shadow-sm transition-all",
-              "focus:border-blue-500 focus:ring-blue-500",
+              "w-full resize-none overflow-hidden rounded-lg border bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border-gray-300 dark:border-slate-600 shadow-sm transition-all",
+              "focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400",
               !isFocused && "min-h-[42px] cursor-pointer",
               isFocused && "min-h-[80px]"
             )}
@@ -110,7 +110,7 @@ export function CommentForm({
             <button
               type="button"
               onClick={handleCancel}
-              className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-slate-500"
             >
               Hủy
             </button>
@@ -118,9 +118,9 @@ export function CommentForm({
               type="submit"
               disabled={!content.trim() || isSubmitting}
               className={cn(
-                "inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm",
-                "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                "disabled:cursor-not-allowed disabled:bg-blue-300"
+                "inline-flex items-center justify-center rounded-md bg-blue-600 dark:bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm",
+                "hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-offset-2 dark:focus:ring-offset-slate-800",
+                "disabled:cursor-not-allowed disabled:bg-blue-300 dark:disabled:bg-blue-900"
               )}
             >
               {isSubmitting ? (

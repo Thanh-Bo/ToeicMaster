@@ -5,6 +5,7 @@ namespace ToeicMaster.API.Entities;
 
 public partial class TestAttempt
 {
+    public int TimeTaken { get; set; }
     public int Id { get; set; }
 
     public int UserId { get; set; }
