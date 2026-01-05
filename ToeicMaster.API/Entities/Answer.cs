@@ -12,6 +12,7 @@ public partial class Answer
     public string? Label { get; set; }
 
     public string? Content { get; set; }
+    public bool? IsCorrect { get; set; }
 
     public virtual Question Question { get; set; } = null!;
 }

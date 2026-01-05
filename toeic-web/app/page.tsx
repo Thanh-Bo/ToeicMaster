@@ -131,29 +131,10 @@ export default function HomePage() {
 
       {/* DANH SÁCH ĐỀ THI */}
       <section id="tests" className="max-w-6xl mx-auto px-4 py-12">
-        {/* Header + Filter */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Thư viện đề thi</h2>
-            <p className="text-gray-500 dark:text-gray-400">Chọn một đề để bắt đầu luyện tập ngay</p>
-          </div>
-          
-          {/* Filter Tabs */}
-          <div className="flex gap-2 bg-gray-100 dark:bg-zinc-700 p-1 rounded-lg">
-            {filterTabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition
-                  ${filter === tab.key 
-                    ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm" 
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        {/* Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Thư viện đề thi</h2>
+          <p className="text-gray-500 dark:text-gray-400">Chọn một đề để bắt đầu luyện tập ngay</p>
         </div>
 
         {/* Test Cards */}

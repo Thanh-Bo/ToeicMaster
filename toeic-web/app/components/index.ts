@@ -18,6 +18,6 @@ export * from "./exam";
 // Individual components (legacy)
 export { default as AnswerOption } from "./tests/AnswerOption";
 export { default as ExamRightSidebar } from "./tests/ExamRightSidebar";
-export { QuestionItem } from "./QuestionItem";
+
 export { default as ResultRightSidebar } from "./results/ResultRightSidebar";
 // export { default as SaveVocabularyModal } from "./SaveVocabularyModal";

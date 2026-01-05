@@ -2,6 +2,7 @@
 import { useState } from 'react';
 
 import { Volume2, RotateCw, Bookmark } from 'lucide-react';
+import { VocabWord } from '@/app/types';
 
 interface Props {
   word: VocabWord;
@@ -25,64 +26,70 @@ export default function Flashcard({ word, onStatusChange, onBookmark }: Props) {
   };
 
   return (
-    <div className="perspective-1000 w-full max-w-md mx-auto h-[450px] cursor-pointer group" onClick={() => setIsFlipped(!isFlipped)}>
+    <div className="perspective-1000 w-full max-w-md mx-auto h-[500px] cursor-pointer group" onClick={() => setIsFlipped(!isFlipped)}>
       <div className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
         
-        {/* --- MẶT TRƯỚC --- */}
-        <div className="absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col items-center justify-center p-8">
-          <div className="absolute top-4 right-4 text-gray-400 text-sm flex items-center gap-1">
+        {/* --- MẶT TRƯỚC (ENGLISH) --- */}
+        <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-white to-blue-50 dark:from-zinc-900 dark:to-zinc-800 rounded-3xl shadow-2xl border-2 border-gray-200 dark:border-zinc-700 flex flex-col items-center justify-center p-8 gap-6">
+          <div className="absolute top-6 right-6 text-gray-400 dark:text-gray-500 text-sm flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full">
              <RotateCw size={14}/> Chạm để lật
           </div>
           
-          <h2 className="text-4xl font-extrabold text-gray-800 mb-2">{word.word}</h2>
-          <div className="flex items-center gap-3 text-gray-500 mb-6">
-            <span className="italic font-serif text-lg">({word.type})</span>
-            <span>{word.pronunciation}</span>
+          <div className="text-center">
+            <h2 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-4">{word.word}</h2>
+            <div className="flex items-center gap-3 justify-center text-gray-600 dark:text-gray-400 mb-6 flex-wrap">
+              <span className="italic font-serif text-xl">({word.type})</span>
+              <span className="font-semibold">{word.pronunciation}</span>
+            </div>
           </div>
 
           <button 
             onClick={handlePlayAudio}
-            className="p-4 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition shadow-sm"
+            className="p-5 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full hover:from-blue-600 hover:to-blue-700 transition-all shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95"
           >
-            <Volume2 size={32} />
+            <Volume2 size={36} />
           </button>
+
+          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            👆 Nhấp để nghe phát âm
+          </div>
         </div>
 
-        {/* --- MẶT SAU --- */}
-        <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-white rounded-2xl shadow-xl border border-blue-100 flex flex-col p-6 overflow-y-auto">
+        {/* --- MẶT SAU (VIETNAMESE MEANING) --- */}
+        <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-blue-50 to-white dark:from-zinc-800 dark:to-zinc-900 rounded-3xl shadow-2xl border-2 border-blue-200 dark:border-zinc-700 flex flex-col p-8 overflow-y-auto">
            {/* Header: Actions */}
-           <div className="flex justify-between items-center mb-4">
-              <button onClick={(e) => {e.stopPropagation(); onBookmark()}} className={`p-2 rounded-full ${word.isBookmarked ? 'text-yellow-500 bg-yellow-50' : 'text-gray-400 bg-gray-100'}`}>
-                <Bookmark size={20}/>
+           <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
+              <button onClick={(e) => {e.stopPropagation(); onBookmark()}} className={`p-3 rounded-full transition-all ${word.isBookmarked ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 shadow-lg' : 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}>
+                <Bookmark size={22}/>
               </button>
-              <button onClick={handlePlayAudio} className="p-2 text-blue-600 bg-blue-50 rounded-full">
-                <Volume2 size={20}/>
+              <button onClick={handlePlayAudio} className="p-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl">
+                <Volume2 size={22}/>
               </button>
            </div>
 
            {/* Nghĩa & Ảnh */}
-           <div className="text-center mb-4">
-              <h3 className="text-2xl font-bold text-blue-800 mb-2">{word.meaning}</h3>
+           <div className="text-center mb-6">
+              <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">{word.meaning}</h3>
               {word.imageUrl && (
-                <img src={word.imageUrl} alt="illustration" className="h-24 mx-auto object-contain mb-2" />
+                <img src={word.imageUrl} alt="illustration" className="h-32 mx-auto object-contain mb-4 rounded-lg" />
               )}
            </div>
 
            {/* Ví dụ */}
-           <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
-              <p className="text-gray-800 font-medium text-sm mb-1">"{word.exampleSentenceEn}"</p>
-              <p className="text-gray-500 text-xs italic">{word.exampleSentenceVi}</p>
+           <div className="bg-blue-50 dark:bg-zinc-800 p-5 rounded-2xl border border-blue-200 dark:border-zinc-700 mb-6">
+              <p className="text-gray-800 dark:text-white font-semibold text-base mb-3">"{word.example}"</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm italic font-medium">{word.exampleTranslation}</p>
            </div>
 
            {/* Word Family */}
-           {word.wordFamilies.length > 0 && (
-             <div className="mb-4">
-               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Word Family</p>
-               <div className="space-y-1">
-                 {word.wordFamilies.map((wf, idx) => (
-                   <div key={idx} className="text-sm flex gap-2">
-                      <span className="font-bold text-gray-700">{wf.word}</span>
-                      <span className="text-gray-500 italic">({wf.type})</span>
+           {word.wordFamilies && word.wordFamilies.length > 0 && (
+             <div className="mb-6">
+               <p className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">📚 Word Family</p>
+               <div className="space-y-2.5">
+                 {word.wordFamilies.map((wf: any, idx: number) => (
+                   <div key={idx} className="text-sm flex gap-3 p-2.5 rounded-lg bg-gray-50 dark:bg-zinc-700/50">
+                      <span className="font-bold text-blue-600 dark:text-blue-400 min-w-fit">{wf.word}</span>
+                      <span className="text-gray-600 dark:text-gray-400 italic">({wf.partOfSpeech || wf.type})</span>
                    </div>
                  ))}
                </div>
@@ -90,16 +97,16 @@ export default function Flashcard({ word, onStatusChange, onBookmark }: Props) {
            )}
 
            {/* Smart Review Actions (Footer) */}
-           <div className="mt-auto flex gap-2 pt-4 border-t">
+           <div className="mt-auto flex gap-3 pt-6 border-t border-gray-200 dark:border-zinc-700\">
               <button 
                 onClick={(e) => { e.stopPropagation(); onStatusChange('LEARNING'); }}
-                className="flex-1 py-2 bg-orange-100 text-orange-700 font-bold rounded-lg text-sm hover:bg-orange-200"
+                className="flex-1 py-3 px-4 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-bold rounded-xl text-sm hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-all shadow-md hover:shadow-lg active:scale-95"
               >
                 😓 Khó quá
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); onStatusChange('MASTERED'); }}
-                className="flex-1 py-2 bg-green-100 text-green-700 font-bold rounded-lg text-sm hover:bg-green-200"
+                className="flex-1 py-3 px-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-bold rounded-xl text-sm hover:bg-green-200 dark:hover:bg-green-900/50 transition-all shadow-md hover:shadow-lg active:scale-95"
               >
                 😎 Đã thuộc
               </button>

@@ -2,23 +2,8 @@
 // 📦 TOEIC MASTER - COMMENT SERVICE
 // ============================================
 import axiosClient from "./axiosClient";
-import { Comment, CommentListResponse } from "@/app/types";
+import { Comment, CommentListResponse, CreateCommentPayload, GetCommentsParams, UpdateCommentPayload } from "@/app/types";
 
-interface GetCommentsParams {
-  testId: string | number;
-  page?: number;
-  pageSize?: number;
-  sortBy?: 'newest' | 'oldest' | 'mostLiked';
-}
-
-interface CreateCommentPayload {
-  content: string;
-  parentCommentId?: number | null;
-}
-
-interface UpdateCommentPayload {
-  content: string;
-}
 
 const commentService = {
   /**

@@ -17,6 +17,8 @@ public partial class Question
 
     public string? CorrectOption { get; set; }
 
+    public int? TopicId { get; set; }
+
     public decimal? ScoreWeight { get; set; }
 
     public string? ShortExplanation { get; set; }

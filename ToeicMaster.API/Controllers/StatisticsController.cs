@@ -365,4 +365,140 @@ public class StatisticsController : ControllerBase
             todayActive = allDates.Contains(DateTime.UtcNow.Date)
         });
     }
+
+    /// <summary>
+    /// 1️⃣ GET /stats - Thống kê chi tiết cho user
+    /// </summary>
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats()
+    {
+        var userId = GetUserId();
+
+        // Tổng quát
+        var userVocabStats = await _context.UserVocabularies
+            .Where(uv => uv.UserId == userId)
+            .GroupBy(uv => 1)
+            .Select(g => new
+            {
+                TotalVocab = g.Count(),
+                Learned = g.Count(uv => uv.Status == 3), // MASTERED
+                Learning = g.Count(uv => uv.Status == 1), // LEARNING
+                NotStarted = g.Count(uv => uv.Status == 0) // NEW
+            })
+            .FirstOrDefaultAsync() ?? new { TotalVocab = 0, Learned = 0, Learning = 0, NotStarted = 0 };
+
+        // Stats theo topic
+        var topicStats = await _context.Vocabularies
+            .GroupBy(v => v.TopicId)
+            .Select(g => new
+            {
+                TopicId = g.Key,
+                TotalWords = g.Count(),
+                LearnedCount = _context.UserVocabularies
+                    .Count(uv => uv.UserId == userId && uv.VocabularyId == g.First().Id && uv.Status == 3),
+                LearningCount = _context.UserVocabularies
+                    .Count(uv => uv.UserId == userId && g.Select(v => v.Id).Contains(uv.VocabularyId) && uv.Status == 1)
+            })
+            .ToListAsync();
+
+        // Test stats
+        var testStats = await _context.TestAttempts
+            .Where(ta => ta.UserId == userId)
+            .OrderByDescending(ta => ta.CompletedAt)
+            .GroupBy(ta => 1)
+            .Select(g => new
+            {
+                TotalTests = g.Count(),
+                AverageScore = g.Average(ta => ta.TotalScore),
+                HighestScore = g.Max(ta => ta.TotalScore),
+                LowestScore = g.Min(ta => ta.TotalScore),
+                LastTestDate = g.Max(ta => ta.CompletedAt)
+            })
+            .FirstOrDefaultAsync();
+
+        // Streak
+        var activeDates = await _context.UserVocabularies
+            .Where(uv => uv.UserId == userId)
+            .Select(uv => uv.LastReviewedAt!.Value.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToListAsync();
+
+        var currentStreak = 0;
+        var today = DateTime.UtcNow.Date;
+        for (int i = 0; i < activeDates.Count; i++)
+        {
+            if (activeDates[i] == today.AddDays(-i))
+                currentStreak++;
+            else
+                break;
+        }
+
+        return Ok(new
+        {
+            vocabulary = userVocabStats,
+            topics = topicStats,
+            tests = testStats,
+            streak = currentStreak,
+            masteryPercentage = userVocabStats.TotalVocab > 0 
+                ? Math.Round((double)userVocabStats.Learned / userVocabStats.TotalVocab * 100, 2)
+                : 0
+        });
+    }
+
+    /// <summary>
+    /// 2️⃣ GET /review-today - Vocabulary cần ôn tập hôm nay (SRS)
+    /// </summary>
+    [HttpGet("review-today")]
+    public async Task<IActionResult> GetReviewToday()
+    {
+        var userId = GetUserId();
+        var now = DateTime.UtcNow;
+
+        // Lấy từ vựng cần review theo SRS (Spaced Repetition System)
+        // - Review overdue (đã quá hạn)
+        // - Review due today
+        // - New words (optional, số lượng giới hạn)
+        var reviewWords = await _context.UserVocabularies
+            .Include(uv => uv.Vocabulary)
+            .Where(uv => uv.UserId == userId 
+                && uv.Status < 3  // Chưa mastered
+                && (uv.NextReviewAt == null || uv.NextReviewAt <= now))
+            .OrderBy(uv => uv.NextReviewAt)
+            .Take(20) // Tối đa 20 từ mỗi ngày
+            .Select(uv => new
+            {
+                id = uv.VocabularyId,
+                word = uv.Vocabulary.Word,
+                meaning = uv.Vocabulary.Meaning,
+                pronunciation = uv.Vocabulary.Pronunciation,
+                example = uv.Vocabulary.Example,
+                audioUrl = uv.Vocabulary.AudioUrl,
+                imageUrl = uv.Vocabulary.ImageUrl,
+                status = uv.Status,
+                nextReviewAt = uv.NextReviewAt,
+                reviewCount = uv.ReviewCount,
+                isOverdue = uv.NextReviewAt < now
+            })
+            .ToListAsync();
+
+        // Phân loại
+        var overdue = reviewWords.Where(w => w.isOverdue).Count();
+        var dueToday = reviewWords.Count() - overdue;
+
+        return Ok(new
+        {
+            totalToReview = reviewWords.Count(),
+            overdue,
+            dueToday,
+            words = reviewWords
+        });
+    }
+
+   
+}
+
+public class TestSubmissionDto
+{
+    public Dictionary<string, string> Answers { get; set; } = new();
 }

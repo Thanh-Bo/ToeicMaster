@@ -20,6 +20,8 @@ export interface Question {
   audioUrl: string | null;
   content: string;
   answers: Answer[];
+  explanation: string;
+  correctOption: string;
 }
 
 export interface Group {
@@ -170,7 +172,9 @@ export interface BookmarkItem {
     answers: { label: string; content: string }[];
   };
 }
-// types.ts
+// ==========================================
+  // VOCABULARY TYPES
+  // ==========================================
 
 // 1. Enum trạng thái (Giữ nguyên hoặc mapping lại theo UI mới)
 export enum VocabularyStatus {
@@ -194,8 +198,10 @@ export interface VocabularyItem {
   meaning: string;
   pronunciation?: string;
   partOfSpeech?: string;
+  type?: string; // Alias for partOfSpeech
   example?: string;
   exampleTranslation?: string;
+  
   audioUrl?: string;
   imageUrl?: string;
   
@@ -207,9 +213,12 @@ export interface VocabularyItem {
 
   // User Progress
   status: VocabularyStatus;
-  isBookmarked: boolean; // Để user bookmark từ khó
+  isBookmarked?: boolean; // Để user bookmark từ khó
   nextReviewAt?: string;
 }
+
+// Alias for backward compatibility
+export type VocabWord = VocabularyItem;
 
 // 4. Topic (Mới - Dùng cho màn hình Home Vocabulary)
 export interface Topic {
@@ -237,6 +246,52 @@ export interface VocabStats {
   mastered: number;
   dueForReview: number;
   progressPercent: number;
+}
+
+export interface Flashcard {
+  id: number;
+  word: string;
+  meaning: string;
+  pronunciation?: string;
+  audioUrl?: string;
+  imageUrl?: string;
+}
+
+export interface VocabularyTopic {
+  id: number;
+  title: string;
+  level: string;
+  levelRange: string;
+  description: string;
+  totalWords: number;
+  learnedWords: number;
+}
+
+
+
+export interface Part5Question {
+  id: number;
+  questionNo: number;
+  content: string;
+  options: { label: string; content: string }[];
+  correctOption: string; // Backend phải trả về cái này để chấm điểm
+  explanation: string;
+}
+
+// 2. Cấu trúc Response từ API
+export interface Part5ApiResponse {
+  topicId: number;
+  topicName: string;
+  totalQuestions: number;
+  questions: Part5Question[];
+}
+
+// 3. Cấu trúc lưu kết quả làm bài của User (FIX LỖI CHÍNH Ở ĐÂY)
+export interface UserTestResult {
+  questionId: number;
+  userAnswer: string;
+  correctOption: string;
+  isCorrect: boolean;
 }
 // --------------------------------------------
 // 📊 Statistics Types (Thống kê)
@@ -322,3 +377,20 @@ export interface CommentListResponse {
   pageSize: number;
   totalPages: number;
 }
+
+export interface GetCommentsParams {
+  testId: string | number;
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'newest' | 'oldest' | 'mostLiked';
+}
+
+export interface CreateCommentPayload {
+  content: string;
+  parentCommentId?: number | null;
+}
+
+export interface UpdateCommentPayload {
+  content: string;
+}
+ 

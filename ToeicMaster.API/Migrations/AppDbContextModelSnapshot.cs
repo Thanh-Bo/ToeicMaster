@@ -49,6 +49,9 @@ namespace ToeicMaster.API.Migrations
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Label")
                         .HasMaxLength(5)
                         .IsUnicode(false)
@@ -309,6 +312,9 @@ namespace ToeicMaster.API.Migrations
 
                     b.Property<string>("ShortExplanation")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TopicId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Transcript")
                         .HasColumnType("nvarchar(max)");
