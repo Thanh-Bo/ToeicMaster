@@ -76,7 +76,7 @@ export default function PageHeader({
               <Link
                 href="/profile"
                 className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
-              >
+              > 
                 <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {user.fullName?.charAt(0)?.toUpperCase() || "U"}
                 </div>

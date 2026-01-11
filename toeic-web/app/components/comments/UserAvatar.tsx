@@ -11,24 +11,30 @@ interface AvatarProps {
 }
 
 export const UserAvatar = ({ user, className = "h-10 w-10" }: AvatarProps) => {
-  const baseClasses = "flex items-center justify-center rounded-full bg-gray-200 text-gray-500";
+  const baseClasses = "flex items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-sm ring-2 ring-white dark:ring-zinc-700";
 
   if (user?.avatarUrl) {
-    return <img src={user.avatarUrl} alt={user.fullName} className={`${className} rounded-full`} />;
+    return (
+      <img 
+        src={user.avatarUrl} 
+        alt={user.fullName} 
+        className={`${className} rounded-full object-cover ring-2 ring-white dark:ring-zinc-700 shadow-sm`} 
+      />
+    );
   }
   
   if (user?.fullName) {
     const initial = user.fullName.charAt(0).toUpperCase();
     return (
-      <div className={`${baseClasses} ${className}`}>
-        <span className="font-bold" style={{ fontSize: `calc(${className.match(/h-(\d+)/)?.[1] || 10}rem / 2.5)` }}>{initial}</span>
+      <div className={`${baseClasses} ${className} text-sm font-bold`}>
+        {initial}
       </div>
     );
   }
 
   return (
     <div className={`${baseClasses} ${className}`}>
-      <User style={{ width: `calc(${className.match(/w-(\d+)/)?.[1] || 10}rem / 2)`, height: `calc(${className.match(/h-(\d+)/)?.[1] || 10}rem / 2)` }} />
+      <User size={16} />
     </div>
   );
 };

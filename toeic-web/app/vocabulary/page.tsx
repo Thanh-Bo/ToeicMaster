@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { Loader } from "lucide-react";
+import { Loader, ArrowLeft, AlertCircle, Book } from "lucide-react";
 import { vocabularyService } from "../services/vocabularyService";
 import TopicCard from "../components/vocabulary/TopicCard";
-import { VocabularyTopic } from "../types";
+import { VocabularyTopic, VocabWord } from "../types";
 
 export default function VocabularyPage() {
-  const { user } = useAuth();
+  const router = useRouter();
   const [topics, setTopics] = useState<VocabularyTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -16,6 +17,7 @@ export default function VocabularyPage() {
 
   useEffect(() => {
     fetchTopics();
+    
   }, []);
 
   const fetchTopics = async () => {
@@ -30,6 +32,8 @@ export default function VocabularyPage() {
       setLoading(false);
     }
   };
+
+  
 
   const filteredTopics = topics.filter((topic) =>
     topic.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,10 +55,14 @@ export default function VocabularyPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Section */}
         <div className="mb-12">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-1.5 h-8 bg-linear-to-b from-blue-600 to-blue-400 rounded-full"></div>
-            <span className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Học Tập</span>
-          </div>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 mb-6 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-bold"
+          >
+            <ArrowLeft size={20} />
+            <span>Quay lại</span>
+          </button>
+          
           <h1 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
             Từ Vựng TOEIC
           </h1>
@@ -83,6 +91,14 @@ export default function VocabularyPage() {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-700 dark:text-red-300 font-medium">{error}</p>
+          </div>
+        )}
+
+        
         {/* Error Message */}
         {error && (
           <div className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">

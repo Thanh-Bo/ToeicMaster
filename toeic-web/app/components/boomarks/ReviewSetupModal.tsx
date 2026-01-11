@@ -186,21 +186,75 @@ export default function ReviewSetupModal({
                         {items.map(item => (
                             <div 
                             key={item.id} 
-                            onClick={() => toggleSelect(item.questionId)}
-                            className={`px-4 py-3 flex items-start gap-3 cursor-pointer hover:bg-white dark:hover:bg-zinc-700 transition pl-10
-                                ${selectedIds.has(item.questionId) ? "bg-blue-50 dark:bg-blue-900" : ""}`}
+                            className={`px-4 py-4 cursor-pointer hover:bg-white dark:hover:bg-zinc-800 transition
+                                ${selectedIds.has(item.questionId) ? "bg-blue-50 dark:bg-blue-900/30" : ""}`}
                             >
-                            <div className="pt-1">
-                                {selectedIds.has(item.questionId) 
-                                ? <CheckSquare size={16} className="text-blue-600 dark:text-blue-400"/> 
-                                : <Square size={16} className="text-gray-300 dark:text-gray-600"/>}
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-800 dark:text-white line-clamp-1 font-medium">{item.question.content || `Câu hỏi ${item.question.questionNo}`}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
-                                    {item.note ? <span className="text-yellow-600 dark:text-yellow-400">📝 {item.note}</span> : "Không có note"}
-                                </p>
-                            </div>
+                              {/* Checkbox + Số câu + Note */}
+                              <div className="flex items-start gap-3 mb-3">
+                                <div className="pt-0.5">
+                                    {selectedIds.has(item.questionId) 
+                                    ? <CheckSquare size={18} className="text-blue-600 dark:text-blue-400 cursor-pointer" onClick={() => toggleSelect(item.questionId)}/> 
+                                    : <Square size={18} className="text-gray-300 dark:text-gray-600 cursor-pointer" onClick={() => toggleSelect(item.questionId)}/>}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-bold text-gray-800 dark:text-white">Câu {item.question.questionNo}</span>
+                                      {item.note && <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 px-2 py-0.5 rounded">📝 {item.note}</span>}
+                                    </div>
+                                </div>
+                              </div>
+
+                              {/* Hình ảnh (nếu có - Part 1, 3, 5, 7) */}
+                              {item.question.imageUrl && (
+                                <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                  <img 
+                                    src={`http://localhost:5298${item.question.imageUrl}`}
+                                    alt="Question context" 
+                                    className="w-full max-h-40 object-cover"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Âm thanh (nếu có - Part 2, 3, 4) */}
+                              {item.question.audioUrl && (
+                                <div className="mb-3 flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
+                                  <PlayCircle size={16} className="text-blue-600 dark:text-blue-400" />
+                                  <audio 
+                                    controls 
+                                    className="flex-1 h-6"
+                                    src={`http://localhost:5298${item.question.audioUrl}`}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Đoạn văn Group (nếu có - Part 6, 7) */}
+                              {item.question.textContent && (
+                                <div className="mb-3 bg-gray-100 dark:bg-zinc-800 p-3 rounded-lg border border-gray-300 dark:border-zinc-700">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">📄 Đoạn văn:</p>
+                                  <div 
+                                    className="text-sm text-gray-800 dark:text-gray-300 line-clamp-3"
+                                    dangerouslySetInnerHTML={{__html: item.question.textContent}}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Câu hỏi */}
+                              <p className="text-sm text-gray-800 dark:text-white mb-3 font-medium line-clamp-2">{item.question.content || `Câu hỏi ${item.question.questionNo}`}</p>
+
+                              {/* Các đáp án (A, B, C, D) */}
+                              {item.question.answers && item.question.answers.length > 0 && (
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  {item.question.answers.map((ans: any) => (
+                                    <div 
+                                      key={ans.label}
+                                      className="flex items-center gap-2 p-2 bg-white dark:bg-zinc-700 rounded border border-gray-200 dark:border-zinc-600"
+                                    >
+                                      <span className="font-bold w-5 text-center text-blue-600 dark:text-blue-400">{ans.label}</span>
+                                      <span className="text-gray-700 dark:text-gray-300 truncate">{ans.content}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                         ))}
                         </div>

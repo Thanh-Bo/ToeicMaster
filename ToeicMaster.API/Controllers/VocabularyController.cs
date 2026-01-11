@@ -36,6 +36,7 @@ public class VocabularyController : ControllerBase
         // Lấy User Id an toàn (tránh lỗi nếu chưa đăng nhập)
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         int userId = userIdStr != null ? int.Parse(userIdStr) : 0;
+        var now = DateTime.UtcNow;
 
         var topics = await _context.Topics
             .Select(t => new TopicDto
@@ -48,16 +49,136 @@ public class VocabularyController : ControllerBase
                 TotalWords = t.Vocabularies.Count,
                 // Tính số từ user đã học (Status > 0)
                 LearnedWords = userId == 0 ? 0 : t.Vocabularies
-                    .Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Status > 0))
+                    .Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Status > 0)),
+                
+                // SRS Progress: Current level = max level user achieved for this topic
+                CurrentLevel = userId == 0 ? 0 : t.Vocabularies
+                    .SelectMany(v => v.UserVocabularies.Where(uv => uv.UserId == userId))
+                    .Max(uv => (int?)uv.Level) ?? 0,
+                
+                // NextReviewAt: minimum nextReviewAt among all words in this topic
+                NextReviewAt = userId == 0 ? null : t.Vocabularies
+                    .SelectMany(v => v.UserVocabularies.Where(uv => uv.UserId == userId))
+                    .Min(uv => (DateTime?)uv.NextReviewAt),
+                
+                // Word counts by level
+                WordCounts = userId == 0 ? new Dictionary<int, int>() : new Dictionary<int, int>
+                {
+                    { 0, t.Vocabularies.Count(v => !v.UserVocabularies.Any(uv => uv.UserId == userId)) },
+                    { 1, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 1)) },
+                    { 2, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 2)) },
+                    { 3, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 3)) },
+                    { 4, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 4)) },
+                    { 5, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 5)) }
+                },
+                
+                // Can review now?
+                CanReviewNow = userId == 0 ? false : t.Vocabularies
+                    .Any(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.NextReviewAt <= now && uv.Status < 3)),
+                
+                // Time until ready - tính bên ngoài query
+                TimeUntilReady = ""
             })
             .ToListAsync();
+
+        // Tính TimeUntilReady sau khi fetch dữ liệu từ DB
+        foreach (var topic in topics)
+        {
+            if (topic.NextReviewAt.HasValue)
+            {
+                topic.TimeUntilReady = CalculateTimeRemaining(topic.NextReviewAt.Value);
+            }
+        }
 
         return Ok(topics);
     }
 
     /// <summary>
-    /// Lấy từ vựng của 1 Topic để vào học (Flashcard Mode)
+    /// Helper: Tính thời gian còn lại cho countdown timer
     /// </summary>
+    private string CalculateTimeRemaining(DateTime nextReviewAt)
+    {
+        var now = DateTime.UtcNow;
+        if (nextReviewAt <= now) return "";
+        
+        var timeSpan = nextReviewAt - now;
+        if (timeSpan.TotalHours > 24)
+            return $"{Math.Floor(timeSpan.TotalDays)}d {timeSpan.Hours}h";
+        if (timeSpan.TotalHours > 1)
+            return $"{Math.Floor(timeSpan.TotalHours)}h {timeSpan.Minutes}m";
+        return $"{timeSpan.Minutes}m {timeSpan.Seconds}s";
+    }
+
+    /// <summary>
+    /// Helper: Tính NextReviewAt dựa trên Level
+    /// </summary>
+    private DateTime CalculateNextReviewDate(int level, bool isCorrect)
+    {
+        var now = DateTime.UtcNow;
+        
+        if (!isCorrect)
+            return now; // Ôn lại ngay nếu sai
+        
+        return level switch
+        {
+            1 => now.AddDays(1),      // 1 ngày
+            2 => now.AddDays(3),      // 3 ngày
+            3 => now.AddDays(7),      // 7 ngày
+            4 => now.AddDays(14),     // 14 ngày
+            5 => now.AddDays(30),     // 30 ngày
+            _ => now.AddDays(1)       // Default: 1 ngày
+        };
+    }
+
+    /// <summary>
+    /// Submit test results và cập nhật vocabulary levels
+    /// </summary>
+    [HttpPost("topics/{topicId}/test-results")]
+    [Authorize]
+    public async Task<IActionResult> SubmitTestResults(
+        int topicId,
+        [FromBody] SubmitTestResultsRequest request)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var now = DateTime.UtcNow;
+
+        try
+        {
+            // Lấy tất cả từ của topic này của user
+            var userVocabularies = await _context.UserVocabularies
+                .Where(uv => uv.UserId == userId && 
+                       uv.Vocabulary.TopicId == topicId)
+                .ToListAsync();
+
+            // Nếu điểm >= 50% → Level up
+            if (request.Score >= 50)
+            {
+                foreach (var uv in userVocabularies)
+                {
+                    if (uv.Level < 5) // Không vượt quá level 5
+                    {
+                        uv.Level += 1;
+                        uv.NextReviewAt = CalculateNextReviewDate(uv.Level, true);
+                        uv.LastReviewedAt = now;
+                        uv.ReviewCount += 1;
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Test results saved",
+                newLevel = userVocabularies.Max(uv => (int?)uv.Level) ?? 0,
+                score = request.Score
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
     [HttpGet("topics/{topicId}/words")]
     public async Task<IActionResult> GetWordsByTopic(int topicId)
     {
@@ -91,7 +212,17 @@ public class VocabularyController : ControllerBase
                 Status = v.UserVocabularies
                     .Where(uv => uv.UserId == userId)
                     .Select(uv => uv.Status)
-                    .FirstOrDefault() 
+                    .FirstOrDefault(),
+                
+                // Lấy level & nextReviewAt từ UserVocabulary (SRS)
+                Level = v.UserVocabularies
+                    .Where(uv => uv.UserId == userId)
+                    .Select(uv => uv.Level)
+                    .FirstOrDefault(),
+                NextReviewAt = v.UserVocabularies
+                    .Where(uv => uv.UserId == userId)
+                    .Select(uv => uv.NextReviewAt)
+                    .FirstOrDefault()
             })
             .ToListAsync();
 
@@ -172,33 +303,7 @@ public class VocabularyController : ControllerBase
         return Ok(new { cards = shuffled, reviewCount = dueReviewIds.Count, newCount = newWordIds.Count });
     }
 
-    /// <summary>
-    /// Cập nhật trạng thái học (Learning/Mastered)
-    /// </summary>
-    [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
-    {
-        var userId = GetUserId();
-        var userVocab = await _context.UserVocabularies
-            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.VocabularyId == id);
-
-        if (userVocab == null)
-        {
-            userVocab = new UserVocabulary { UserId = userId, VocabularyId = id, CreatedAt = DateTime.UtcNow };
-            _context.UserVocabularies.Add(userVocab);
-        }
-
-        userVocab.Status = request.Status;
-        userVocab.LastReviewedAt = DateTime.UtcNow;
-        
-        // Logic đơn giản: Mastered = 30 ngày sau, Learning = 1 ngày sau
-        userVocab.NextReviewAt = request.Status == 3 
-            ? DateTime.UtcNow.AddDays(30) 
-            : DateTime.UtcNow.AddDays(1);
-
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Status updated" });
-    }
+   
 
     // ==========================================
     // 2. NHÓM API: QUẢN LÝ (ADMIN / SEARCH)

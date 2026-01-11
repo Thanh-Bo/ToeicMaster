@@ -165,11 +165,17 @@ export interface BookmarkItem {
     content: string;
     audioUrl?: string;
     imageUrl?: string;
-    textContent?: string;
+    textContent: string ;
     correctOption: string;
     partNumber: number;
     partName: string;
     answers: { label: string; content: string }[];
+  };
+  group?: {
+    id: number;
+    textContent: string | null;
+    imageUrl: string | null;
+    audioUrl: string | null;
   };
 }
 // ==========================================
@@ -214,7 +220,8 @@ export interface VocabularyItem {
   // User Progress
   status: VocabularyStatus;
   isBookmarked?: boolean; // Để user bookmark từ khó
-  nextReviewAt?: string;
+  level?: number; // SRS Level (0-5)
+  nextReviewAt?: string | Date; // SRS Next Review Date
 }
 
 // Alias for backward compatibility
@@ -224,18 +231,24 @@ export type VocabWord = VocabularyItem;
 export interface Topic {
   id: number;
   title: string;
+  level: 'Basic' | 'Intermediate' | 'Advanced';
+  levelRange: string; // "0-450"
+  imageUrl?: string;
+  
+  // SRS Fields - từ GetTopics() API
+  currentLevel: number; // 0-5
+  totalWords: number;
+  learnedWords: number;
+  nextReviewAt?: string; // ISO datetime
+  canReviewNow: boolean;
+  timeUntilReady: string; // "2d 3h", "4h 20m", etc
+  wordCounts: Record<number, number>; // { 0: 5, 1: 3, 2: 2, ... }
+  
+  // Legacy fields (optional)
   slug?: string;
   description?: string;
   thumbnailUrl?: string;
-  
-  // Thông tin phân cấp
-  level: 'Basic' | 'Intermediate' | 'Advanced';
-  levelRange: string; // "0-450"
-
-  // Tiến độ
-  totalWords: number;
-  learnedWords: number; // Số từ đã Mastered hoặc Learning
-  isCompleted: boolean; // Đã xong bài Test chưa
+  isCompleted?: boolean;
 }
 
 // 5. VocabStats (Giữ nguyên dùng cho Dashboard)

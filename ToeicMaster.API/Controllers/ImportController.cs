@@ -1,8 +1,10 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
+using ToeicMaster.API.Models;
 
 namespace ToeicMaster.API.Controllers;
 
@@ -18,20 +20,7 @@ public class ImportController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// Import Part 5 Questions cho Topic (vocab learning test)
-    /// Dữ liệu format:
-    /// {
-    ///   "questions": [
-    ///     {
-    ///       "questionNo": 1,
-    ///       "content": "The manager decided to _____ new employees.",
-    ///       "correctOption": "A",
-    ///       "options": ["hire", "rent", "borrow", "lease"],
-    ///       "explanation": "hire = thuê (nhân viên), rent = thuê (bất động sản)"
-    ///     }
-    ///   ]
-    /// }
+
     /// </summary>
     [HttpPost("topics/{topicId}/part5")]
     public async Task<IActionResult> ImportPart5QuestionsForTopic(int topicId, [FromBody] Part5ImportTopicDto importData)
@@ -47,7 +36,7 @@ public class ImportController : ControllerBase
         try
         {
             int importedCount = 0;
-            
+
             // Tạo hoặc lấy QuestionGroup cho Topic Part 5
             var questionGroup = await _context.QuestionGroups
                 .FirstOrDefaultAsync(qg => qg.TextContent == $"Topic_{topicId}_Part5");
@@ -95,7 +84,7 @@ public class ImportController : ControllerBase
                 // Add answer options (A, B, C, D)
                 var labels = new[] { "A", "B", "C", "D" };
                 for (int i = 0; i < q.Options.Count && i < 4; i++)
-                {   
+                {
                     bool isCorrect = labels[i].Equals(q.CorrectOption, StringComparison.OrdinalIgnoreCase);
                     var answer = new Answer
                     {
@@ -150,9 +139,9 @@ public class ImportController : ControllerBase
                     label = a.Label,
                     content = a.Content
                 }).ToList(),
-                correctOption = q.Answers.Where(a => a.IsCorrect == true ).Select(a => a.Label).FirstOrDefault() ?? "A",
-                explanation = q.FullExplanation,    
-                
+                correctOption = q.Answers.Where(a => a.IsCorrect == true).Select(a => a.Label).FirstOrDefault() ?? "A",
+                explanation = q.FullExplanation,
+
             })
             .OrderBy(q => q.questionNo)
             .ToListAsync();
@@ -168,6 +157,74 @@ public class ImportController : ControllerBase
             questions
         });
     }
+    [HttpPost("topics/{topicId}/test-results")]
+    [Authorize]
+    public async Task<IActionResult> SubmitTestResults(
+    int topicId,
+    [FromBody] SubmitTestResultsRequest request)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var now = DateTime.UtcNow;
+
+        try
+        {
+            // Lấy tất cả từ của topic này của user
+            var userVocabularies = await _context.UserVocabularies
+                .Where(uv => uv.UserId == userId &&
+                       uv.Vocabulary.TopicId == topicId)
+                .ToListAsync();
+
+            // Nếu điểm >= 50% → Level up
+            if (request.Score >= 50)
+            {
+                foreach (var uv in userVocabularies)
+                {
+                    if (uv.Level < 5) // Không vượt quá level 5
+                    {
+                        uv.Level += 1;
+                        uv.NextReviewAt = CalculateNextReviewDate(uv.Level, true);
+                        uv.LastReviewedAt = now;
+                        uv.ReviewCount += 1;
+                    }
+                }
+            }
+           
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Test results saved",
+                newLevel = userVocabularies.Max(uv => (int?)uv.Level) ?? 0,
+                score = request.Score
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private DateTime CalculateNextReviewDate(int level, bool isCorrect)
+    {
+        var now = DateTime.UtcNow;
+
+        // Nếu trả lời sai -> reset
+        if (!isCorrect)
+            return now; // Ôn lại ngay
+
+        // Nếu trả lời đúng -> tính theo level
+        return level switch
+        {
+            1 => now.AddDays(1),      // 1 ngày
+            2 => now.AddDays(3),      // 3 ngày
+            3 => now.AddDays(7),      // 7 ngày
+            4 => now.AddDays(14),     // 14 ngày
+            5 => now.AddDays(30),     // 30 ngày
+            _ => now.AddDays(1)       // Default: 1 ngày
+        };
+    }
+
 
     /// <summary>
     /// Xóa toàn bộ câu hỏi thuộc 1 Topic (Dùng để dọn dẹp trước khi Import lại)
@@ -210,9 +267,9 @@ public class ImportController : ControllerBase
                 .Where(g => g.TextContent == $"Topic_{topicId}_Part5")
                 .ExecuteDeleteAsync();
 
-            return Ok(new 
-            { 
-                message = $"Đã xóa sạch {questionIds.Count} câu hỏi và các đáp án liên quan của Topic {topicId}." 
+            return Ok(new
+            {
+                message = $"Đã xóa sạch {questionIds.Count} câu hỏi và các đáp án liên quan của Topic {topicId}."
             });
         }
         catch (Exception ex)

@@ -37,7 +37,15 @@ export default function ResultRightSidebar({
     return `${m}:${s < 10 ? "0" : ""}${s}`
   };
 
-  
+  // Calculate speed feedback (seconds per question)
+  const timePerQuestion = totalQuestions > 0 ? timeTaken / totalQuestions : 0;
+  const getSpeedFeedback = (timePerQ: number) => {
+    if (timePerQ < 2.5) return { text: "Rất nhanh!", icon: "⚡", color: "text-green-600 dark:text-green-400" };
+    if (timePerQ < 4) return { text: "Bình thường", icon: "⏱️", color: "text-amber-600 dark:text-amber-400" };
+    return { text: "Chậm", icon: "⏳", color: "text-orange-600 dark:text-orange-400" };
+  };
+
+  const speedFeedback = getSpeedFeedback(timePerQuestion);
 
   // 3. Tạo Map để tra cứu kết quả nhanh hơn (O(1)) khi render theo Part
   // Key: QuestionId, Value: Result Object
@@ -50,9 +58,10 @@ export default function ResultRightSidebar({
   }, [questions]);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sticky top-24">
-      {/* --- KẾT QUẢ TỔNG QUAN --- */}
-      <div className="text-center mb-6">
+    <div className="sticky top-0 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700  overflow-y-auto custom-scrollbar max-h-screen">
+      <div className="p-5">
+        {/* --- KẾT QUẢ TỔNG QUAN --- */}
+        <div className="text-center mb-6">
         <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 font-medium uppercase tracking-wider">
           Tổng điểm
         </p>
@@ -93,10 +102,23 @@ export default function ResultRightSidebar({
             <span className="font-bold text-xl text-gray-900 dark:text-white">
               {percentage}%
             </span>
-            {/* THÊM THỜI GIAN LÀM BÀI Ở ĐÂY */}
-            <span className="text-[10px] text-gray-700 dark:text-gray-300 font-medium mt-1 bg-gray-200 dark:bg-zinc-700 px-2 py-0.5 rounded-full">
-              ⏱️ {formatTime(timeTaken)}
-            </span>
+           
+          </div>
+        </div>
+
+        {/* TIMER CARD - Option 1 */}
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 mb-4 text-center">
+          <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-semibold uppercase tracking-widest">
+            ⏱️ Thời gian làm bài
+          </p>
+          <div className="text-5xl font-black text-blue-600 dark:text-blue-400 font-mono mb-2">
+            {formatTime(timeTaken)}
+          </div>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+            Trung bình: {timePerQuestion.toFixed(1)} giây/câu
+          </p>
+          <div className={`text-lg font-bold ${speedFeedback.color}`}>
+            {speedFeedback.icon} {speedFeedback.text}
           </div>
         </div>
 
@@ -142,7 +164,7 @@ export default function ResultRightSidebar({
       </div>
 
       {/* --- DANH SÁCH CÂU HỎI THEO PART --- */}
-      <div className="max-h-[50vh] overflow-y-auto custom-scrollbar pr-2 space-y-6">
+      <div className="pr-2 space-y-6">
         {parts?.map((part) => (
           <div key={part.id}>
             {/* Tên Part */}
@@ -203,6 +225,7 @@ export default function ResultRightSidebar({
         >
           ↑ Về đầu trang
         </button>
+      </div>
       </div>
     </div>
   );

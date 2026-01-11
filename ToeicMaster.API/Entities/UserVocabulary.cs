@@ -16,6 +16,7 @@ public partial class UserVocabulary
     public int CorrectStreak { get; set; }
 
     public int ReviewCount { get; set; }
+    public int Level {get ; set;}
 
     public DateTime? NextReviewAt { get; set; }
 

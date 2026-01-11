@@ -174,7 +174,7 @@ Hãy giải thích tại sao đáp án {question.CorrectOption} đúng và các 
         var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
 
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_apiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
 
         var response = await _httpClient.PostAsync(url, jsonContent);
 

@@ -746,6 +746,9 @@ namespace ToeicMaster.API.Migrations
                     b.Property<DateTime?>("LastReviewedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("NextReviewAt")
                         .HasColumnType("datetime2");
 

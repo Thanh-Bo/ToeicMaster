@@ -1,7 +1,7 @@
 namespace ToeicMaster.API.Models
 {
     // --- 1. DTO Trả về cho Frontend (OUTPUT) ---
-   public class WordFamilyDto 
+    public class WordFamilyDto
     {
         public string Word { get; set; }
         public string PartOfSpeech { get; set; }
@@ -24,7 +24,10 @@ namespace ToeicMaster.API.Models
         public string? Tocpic { get; set; }  // Sửa lỗi dòng 245 (Tên Topic)
         public int Difficulty { get; set; }    // Sửa lỗi dòng 246
         public string? Icon { get; set; }
-        
+
+        public int Level { get; set; }
+        public DateTime? NextReviewAt { get; set; }
+
         // Trả về danh sách Word Family cho mặt sau Flashcard
         public List<WordFamilyDto> WordFamilies { get; set; } = new();
 
@@ -41,10 +44,17 @@ namespace ToeicMaster.API.Models
         public string Level { get; set; }
         public string LevelRange { get; set; }
         public string? ImageUrl { get; set; }
-        
+
         // Tiến độ học
         public int TotalWords { get; set; }
         public int LearnedWords { get; set; } // Số từ đã học (Status > 0)
+
+        // SRS Progress (Phase 1-4)
+        public int CurrentLevel { get; set; } // 0-5
+        public DateTime? NextReviewAt { get; set; }
+        public Dictionary<int, int> WordCounts { get; set; } = new(); // level -> count
+        public bool CanReviewNow { get; set; }
+        public string TimeUntilReady { get; set; } = ""; // "12h 30m"
     }
     public class AddVocabularyRequest
     {
@@ -93,6 +103,26 @@ namespace ToeicMaster.API.Models
 
     public class ReviewFlashcardRequest
     {
-        public bool Remembered { get; set; }
+        public bool IsCorrect { get; set; }
+        public int Level { get; set; }
+        public DateTime NextReviewAt { get; set; }
+    }
+    // DTO Request
+    public class SubmitTestResultsRequest
+    {
+        public int Score { get; set; }
+        public int CorrectCount { get; set; }
+        public int TotalQuestions { get; set; }
+        public List<UserTestResult> Results { get; set; }
+    }
+
+    // DTO for Test Results
+    public class UserTestResult
+    {
+        public int QuestionId { get; set; }
+        public string UserAnswer { get; set; }
+        public string CorrectOption { get; set; }
+        public bool IsCorrect { get; set; }
     }
 }
+

@@ -84,7 +84,7 @@ export default function HomePage() {
             
             <h1 className="text-3xl md:text-5xl font-bold text-white dark:text-white mb-4 leading-tight">
               Luyện thi TOEIC <br className="hidden md:block"/>
-              <span className="text-blue-300 dark:text-blue-400">hiệu quả & thông minh</span>
+              <span className="">hiệu quả & thông minh</span>
             </h1>
             
             <p className="text-blue-100 dark:text-zinc-300 text-lg max-w-xl mx-auto mb-8">

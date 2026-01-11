@@ -295,14 +295,14 @@ export default function BookmarksPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-zinc-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-600">
-                    <ArrowUpDown size={16} />
+                  <div className="bg-white dark:bg-zinc-700 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-zinc-600 hover:border-gray-300 dark:hover:border-zinc-500 transition">
+                    <ArrowUpDown size={16} className="text-gray-600 dark:text-gray-400" />
                     <select
                       value={sortOrder}
                       onChange={(e) =>
                         setSortOrder(e.target.value as "newest" | "oldest")
                       }
-                      className="bg-transparent border-none outline-none text-sm cursor-pointer dark:text-white"
+                      className=" bg-white dark:bg-zinc-700 text-sm font-medium cursor-pointer text-gray-700 dark:text-white"
                     >
                       <option value="newest">Mới nhất</option>
                       <option value="oldest">Cũ nhất</option>
@@ -312,7 +312,7 @@ export default function BookmarksPage() {
                   {bookmarks.length > 0 && (
                     <button
                       onClick={handleRemoveAll}
-                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition"
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:text-red-400 rounded-lg transition"
                       title="Xóa tất cả"
                     >
                       <Trash2 size={18} />

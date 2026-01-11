@@ -21,15 +21,16 @@ export function CommentList({
 
   if (!comments || comments.length === 0) {
     return (
-      <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-        <p className="text-lg">💬 Chưa có bình luận nào</p>
-        <p className="mt-1">Hãy là người đầu tiên bình luận!</p>
+      <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+        <div className="text-4xl mb-3">💬</div>
+        <p className="text-lg font-medium">Chưa có bình luận nào</p>
+        <p className="mt-1 text-sm">Hãy là người đầu tiên bình luận!</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {comments.map((comment) => (
         <CommentItem
           key={comment.id}

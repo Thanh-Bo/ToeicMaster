@@ -36,6 +36,7 @@ export default function ExamPage() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
+  const STORAGE_KEY = `exam_progress_${testId}`;
 
   // --- TÍNH TOÁN ---
   const totalQuestions =
@@ -79,7 +80,6 @@ const formatTime = (seconds: number) => {
   };
 
   // --- EFFECT 1: Load Data ---
-  // --- EFFECT 1: Load Data ---
   useEffect(() => {
     const userCookie = Cookies.get("user");
     if (userCookie) setUser(JSON.parse(userCookie));
@@ -91,6 +91,17 @@ const formatTime = (seconds: number) => {
         .then((res) => {
           const data = res.data.data;
           setTestData(data);
+
+          // Load saved answers from localStorage
+          const savedAnswers = localStorage.getItem(STORAGE_KEY);
+          if (savedAnswers) {
+            try {
+              setUserAnswers(JSON.parse(savedAnswers));
+              console.log("✅ Đã khôi phục câu trả lời từ localStorage");
+            } catch (e) {
+              console.error("Lỗi parse localStorage:", e);
+            }
+          }
 
           // LOGIC MỚI Ở ĐÂY:
           if (durationParam === "0") {
@@ -111,6 +122,14 @@ const formatTime = (seconds: number) => {
         .finally(() => setLoading(false));
     }
   }, [testId, partsParam, durationParam]);
+
+  // --- EFFECT: Auto-save answers to localStorage ---
+  useEffect(() => {
+    if (Object.keys(userAnswers).length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(userAnswers));
+      console.log("💾 Đã lưu vào localStorage");
+    }
+  }, [userAnswers, STORAGE_KEY]);
 
   
   // --- EFFECT 2: Timer Logic ---
@@ -190,6 +209,8 @@ const formatTime = (seconds: number) => {
       };
       const res = await testService.submit(payload);
       if (res.data && res.data.attemptId) {
+        // Clear localStorage after successful submission
+        localStorage.removeItem(STORAGE_KEY);
         router.push(`/results/${res.data.attemptId}`);
       } else {
         router.push("/results"); // Fallback
@@ -240,8 +261,17 @@ const formatTime = (seconds: number) => {
       {/* HEADER Sticky */}
       <header className="bg-white dark:bg-zinc-900 shadow-sm border-b border-gray-200 dark:border-zinc-700 p-3 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
-          <Link
-            href="/"
+          <button
+            onClick={() => {
+              if (Object.keys(userAnswers).length > 0) {
+                const confirmExit = window.confirm(
+                  "Bạn chưa nộp bài. Dữ liệu sẽ được lưu. Bạn có chắc chắn muốn thoát?"
+                );
+                if (confirmExit) router.push("/");
+              } else {
+                router.push("/");
+              }
+            }}
             className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 font-medium flex items-center gap-2"
           >
             <svg
@@ -258,7 +288,7 @@ const formatTime = (seconds: number) => {
               ></path>
             </svg>
             <span className="hidden md:inline">Thoát</span>
-          </Link>
+          </button>
 
           {/* Center: Title + Timer (mobile) */}
           <div className="flex items-center gap-3">

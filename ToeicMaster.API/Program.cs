@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using OfficeOpenXml;
 using ToeicMaster.API.Services;
+using Amazon;
+using Amazon.S3;
+using Amazon.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +28,30 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ToeicScoreService>();
 
 builder.Services.AddHttpClient<AiExplanationService>();
+
+// Đăng ký TextToSpeechService
+builder.Services.AddScoped<TextToSpeechService>();
+
+// Đăng ký AWS S3 Client
+var awsAccessKey = builder.Configuration["AWS:AccessKey"];
+var awsSecretKey = builder.Configuration["AWS:SecretKey"];
+var awsRegion = builder.Configuration["AWS:S3:Region"];
+
+if (!string.IsNullOrEmpty(awsAccessKey) && !string.IsNullOrEmpty(awsSecretKey))
+{
+    var credentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+    builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(
+        credentials,
+        RegionEndpoint.GetBySystemName(awsRegion ?? "ap-southeast-1")
+    ));
+}
+else
+{
+    // Nếu không có credentials, dùng AWS SDK default
+    builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(
+        RegionEndpoint.GetBySystemName("ap-southeast-1")
+    ));
+}
 
 
 // Đăng ký DapperContext (Kết nối SQL)

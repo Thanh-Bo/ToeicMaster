@@ -108,16 +108,21 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
   };
 
   return (
-    <div className="mt-8 rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-md border border-gray-100 dark:border-slate-700">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-         Thảo luận ({pagination.total})
-      </h2>
+    <div className="mt-8 rounded-2xl bg-white dark:bg-zinc-800/50 backdrop-blur-sm p-6 shadow-lg border border-gray-200 dark:border-zinc-700">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          💬 Thảo luận
+          <span className="ml-2 inline-block px-3 py-1 text-base bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+            {pagination.total}
+          </span>
+        </h2>
+      </div>
       
-      <div className="mt-6">
+      <div className="mt-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
         <CommentForm onSubmit={addComment} isSubmitting={isSubmitting} />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6">
         {isLoading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -138,7 +143,7 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
             <button
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
-                className="rounded-full bg-gray-100 dark:bg-zinc-700 px-6 py-2 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 disabled:cursor-wait disabled:opacity-70"
+                className="rounded-lg px-6 py-2.5 font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isLoadingMore ? "Đang tải..." : "Xem thêm bình luận"}
             </button>

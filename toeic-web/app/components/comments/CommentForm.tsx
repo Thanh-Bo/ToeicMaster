@@ -74,8 +74,8 @@ export function CommentForm({
   
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center rounded-lg border-2 border-dashed bg-gray-50 dark:bg-zinc-800 dark:border-slate-700 p-6 text-center text-gray-500 dark:text-gray-400">
-        <a href="/login" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+      <div className="flex items-center justify-center rounded-lg border-2 border-dashed bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 p-6 text-center text-gray-500 dark:text-gray-400">
+        <a href="/login" className="font-semibold text-zinc-600 dark:text-zinc-400 hover:underline">
           Đăng nhập
         </a>
         &nbsp;để tham gia thảo luận.
@@ -84,8 +84,8 @@ export function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full items-start space-x-4">
-      <div className="flex-shrink-0">
+    <form onSubmit={handleSubmit} className="flex w-full items-start gap-3">
+      <div className="flex-shrink-0 pt-1">
         <UserAvatar user={user} />
       </div>
       <div className="min-w-0 flex-1">
@@ -97,20 +97,21 @@ export function CommentForm({
             onFocus={handleFocus}
             placeholder={placeholder}
             className={cn(
-              "w-full resize-none overflow-hidden rounded-lg border bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border-gray-300 dark:border-slate-600 shadow-sm transition-all",
-              "focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400",
-              !isFocused && "min-h-[42px] cursor-pointer",
-              isFocused && "min-h-[80px]"
+              "w-full resize-none overflow-hidden rounded-xl border-2 bg-white dark:bg-zinc-700/50 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-600",
+              "focus:border-blue-500 dark:focus:border-blue-500 focus:ring-0 focus:bg-white dark:focus:bg-zinc-700 transition-all duration-200",
+              "placeholder-gray-400 dark:placeholder-gray-500",
+              !isFocused && "min-h-[44px]",
+              isFocused && "min-h-[100px]"
             )}
             rows={isFocused ? 3 : 1}
           />
         </div>
         {isFocused && (
-          <div className="mt-2 flex items-center justify-end space-x-3">
+          <div className="mt-3 flex items-center justify-end gap-2 animate-fadeIn">
             <button
               type="button"
               onClick={handleCancel}
-              className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-slate-500"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none"
             >
               Hủy
             </button>
@@ -118,9 +119,8 @@ export function CommentForm({
               type="submit"
               disabled={!content.trim() || isSubmitting}
               className={cn(
-                "inline-flex items-center justify-center rounded-md bg-blue-600 dark:bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm",
-                "hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-offset-2 dark:focus:ring-offset-slate-800",
-                "disabled:cursor-not-allowed disabled:bg-blue-300 dark:disabled:bg-blue-900"
+                "inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg",
+                "hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md"
               )}
             >
               {isSubmitting ? (
