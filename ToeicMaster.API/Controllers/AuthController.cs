@@ -245,6 +245,7 @@ namespace ToeicMaster.API.Controllers
                 id = user.Id,
                 fullName = user.FullName,
                 email = user.Email,
+                role = user.Role ?? "User",
                 balance = user.Balance,
                 isPremium = user.IsPremium,
                 premiumExpiredAt = user.PremiumExpiredAt

@@ -2,60 +2,23 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import axiosClient from "../services/axiosClient";
+import { adminService } from "../services/adminService";
 import { useAuth } from "../contexts/AuthContext";
 import { useRouter } from "next/navigation";
-
-// Types
-interface User {
-  id: number;
-  email: string;
-  fullName: string;
-  role: string;
-  isActive: boolean;
-  createdAt: string;
-  totalTests: number;
-}
-
-interface Test {
-  id: number;
-  title: string;
-  type: string;
-  duration: number;
-  totalQuestions: number;
-  isActive: boolean;
-  createdAt: string;
-}
-
-interface Question {
-  id: number;
-  testId: number;
-  partNumber: number;
-  questionNo: number;
-  content: string;
-  correctOption: string;
-}
-
-interface DashboardStats {
-  totalUsers: number;
-  totalTests: number;
-  totalQuestions: number;
-  totalAttempts: number;
-  activeUsers: number;
-  newUsersToday: number;
-}
+import type { DashboardStats, AdminUser, AdminTest, AdminQuestion } from "../types";
 
 type Tab = "dashboard" | "users" | "tests" | "questions";
 
 export default function AdminPage() {
   const { user } = useAuth();
+
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [tests, setTests] = useState<Test[]>([]);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [tests, setTests] = useState<AdminTest[]>([]);
+  const [questions, setQuestions] = useState<AdminQuestion[]>([]);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -68,60 +31,37 @@ export default function AdminPage() {
 
   const loadDashboard = useCallback(async () => {
     try {
-      const response = await axiosClient.get<DashboardStats>("/admin/dashboard");
-      setStats(response.data);
-    } catch {
-      // Mock data
-      setStats({
-        totalUsers: 156,
-        totalTests: 12,
-        totalQuestions: 2400,
-        totalAttempts: 1250,
-        activeUsers: 89,
-        newUsersToday: 5,
-      });
+      const stats = await adminService.getDashboardStats();
+      setStats(stats);
+    } catch (error) {
+      console.error("Failed to load dashboard:", error);
     }
   }, []);
 
   const loadUsers = useCallback(async () => {
     try {
-      const response = await axiosClient.get<{ items: User[] }>("/admin/users");
-      setUsers(response.data.items || []);
-    } catch {
-      // Mock data
-      setUsers([
-        { id: 1, email: "user1@example.com", fullName: "Nguyễn Văn A", role: "User", isActive: true, createdAt: "2024-01-15", totalTests: 5 },
-        { id: 2, email: "user2@example.com", fullName: "Trần Thị B", role: "User", isActive: true, createdAt: "2024-01-20", totalTests: 3 },
-        { id: 3, email: "admin@example.com", fullName: "Admin", role: "Admin", isActive: true, createdAt: "2024-01-01", totalTests: 0 },
-      ]);
+      const users = await adminService.getUsers();
+      setUsers(users);
+    } catch (error) {
+      console.error("Failed to load users:", error);
     }
   }, []);
 
   const loadTests = useCallback(async () => {
     try {
-      const response = await axiosClient.get<{ items: Test[] }>("/admin/tests");
-      setTests(response.data.items || []);
-    } catch {
-      // Mock data
-      setTests([
-        { id: 1, title: "ETS TOEIC 2024 Test 1", type: "FULL_TEST", duration: 120, totalQuestions: 200, isActive: true, createdAt: "2024-01-01" },
-        { id: 2, title: "ETS TOEIC 2024 Test 2", type: "FULL_TEST", duration: 120, totalQuestions: 200, isActive: true, createdAt: "2024-01-05" },
-        { id: 3, title: "Mini Test Part 5-6", type: "MINI_TEST", duration: 30, totalQuestions: 50, isActive: true, createdAt: "2024-01-10" },
-      ]);
+      const tests = await adminService.getTests();
+      setTests(tests);
+    } catch (error) {
+      console.error("Failed to load tests:", error);
     }
   }, []);
 
   const loadQuestions = useCallback(async (testId: number) => {
     try {
-      const response = await axiosClient.get<{ items: Question[] }>(`/admin/tests/${testId}/questions`);
-      setQuestions(response.data.items || []);
-    } catch {
-      // Mock data
-      setQuestions([
-        { id: 1, testId: testId, partNumber: 1, questionNo: 1, content: "What is the woman doing?", correctOption: "A" },
-        { id: 2, testId: testId, partNumber: 1, questionNo: 2, content: "Where is the conversation taking place?", correctOption: "B" },
-        { id: 3, testId: testId, partNumber: 5, questionNo: 101, content: "The company _____ its quarterly report next week.", correctOption: "C" },
-      ]);
+      const questions = await adminService.getQuestionsByTest(testId);
+      setQuestions(questions);
+    } catch (error) {
+      console.error("Failed to load questions:", error);
     }
   }, []);
 
@@ -151,7 +91,7 @@ export default function AdminPage() {
 
   const handleToggleUserStatus = async (userId: number) => {
     try {
-      await axiosClient.post(`/admin/users/${userId}/toggle-status`);
+      await adminService.toggleUserStatus(userId);
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, isActive: !u.isActive } : u))
       );
@@ -163,7 +103,7 @@ export default function AdminPage() {
   const handleDeleteTest = async (testId: number) => {
     if (!confirm("Bạn có chắc muốn xóa đề thi này?")) return;
     try {
-      await axiosClient.delete(`/admin/tests/${testId}`);
+      await adminService.deleteTest(testId);
       setTests((prev) => prev.filter((t) => t.id !== testId));
     } catch (error) {
       console.error("Failed to delete test:", error);
@@ -180,14 +120,19 @@ export default function AdminPage() {
     t.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Check if user is admin
-  if (!user || user.role !== "Admin") {
+  // Check if user is admin (case-insensitive)
+  const isAdmin = user && user.role && user.role.toLowerCase() === "admin";
+  
+  if (!user || !isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg text-center max-w-md border border-gray-200 dark:border-gray-700">
           <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Truy cập bị từ chối</h2>
-          <p className="text-gray-600 mb-6">Bạn không có quyền truy cập trang quản trị</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Truy cập bị từ chối</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Bạn không có quyền truy cập trang quản trị</p>
+          <p className="text-gray-500 dark:text-gray-500 text-sm mb-4">
+            {user ? `(Vai trò hiện tại: ${user.role})` : "(Chưa đăng nhập)"}
+          </p>
           <Link href="/" className="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
             Về trang chủ
           </Link>
@@ -197,16 +142,18 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 text-white p-4 z-50">
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-lg">
-            T
-          </div>
-          <div>
-            <h1 className="font-bold">TOEIC Master</h1>
-            <p className="text-gray-400 text-xs">Admin Panel</p>
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 dark:bg-gray-950 text-white p-4 z-50">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-lg">
+              T
+            </div>
+            <div>
+              <h1 className="font-bold">TOEIC Master</h1>
+              <p className="text-gray-400 text-xs">Admin Panel</p>
+            </div>
           </div>
         </div>
 
@@ -230,12 +177,25 @@ export default function AdminPage() {
               {item.label}
             </button>
           ))}
+          
+          <div className="border-t border-gray-700 my-2"></div>
+          
+          <Link
+            href="/admin/import"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left text-gray-400 hover:bg-gray-800 hover:text-white"
+          >
+            <span>⚡</span>
+            Import & Audio
+          </Link>
         </nav>
 
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="absolute bottom-4 left-4 right-4 space-y-3">
+          {/* Theme Toggle */}
+          
+
           <Link
             href="/"
-            className="flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white transition"
+            className="flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white transition w-full"
           >
             ← Về trang chủ
           </Link>
@@ -247,13 +207,13 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               {activeTab === "dashboard" && "📊 Dashboard"}
               {activeTab === "users" && "👥 Quản lý Users"}
               {activeTab === "tests" && "📝 Quản lý Đề thi"}
               {activeTab === "questions" && "❓ Quản lý Câu hỏi"}
             </h2>
-            <p className="text-gray-500">Xin chào, {user.fullName}</p>
+            <p className="text-gray-500 dark:text-gray-400">Xin chào, {user.fullName}</p>
           </div>
 
           {(activeTab === "users" || activeTab === "tests") && (
@@ -262,7 +222,7 @@ export default function AdminPage() {
               placeholder="Tìm kiếm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 border rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           )}
         </div>
@@ -276,63 +236,63 @@ export default function AdminPage() {
             {/* Dashboard Tab */}
             {activeTab === "dashboard" && stats && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">Tổng Users</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.totalUsers}</p>
-                      <p className="text-green-600 text-sm mt-1">+{stats.newUsersToday} hôm nay</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng Users</p>
+                      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalUsers}</p>
+                      <p className="text-green-600 dark:text-green-400 text-sm mt-1">+{stats.newUsersToday} hôm nay</p>
                     </div>
-                    <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl">
+                    <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-2xl">
                       👥
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">Users hoạt động</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.activeUsers}</p>
-                      <p className="text-gray-500 text-sm mt-1">{Math.round((stats.activeUsers / stats.totalUsers) * 100)}% tổng</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Users hoạt động</p>
+                      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.activeUsers}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{Math.round((stats.activeUsers / stats.totalUsers) * 100)}% tổng</p>
                     </div>
-                    <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-2xl">
+                    <div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center text-2xl">
                       ✅
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">Tổng Đề thi</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.totalTests}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng Đề thi</p>
+                      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalTests}</p>
                     </div>
-                    <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-2xl">
+                    <div className="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center text-2xl">
                       📝
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">Tổng Câu hỏi</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.totalQuestions}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng Câu hỏi</p>
+                      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalQuestions}</p>
                     </div>
-                    <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-2xl">
+                    <div className="w-14 h-14 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center text-2xl">
                       ❓
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">Tổng lượt thi</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.totalAttempts}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng lượt thi</p>
+                      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalAttempts}</p>
                     </div>
-                    <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-2xl">
+                    <div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-2xl">
                       🎯
                     </div>
                   </div>
@@ -352,36 +312,36 @@ export default function AdminPage() {
 
             {/* Users Tab */}
             {activeTab === "users" && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                     <tr>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">ID</th>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">Họ tên</th>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">Email</th>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">Role</th>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">Bài thi</th>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">Trạng thái</th>
-                      <th className="text-left px-6 py-4 text-gray-600 font-medium">Thao tác</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">ID</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Họ tên</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Email</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Role</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Bài thi</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Trạng thái</th>
+                      <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Thao tác</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {filteredUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-gray-500">#{u.id}</td>
-                        <td className="px-6 py-4 font-medium text-gray-800">{u.fullName}</td>
-                        <td className="px-6 py-4 text-gray-600">{u.email}</td>
+                      <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400">#{u.id}</td>
+                        <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-100">{u.fullName}</td>
+                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{u.email}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            u.role === "Admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-700"
+                            u.role === "Admin" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                           }`}>
                             {u.role}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600">{u.totalTests}</td>
+                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{u.totalTests}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            u.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            u.isActive ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                           }`}>
                             {u.isActive ? "Hoạt động" : "Bị khóa"}
                           </span>
@@ -391,8 +351,8 @@ export default function AdminPage() {
                             onClick={() => handleToggleUserStatus(u.id)}
                             className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
                               u.isActive
-                                ? "bg-red-100 text-red-700 hover:bg-red-200"
-                                : "bg-green-100 text-green-700 hover:bg-green-200"
+                                ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
+                                : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
                             }`}
                           >
                             {u.isActive ? "Khóa" : "Mở khóa"}
@@ -414,36 +374,36 @@ export default function AdminPage() {
                   </button>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                       <tr>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">ID</th>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">Tiêu đề</th>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">Loại</th>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">Thời gian</th>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">Số câu</th>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">Trạng thái</th>
-                        <th className="text-left px-6 py-4 text-gray-600 font-medium">Thao tác</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">ID</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Tiêu đề</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Loại</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Thời gian</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Số câu</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Trạng thái</th>
+                        <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Thao tác</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {filteredTests.map((t) => (
-                        <tr key={t.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-gray-500">#{t.id}</td>
-                          <td className="px-6 py-4 font-medium text-gray-800">{t.title}</td>
+                        <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                          <td className="px-6 py-4 text-gray-500 dark:text-gray-400">#{t.id}</td>
+                          <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-100">{t.title}</td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              t.type === "FULL_TEST" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"
+                              t.type === "FULL_TEST" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
                             }`}>
                               {t.type === "FULL_TEST" ? "Full Test" : "Mini Test"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-gray-600">{t.duration} phút</td>
-                          <td className="px-6 py-4 text-gray-600">{t.totalQuestions}</td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{t.duration} phút</td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{t.totalQuestions}</td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              t.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                              t.isActive ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                             }`}>
                               {t.isActive ? "Hoạt động" : "Ẩn"}
                             </span>
@@ -454,13 +414,13 @@ export default function AdminPage() {
                                 setSelectedTestId(t.id);
                                 setActiveTab("questions");
                               }}
-                              className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition"
+                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
                             >
                               Xem câu hỏi
                             </button>
                             <button
                               onClick={() => handleDeleteTest(t.id)}
-                              className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition"
+                              className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition"
                             >
                               Xóa
                             </button>
@@ -477,16 +437,16 @@ export default function AdminPage() {
             {activeTab === "questions" && (
               <div className="space-y-4">
                 {!selectedTestId ? (
-                  <div className="bg-white rounded-2xl p-12 text-center">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
                     <div className="text-5xl mb-4">📝</div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Chọn đề thi</h3>
-                    <p className="text-gray-600 mb-6">Vui lòng chọn một đề thi để xem câu hỏi</p>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Chọn đề thi</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">Vui lòng chọn một đề thi để xem câu hỏi</p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {tests.map((t) => (
                         <button
                           key={t.id}
                           onClick={() => setSelectedTestId(t.id)}
-                          className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+                          className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
                         >
                           {t.title}
                         </button>
@@ -498,7 +458,7 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => setSelectedTestId(null)}
-                        className="text-gray-600 hover:text-gray-800"
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                       >
                         ← Quay lại
                       </button>
@@ -507,39 +467,39 @@ export default function AdminPage() {
                       </button>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50 border-b">
+                        <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                           <tr>
-                            <th className="text-left px-6 py-4 text-gray-600 font-medium">Câu</th>
-                            <th className="text-left px-6 py-4 text-gray-600 font-medium">Part</th>
-                            <th className="text-left px-6 py-4 text-gray-600 font-medium">Nội dung</th>
-                            <th className="text-left px-6 py-4 text-gray-600 font-medium">Đáp án</th>
-                            <th className="text-left px-6 py-4 text-gray-600 font-medium">Thao tác</th>
+                            <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Câu</th>
+                            <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Part</th>
+                            <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Nội dung</th>
+                            <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Đáp án</th>
+                            <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">Thao tác</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                           {questions.map((q) => (
-                            <tr key={q.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 font-medium text-gray-800">#{q.questionNo}</td>
+                            <tr key={q.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                              <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-100">#{q.questionNo}</td>
                               <td className="px-6 py-4">
-                                <span className="px-2 py-1 bg-gray-100 rounded-full text-sm">
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm">
                                   Part {q.partNumber}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 text-gray-600 max-w-md truncate">
+                              <td className="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-md truncate">
                                 {q.content || "(Câu hỏi nghe)"}
                               </td>
                               <td className="px-6 py-4">
-                                <span className="w-8 h-8 bg-green-100 text-green-700 rounded-lg inline-flex items-center justify-center font-bold">
+                                <span className="w-8 h-8 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg inline-flex items-center justify-center font-bold">
                                   {q.correctOption}
                                 </span>
                               </td>
                               <td className="px-6 py-4 flex gap-2">
-                                <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition">
+                                <button className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition">
                                   Sửa
                                 </button>
-                                <button className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition">
+                                <button className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition">
                                   Xóa
                                 </button>
                               </td>

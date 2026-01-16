@@ -6,6 +6,7 @@ import { testService } from "./services/testService";
 import { PageHeader, Footer } from "./components/layout";
 import { LoadingSpinner, EmptyState, AlertMessage } from "./components/common";
 import { TestCard, FeatureCard } from "./components/cards";
+import { useAuth } from "./contexts/AuthContext";
 
 // Định nghĩa kiểu dữ liệu
 interface TestSummary {
@@ -36,6 +37,7 @@ const filterTabs = [
 ];
 
 export default function HomePage() {
+  const { user } = useAuth();
   const [tests, setTests] = useState<TestSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -99,6 +101,15 @@ export default function HomePage() {
               <Link href="/register" className="bg-white/10 dark:bg-zinc-700/40 backdrop-blur-sm text-white dark:text-zinc-100 px-8 py-3 rounded-xl font-medium hover:bg-white/20 dark:hover:bg-zinc-600/60 transition border border-white/30 dark:border-zinc-600">
                 Tạo tài khoản miễn phí
               </Link>
+              
+              {/* Admin Button - Visible only for admins */}
+              {user && user.role && user.role.toLowerCase() === "admin" && (
+                <Link href="/admin" className="bg-yellow-400 dark:bg-yellow-500 text-gray-900 dark:text-gray-900 px-8 py-3 rounded-xl font-bold hover:bg-yellow-300 dark:hover:bg-yellow-400 transition shadow-lg">
+                  ⚙️ Admin Panel
+                </Link>
+              )}
+              
+              
             </div>
           </div>
           

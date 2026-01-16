@@ -1,0 +1,39 @@
+# Credentials & Secrets
+**/Credentials/*.json
+ToeicMaster.API/Credentials/
+ToeicMaster.API/Credentials/*.json
+google-*.json
+*-key.json
+
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.user
+.vs/
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~

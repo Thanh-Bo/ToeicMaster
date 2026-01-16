@@ -30,6 +30,8 @@ export interface Group {
   imageUrl: string | null;
   audioUrl: string | null;
   questions: Question[];
+  hasAudio: boolean;
+  transcript: string | null;
 }
 
 export interface Part {
@@ -43,6 +45,52 @@ export interface TestDetail {
   title: string;
   duration?: number;
   parts: Part[];
+}
+export interface GenerateAudioResponse {
+  message: string;
+  url: string;
+}
+
+// ============================================
+// 👤 Admin Types
+// ============================================
+export interface AdminUser {
+  id: number;
+  email: string;
+  fullName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  totalTests: number;
+}
+
+export interface AdminTest {
+  id: number;
+  title: string;
+  type: string;
+  duration: number;
+  totalQuestions: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminQuestion {
+  id: number;
+  testId: number;
+  partNumber: number;
+  questionNo: number;
+  content: string;
+  correctOption: string;
+}
+
+// Dashboard Admin
+export interface DashboardStats {
+  totalUsers: number;
+  totalTests: number;
+  totalQuestions: number;
+  totalAttempts: number;
+  activeUsers: number;
+  newUsersToday: number;
 }
 
 export interface TestHistoryItem {

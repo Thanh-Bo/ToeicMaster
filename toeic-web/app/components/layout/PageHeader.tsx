@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
 
-// Load ThemeToggle dynamically to ensure ThemeProvider is mounted first
-const ThemeToggle = dynamic(() => import("../common/ThemeToggle").then(mod => ({ default: mod.ThemeToggle })), {
+// Load ThemeToggle dynamically with SSR disabled - to avoid ThemeProvider error on server
+const ThemeToggle = dynamic(() => import("../common/ThemeToggle").then(mod => mod.default), {
   ssr: false,
-  loading: () => <div className="w-9 h-9" /> // Placeholder
+  loading: () => <div className="w-9 h-9" /> // Placeholder while loading
 });
 
 interface NavLink {
