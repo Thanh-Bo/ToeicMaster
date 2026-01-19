@@ -399,14 +399,13 @@ namespace ToeicMaster.API.Controllers
 
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var qNoText = worksheet.Cells[row, 1].Text?.Trim();
+                    var qNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A
                     if (string.IsNullOrEmpty(qNoText)) continue;
 
                     var qNo = int.Parse(qNoText);
-                    var imgName = worksheet.Cells[row, 2].Text?.Trim();
-                    // var audioName = worksheet.Cells[row, 3].Text?.Trim(); // BỎ
-                    var transcript = worksheet.Cells[row, 4].Text?.Trim(); // Transcript chứa 4 câu A,B,C,D
-                    var correctOpt = worksheet.Cells[row, 5].Text?.Trim().ToUpper();
+                    var imgName = worksheet.Cells[row, 2].Text?.Trim();  // Col B - Image
+                    var transcript = worksheet.Cells[row, 3].Text?.Trim(); // Col C - Transcript (4 options)
+                    var correctOpt = worksheet.Cells[row, 4].Text?.Trim().ToUpper();  // Col D - Answer
 
                     // --- XỬ LÝ ẢNH (GIỮ NGUYÊN) ---
                     string? finalImageUrl = null;
@@ -519,15 +518,14 @@ namespace ToeicMaster.API.Controllers
 
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var qNoText = worksheet.Cells[row, 1].Text?.Trim();
+                    var qNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A
                     if (string.IsNullOrEmpty(qNoText)) continue;
 
                     var qNo = int.Parse(qNoText);
-                    // var audioName = worksheet.Cells[row, 2].Text?.Trim(); // BỎ
-
+                    // var audioName = worksheet.Cells[row, 2].Text?.Trim(); // BỎ Col B
                     // Transcript chứa: Question + 3 Answers (A, B, C)
-                    var transcript = worksheet.Cells[row, 3].Text?.Trim();
-                    var correctOpt = worksheet.Cells[row, 4].Text?.Trim().ToUpper();
+                    var transcript = worksheet.Cells[row, 2].Text?.Trim();  // Col B - Transcript
+                    var correctOpt = worksheet.Cells[row, 3].Text?.Trim().ToUpper();  // Col C - Answer
 
                     // --- LƯU DATABASE ---
                     var group = new QuestionGroup
@@ -733,10 +731,10 @@ namespace ToeicMaster.API.Controllers
             try
             {
                 // 1. Tạo hoặc lấy Part 4
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 3);
+                var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 4);
                 if (part == null)
                 {
-                    part = new Part { Name = "Part 4: Conversations", PartNumber = 3, TestId = testId };
+                    part = new Part { Name = "Part 4: Talks", PartNumber = 4, TestId = testId };
                     _efContext.Parts.Add(part);
                     await _efContext.SaveChangesAsync();
                 }
@@ -756,12 +754,14 @@ namespace ToeicMaster.API.Controllers
                 // Loop qua Excel
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var groupNoText = worksheet.Cells[row, 1].Text?.Trim();
+                    var groupNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A - GroupNo
                     if (string.IsNullOrEmpty(groupNoText)) continue;
 
-                    // BỎ CỘT AUDIO FILE NAME (Cột 2), CHỈ CẦN IMAGE & TRANSCRIPT
-                    var imageName = worksheet.Cells[row, 3].Text?.Trim();
-                    var transcript = worksheet.Cells[row, 4].Text?.Trim();
+                    // BỎ CỘT AUDIO FILE NAME, CHỈ CẦN IMAGE & TRANSCRIPT
+                    var imageName = worksheet.Cells[row, 2].Text?.Trim();    // Col B - Image
+                    var transcript = worksheet.Cells[row, 3].Text?.Trim();   // Col C - Transcript
+                    
+                    // Câu hỏi bắt đầu từ Col D (4)
 
                     // --- BỎ HOÀN TOÀN ĐOẠN XỬ LÝ AUDIO FILE ---
                     // Chúng ta không cần đọc file, không cần lưu vào wwwroot nữa.
@@ -808,8 +808,8 @@ namespace ToeicMaster.API.Controllers
                     await _efContext.SaveChangesAsync();
                     countGroups++;
 
-                    // Lưu 3 câu hỏi (Logic giữ nguyên không đổi)
-                    int col = 5;
+                    // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 4 (D) - GIỐNG PART 3
+                    int col = 4;  // D = Q1 No
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();

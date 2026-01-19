@@ -6,6 +6,7 @@ const BASE_URL = "http://localhost:5298"; // Hoặc import từ file config
 
 interface Props {
   q: any;
+  canExplain?: boolean;
   currentQuestionId: number | null;
   // Các dữ liệu cần thiết từ cha truyền xuống
   isBookmarked: boolean;
@@ -20,6 +21,7 @@ interface Props {
 
 export default function ResultQuestionItem({
   q,
+  canExplain = true , 
   currentQuestionId,
   isBookmarked,
   isBookmarkLoading,
@@ -169,8 +171,9 @@ export default function ResultQuestionItem({
         {/* Nút Xem Giải Thích: Gọi hàm từ Props */}
         <button
           onClick={() => onViewExplanation(q.questionId)}
-          disabled={isExplainLoading}
+          disabled={!canExplain}
           className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors
+              ${!canExplain ? "opacity-0 pointer-events-none" : "opacity-100"}
               ${
                 q.isExplanationOpen
                   ? "bg-red-600 hover:bg-red-700 text-white"

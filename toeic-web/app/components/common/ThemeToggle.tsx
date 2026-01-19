@@ -11,13 +11,13 @@ function ThemeToggleContent() {
     const { theme, setTheme, isDark } = useTheme();
     const [showMenu, setShowMenu] = useState(false);
 
-    console.log("🎭 ThemeToggleContent rendered - theme:", theme, "isDark:", isDark);
+    // console.log("🎭 ThemeToggleContent rendered - theme:", theme, "isDark:", isDark);
 
     return (
       <div className="relative">
         <button
           onClick={() => {
-            console.log("🔘 Theme button clicked, showMenu:", !showMenu);
+            // console.log("🔘 Theme button clicked, showMenu:", !showMenu);
             setShowMenu(!showMenu);
           }}
           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
@@ -45,7 +45,7 @@ function ThemeToggleContent() {
                 <button
                   key={option.value}
                   onClick={() => {
-                    console.log("🎨 Setting theme to:", option.value);
+                    // console.log("🎨 Setting theme to:", option.value);
                     setTheme(option.value);
                     setShowMenu(false);
                   }}

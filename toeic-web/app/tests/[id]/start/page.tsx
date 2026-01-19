@@ -97,7 +97,7 @@ const formatTime = (seconds: number) => {
           if (savedAnswers) {
             try {
               setUserAnswers(JSON.parse(savedAnswers));
-              console.log("✅ Đã khôi phục câu trả lời từ localStorage");
+              
             } catch (e) {
               console.error("Lỗi parse localStorage:", e);
             }
@@ -127,7 +127,7 @@ const formatTime = (seconds: number) => {
   useEffect(() => {
     if (Object.keys(userAnswers).length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userAnswers));
-      console.log("💾 Đã lưu vào localStorage");
+      
     }
   }, [userAnswers, STORAGE_KEY]);
 
@@ -748,7 +748,7 @@ const formatTime = (seconds: number) => {
       {/* MOBILE NAVIGATION DRAWER (Optional logic to show Question Palette) */}
       {showMobileNav && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setShowMobileNav(false)}
         >
           <div

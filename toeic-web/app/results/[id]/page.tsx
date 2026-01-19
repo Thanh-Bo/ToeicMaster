@@ -522,6 +522,7 @@ export default function ResultPage() {
                                 isExplainLoading={
                                   loadingExplainId === q.questionId
                                 }
+                                canExplain={part.partNumber >= 5} 
                                 // Truyền các hàm xử lý xuống
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
@@ -561,6 +562,7 @@ export default function ResultPage() {
                             isBookmarkLoading={bookmarkLoading === q.questionId}
                             isExplainLoading={loadingExplainId === q.questionId}
                             // Truyền các hàm xử lý xuống
+                            canExplain={part.partNumber >= 5} 
                             onToggleBookmark={() => handleClickBookmark(q)}
                             onViewExplanation={handleViewExplanation}
                             onToggleDetail={handleToggleDetail}
@@ -631,6 +633,7 @@ export default function ResultPage() {
                             >
                               <ResultQuestionItem
                                 q={q}
+                                canExplain={part.partNumber >= 5}
                                 currentQuestionId={currentQuestionId}
                                 isBookmarked={bookmarkedQuestions.has(
                                   q.questionId
@@ -642,6 +645,7 @@ export default function ResultPage() {
                                   loadingExplainId === q.questionId
                                 }
                                 // Truyền các hàm xử lý xuống
+                                
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}

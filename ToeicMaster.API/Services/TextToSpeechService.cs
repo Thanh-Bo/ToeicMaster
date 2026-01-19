@@ -186,62 +186,111 @@ namespace ToeicMaster.API.Services
    List<string> questions,
    string? introText)
         {
-            // Cấu hình giọng
-            string voiceMan = "en-US-Chirp3-HD-Fenrir";
-            string voiceWoman = "en-US-Chirp3-HD-Achernar";
-            string voiceNarrator = "en-US-Neural2-D";
-
-            // List Tasks để chạy song song (Tối ưu tốc độ import)
-            var tasks = new List<Task>();
-            var masterParts = new List<byte[]>();
-
-            // 1. DIALOGUE
-            Console.WriteLine($"[AUDIO] Tổng dialogue lines: {dialogueLines.Count}");
-            var dialogueTasks = dialogueLines.Select(line =>
+            try
             {
-                string currentVoice = line.Speaker == "M" ? voiceMan : voiceWoman;
-                string ssml = $"<speak><prosody rate=\"1.0\">{line.Text}</prosody></speak>";
-                return GenerateAudioBytesAsync(ssml, currentVoice, useSSML: true);
-            }).ToList();
+                // Null checks
+                if (dialogueLines == null)
+                {
+                    Console.WriteLine("[AUDIO ERROR] dialogueLines is NULL!");
+                    throw new ArgumentNullException(nameof(dialogueLines), "Dialogue lines không được null");
+                }
+                if (questions == null)
+                {
+                    Console.WriteLine("[AUDIO ERROR] questions is NULL!");
+                    throw new ArgumentNullException(nameof(questions), "Questions list không được null");
+                }
 
-            // 2. QUESTIONS
-            Console.WriteLine($"[AUDIO] Tổng questions: {questions.Count}");
-            var questionTasks = questions.Select(qText =>
+                // Cấu hình giọng
+                string voiceMan = "en-US-Chirp3-HD-Fenrir";
+                string voiceWoman = "en-US-Chirp3-HD-Achernar";
+                string voiceNarrator = "en-US-Neural2-D";
+
+                // List Tasks để chạy song song (Tối ưu tốc độ import)
+                var masterParts = new List<byte[]>();
+
+                // 1. DIALOGUE
+                Console.WriteLine($"[AUDIO] Tổng dialogue lines: {dialogueLines.Count}");
+                var dialogueTasks = dialogueLines.Select(line =>
+                {
+                    string currentVoice = line.Speaker == "M" ? voiceMan : voiceWoman;
+                    string ssml = $"<speak><prosody rate=\"1.0\">{line.Text}</prosody></speak>";
+                    return GenerateAudioBytesAsync(ssml, currentVoice, useSSML: true);
+                }).ToList();
+
+                // 2. QUESTIONS
+                Console.WriteLine($"[AUDIO] Tổng questions: {questions.Count}");
+                var questionTasks = questions.Select(qText =>
+                {
+                    string ssml = $"<speak><prosody rate=\"1.0\">{qText}</prosody></speak>";
+                    return GenerateAudioBytesAsync(ssml, voiceNarrator, useSSML: true);
+                }).ToList();
+
+                // Chờ AI generate xong hết
+                if (dialogueTasks.Count > 0 || questionTasks.Count > 0)
+                {
+                    Console.WriteLine("[AUDIO] Chờ TTS generate audio...");
+                    await Task.WhenAll(dialogueTasks.Cast<Task>().Concat(questionTasks.Cast<Task>()));
+                    Console.WriteLine("[AUDIO] TTS generate xong!");
+                }
+
+                // 3. GHÉP FILE (Logic AudioHelper)
+
+                // Dialogue (Nghỉ 0.5s giữa các câu)
+                if (dialogueTasks.Count > 0)
+                {
+                    var dialogueBytes = dialogueTasks.Select(t => t.Result).ToList();
+                    Console.WriteLine($"[AUDIO] Dialogue bytes count: {dialogueBytes.Count}, total size: {dialogueBytes.Sum(b => b?.Length ?? 0)} bytes");
+                    
+                    if (dialogueBytes.Any(b => b != null))
+                    {
+                        var fullDialogue = AudioHelper.MergeAudioWithSilence(dialogueBytes, 500);
+                        if (fullDialogue != null)
+                        {
+                            masterParts.Add(fullDialogue);
+                            Console.WriteLine($"[AUDIO] Full dialogue size: {fullDialogue.Length} bytes");
+                        }
+                    }
+                }
+
+                // Questions (Ghép các câu hỏi, nghỉ 8s sau mỗi câu)
+                if (questionTasks.Count > 0)
+                {
+                    var questionBytes = questionTasks.Select(t => t.Result).ToList();
+                    Console.WriteLine($"[AUDIO] Question bytes count: {questionBytes.Count}, total size: {questionBytes.Sum(b => b?.Length ?? 0)} bytes");
+                    
+                    if (questionBytes.Any(b => b != null))
+                    {
+                        var fullQuestions = AudioHelper.MergeAudioWithSilence(questionBytes, 8000);
+                        if (fullQuestions != null)
+                        {
+                            masterParts.Add(fullQuestions);
+                            Console.WriteLine($"[AUDIO] Full questions size: {fullQuestions.Length} bytes");
+                        }
+                    }
+                }
+
+                if (masterParts.Count == 0)
+                {
+                    throw new Exception("Không có audio data để upload!");
+                }
+
+                var finalBytes = AudioHelper.MergeAudioWithSilence(masterParts, 2000);
+                if (finalBytes == null || finalBytes.Length == 0)
+                {
+                    throw new Exception("Final audio bytes rỗng!");
+                }
+
+                string s3FileName = $"part3/auto_import_{Guid.NewGuid()}.mp3";
+                Console.WriteLine($"[AUDIO] Uploading to S3: {s3FileName}, size: {finalBytes.Length} bytes");
+
+                return await UploadToS3Async(finalBytes, s3FileName);
+            }
+            catch (Exception ex)
             {
-                string ssml = $"<speak><prosody rate=\"1.0\">{qText}</prosody></speak>";
-                return GenerateAudioBytesAsync(ssml, voiceNarrator, useSSML: true);
-            }).ToList();
-
-            // Chờ AI generate xong hết
-            await Task.WhenAll(dialogueTasks.Cast<Task>().Concat(questionTasks.Cast<Task>()));
-
-            // 3. GHÉP FILE (Logic AudioHelper)
-
-            // Intro (Optional)
-            if (!string.IsNullOrEmpty(introText)) { /* Generate Intro logic */ }
-
-            // Dialogue (Nghỉ 0.5s giữa các câu)
-            var dialogueBytes = dialogueTasks.Select(t => t.Result).ToList();
-            Console.WriteLine($"[AUDIO] Dialogue bytes count: {dialogueBytes.Count}, total size: {dialogueBytes.Sum(b => b.Length)} bytes");
-            // Tạo ra 1 file hội thoại hoàn chỉnh
-            var fullDialogue = AudioHelper.MergeAudioWithSilence(dialogueBytes, 500);
-            masterParts.Add(fullDialogue);
-            Console.WriteLine($"[AUDIO] Full dialogue size: {fullDialogue.Length} bytes");
-
-            // C. Xử lý Questions (Ghép các câu hỏi, nghỉ 8s sau mỗi câu)
-            var questionBytes = questionTasks.Select(t => t.Result).ToList();
-            Console.WriteLine($"[AUDIO] Question bytes count: {questionBytes.Count}, total size: {questionBytes.Sum(b => b.Length)} bytes");
-            // Tạo ra 1 file câu hỏi hoàn chỉnh
-            var fullQuestions = AudioHelper.MergeAudioWithSilence(questionBytes, 8000);
-            masterParts.Add(fullQuestions);
-            Console.WriteLine($"[AUDIO] Full questions size: {fullQuestions.Length} bytes");
-
-           
-
-            var finalBytes = AudioHelper.MergeAudioWithSilence(masterParts, 2000);
-            string s3FileName = $"part3/auto_import_{Guid.NewGuid()}.mp3";
-
-            return await UploadToS3Async(finalBytes, s3FileName);
+                Console.WriteLine($"[AUDIO FATAL ERROR] {ex.GetType().Name}: {ex.Message}");
+                Console.WriteLine($"[AUDIO STACK TRACE] {ex.StackTrace}");
+                throw;
+            }
         }
 
     }

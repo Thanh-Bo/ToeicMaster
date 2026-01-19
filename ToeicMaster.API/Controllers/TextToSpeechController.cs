@@ -172,22 +172,64 @@ namespace ToeicMaster.API.Controllers
             var lines = new List<DialogueLine>();
             if (string.IsNullOrEmpty(rawTranscript)) return lines;
 
-            var rawLines = rawTranscript.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            Console.WriteLine($"[PARSE] Raw transcript length: {rawTranscript.Length}");
+            Console.WriteLine($"[PARSE] Raw transcript: {rawTranscript.Substring(0, Math.Min(100, rawTranscript.Length))}...");
 
-            foreach (var rawLine in rawLines)
+            // Format 1: [W] text [M] text [W] text ... (các speaker nằm trên 1 dòng)
+            // Format 2: Speaker: text (các speaker trên dòng riêng biệt)
+            
+            string currentText = rawTranscript;
+            int parseCount = 0;
+
+            // Thử parse format [W] / [M]
+            var bracketPattern = System.Text.RegularExpressions.Regex.Matches(currentText, @"\[([WM])\]\s*([^[\]]*?)(?=\[|$)", 
+                System.Text.RegularExpressions.RegexOptions.Singleline);
+
+            if (bracketPattern.Count > 0)
             {
-                var colonIndex = rawLine.IndexOf(':');
-                if (colonIndex > 0)
+                Console.WriteLine($"[PARSE] Phát hiện format [W]/[M], tìm thấy {bracketPattern.Count} đoạn");
+                foreach (System.Text.RegularExpressions.Match match in bracketPattern)
                 {
-                    var speaker = rawLine.Substring(0, colonIndex).Trim().ToUpper();
-                    var text = rawLine.Substring(colonIndex + 1).Trim();
-                    
-                    // Logic chuẩn hóa Speaker: Nếu bắt đầu bằng M -> "M", còn lại là "W"
-                    string speakerCode = (speaker.StartsWith("M") || speaker.Contains("MAN")) ? "M" : "W";
-                    
-                    lines.Add(new DialogueLine { Speaker = speakerCode, Text = text });
+                    var speaker = match.Groups[1].Value.Trim().ToUpper(); // W hoặc M
+                    var text = match.Groups[2].Value.Trim();
+
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        lines.Add(new DialogueLine { Speaker = speaker, Text = text });
+                        parseCount++;
+                    }
                 }
+                Console.WriteLine($"[PARSE] Parse xong format [W]/[M]: {parseCount} dòng");
             }
+            else
+            {
+                // Thử parse format Speaker: text (trên nhiều dòng)
+                var rawLines = rawTranscript.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var rawLine in rawLines)
+                {
+                    var colonIndex = rawLine.IndexOf(':');
+                    if (colonIndex > 0)
+                    {
+                        var speaker = rawLine.Substring(0, colonIndex).Trim().ToUpper();
+                        var text = rawLine.Substring(colonIndex + 1).Trim();
+
+                        // Logic chuẩn hóa Speaker: Nếu bắt đầu bằng M -> "M", còn lại là "W"
+                        string speakerCode = (speaker.StartsWith("M") || speaker.Contains("MAN")) ? "M" : "W";
+
+                        lines.Add(new DialogueLine { Speaker = speakerCode, Text = text });
+                        parseCount++;
+                    }
+                }
+                Console.WriteLine($"[PARSE] Parse xong format Speaker:Text: {parseCount} dòng");
+            }
+
+            Console.WriteLine($"[PARSE] Tổng dialogue lines sau parse: {lines.Count}");
+            if (lines.Count > 0)
+            {
+                Console.WriteLine($"[PARSE] Dòng đầu: Speaker={lines[0].Speaker}, Text={lines[0].Text.Substring(0, Math.Min(50, lines[0].Text.Length))}...");
+            }
+
             return lines;
         }
 

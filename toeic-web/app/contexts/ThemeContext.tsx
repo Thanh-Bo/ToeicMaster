@@ -38,21 +38,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
 
     const htmlElement = document.documentElement;
-    
-    console.log(`🎨 applyThemeToDOM: newTheme=${newTheme}, effectiveTheme=${effectiveTheme}`);
-    console.log(`📍 Before - html.className:`, htmlElement.className);
+   
     
     if (effectiveTheme === "dark") {
       htmlElement.classList.add("dark");
       setIsDark(true);
-      console.log(`✅ Added "dark" class`);
     } else {
       htmlElement.classList.remove("dark");
       setIsDark(false);
-      console.log(`✅ Removed "dark" class`);
     }
     
-    console.log(`📍 After - html.className:`, htmlElement.className);
     localStorage.setItem("theme", newTheme);
     void htmlElement.offsetHeight;
   };
