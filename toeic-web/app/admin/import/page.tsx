@@ -72,12 +72,15 @@ export default function ImportManagementPage() {
 
     try {
       setUploading(true);
+      console.log(`[Import] Starting upload - File: ${excelFile.name}, Test ID: ${selectedTestId}, Part: ${selectedPart}`);
+      
       const response = await adminService.importPartData(
         selectedTestId,
         selectedPart,
         excelFile
       );
 
+      console.log("[Import] Success:", response);
       setUploadMessage({
         type: "success",
         text: response.message || `✅ Import Part ${selectedPart} thành công!`,
@@ -87,9 +90,17 @@ export default function ImportManagementPage() {
       const fileInput = document.getElementById("excelFile") as HTMLInputElement;
       if (fileInput) fileInput.value = "";
     } catch (error: any) {
+      console.error("[Import] Error:", error);
+      const errorMsg = error.response?.data?.error || error.message || "Lỗi upload file";
+      console.error("[Import] Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: errorMsg
+      });
+      
       setUploadMessage({
         type: "error",
-        text: error.response?.data?.error || error.message || "Lỗi upload file",
+        text: errorMsg,
       });
     } finally {
       setUploading(false);

@@ -664,15 +664,21 @@ namespace ToeicMaster.API.Controllers
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
-                        if (string.IsNullOrEmpty(qNoText)) { col += 7; continue; }
+                        
+                        // Skip if no question number
+                        if (string.IsNullOrEmpty(qNoText) || !int.TryParse(qNoText, out int qNo))
+                        {
+                            col += 7;
+                            continue;
+                        }
 
-                        var qNo = int.Parse(qNoText);
                         var qContent = worksheet.Cells[row, col + 1].Text?.Trim();  // E
                         var optA = worksheet.Cells[row, col + 2].Text?.Trim();      // F
                         var optB = worksheet.Cells[row, col + 3].Text?.Trim();      // G
                         var optC = worksheet.Cells[row, col + 4].Text?.Trim();      // H
                         var optD = worksheet.Cells[row, col + 5].Text?.Trim();      // I
-                        var correctOpt = worksheet.Cells[row, col + 6].Text?.Trim().ToUpperInvariant();  // J
+                        var correctOptText = worksheet.Cells[row, col + 6].Text?.Trim();
+                        var correctOpt = string.IsNullOrEmpty(correctOptText) ? "A" : correctOptText.ToUpperInvariant();
 
                         var question = new Question
                         {
@@ -813,15 +819,21 @@ namespace ToeicMaster.API.Controllers
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
-                        if (string.IsNullOrEmpty(qNoText)) { col += 7; continue; }
+                        
+                        // Skip if no question number or invalid number
+                        if (string.IsNullOrEmpty(qNoText) || !int.TryParse(qNoText, out int qNo))
+                        {
+                            col += 7;
+                            continue;
+                        }
 
-                        var qNo = int.Parse(qNoText);
                         var qContent = worksheet.Cells[row, col + 1].Text?.Trim();
                         var optA = worksheet.Cells[row, col + 2].Text?.Trim();
                         var optB = worksheet.Cells[row, col + 3].Text?.Trim();
                         var optC = worksheet.Cells[row, col + 4].Text?.Trim();
                         var optD = worksheet.Cells[row, col + 5].Text?.Trim();
-                        var correctOpt = worksheet.Cells[row, col + 6].Text?.Trim().ToUpper();
+                        var correctOptText = worksheet.Cells[row, col + 6].Text?.Trim();
+                        var correctOpt = string.IsNullOrEmpty(correctOptText) ? "A" : correctOptText.ToUpperInvariant();
 
                         var question = new Question
                         {

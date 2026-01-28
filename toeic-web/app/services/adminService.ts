@@ -59,7 +59,10 @@ export const adminService = {
 
     const endpoint = `/admin/import-part${partNumber}-data-only?testId=${testId}`;
     const response = await axiosClient.post<{ message: string }>(endpoint, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { 
+        // Remove explicit Content-Type header - let axios/browser set it automatically
+        // "Content-Type": "multipart/form-data",
+      },
     });
 
     return response.data;
