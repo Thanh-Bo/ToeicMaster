@@ -115,9 +115,9 @@ export default function ProfilePage() {
                 ) : (
                   <>
                     <p className="text-gray-600 dark:text-gray-300 font-medium text-sm">Tài khoản Miễn phí</p>
-                    <button className="mt-2 text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline">
+                    <Link href="/premium" className="mt-2 text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline inline-block">
                       Nâng cấp Premium →
-                    </button>
+                    </Link>
                   </>
                 )}
               </div>

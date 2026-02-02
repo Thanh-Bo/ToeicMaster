@@ -201,6 +201,85 @@ namespace ToeicMaster.API.Migrations
                     b.ToTable("Parts");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("DurationMonths")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsSubscriptionActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OrderInfo")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PackageType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ResponseCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("ResponseMessage")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("SubscriptionEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SubscriptionStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TransactionNo")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.PracticeAnswer", b =>
                 {
                     b.Property<int>("Id")
@@ -964,6 +1043,17 @@ namespace ToeicMaster.API.Migrations
                     b.Navigation("Test");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.Payment", b =>
+                {
+                    b.HasOne("ToeicMaster.API.Entities.User", "User")
+                        .WithMany("Payments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.PracticeAnswer", b =>
                 {
                     b.HasOne("ToeicMaster.API.Entities.Question", "Question")
@@ -1183,6 +1273,8 @@ namespace ToeicMaster.API.Migrations
                     b.Navigation("CommentLikes");
 
                     b.Navigation("Comments");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("PracticeSessions");
 

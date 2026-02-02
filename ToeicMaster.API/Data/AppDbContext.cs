@@ -55,6 +55,12 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CommentLike> CommentLikes { get; set; }
 
+    public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<SpeakingPractice> SpeakingPractices { get; set; }
+
+    public virtual DbSet<SpeakingFeedback> SpeakingFeedbacks { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=ToeicMasterDb;Trusted_Connection=True;TrustServerCertificate=True;");
@@ -402,6 +408,32 @@ public partial class AppDbContext : DbContext
                 .WithMany(u => u.CommentLikes)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        // Payment configuration
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.TransactionNo).IsUnique();
+
+            entity.Property(e => e.TransactionNo)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.OrderInfo).HasMaxLength(500);
+            entity.Property(e => e.PackageType).HasMaxLength(50);
+            entity.Property(e => e.PaymentStatus).HasMaxLength(50);
+            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+            entity.Property(e => e.ResponseCode).HasMaxLength(10);
+            entity.Property(e => e.ResponseMessage).HasMaxLength(500);
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Payments)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

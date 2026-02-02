@@ -91,6 +91,7 @@ export interface DashboardStats {
   totalAttempts: number;
   activeUsers: number;
   newUsersToday: number;
+  totalLearningTimeMinutes : number ;
 }
 
 export interface TestHistoryItem {

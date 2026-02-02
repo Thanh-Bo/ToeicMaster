@@ -5,10 +5,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
 
 // Load ThemeToggle dynamically with SSR disabled - to avoid ThemeProvider error on server
-const ThemeToggle = dynamic(() => import("../common/ThemeToggle").then(mod => mod.default), {
-  ssr: false,
-  loading: () => <div className="w-9 h-9" /> // Placeholder while loading
-});
+const ThemeToggle = dynamic(
+  () => import("../common/ThemeToggle").then((mod) => mod.default),
+  {
+    ssr: false,
+    loading: () => <div className="w-9 h-9" />, // Placeholder while loading
+  },
+);
 
 interface NavLink {
   href: string;
@@ -25,7 +28,7 @@ interface Props {
 }
 
 const defaultNavLinks: NavLink[] = [
-  { href: "/", label: "Đề thi" },
+  { href: "/practice", label: "Đề thi" },
   { href: "/vocabulary", label: "Từ vựng" },
   { href: "/bookmarks", label: "Đánh dấu" },
   { href: "/statistics", label: "Thống kê" },
@@ -69,14 +72,14 @@ export default function PageHeader({
             </Link>
           ))}
 
-<ThemeToggle />
+          <ThemeToggle />
           {/* User Section */}
           {user ? (
             <div className="flex items-center gap-3">
               <Link
                 href="/profile"
                 className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
-              > 
+              >
                 <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {user.fullName?.charAt(0)?.toUpperCase() || "U"}
                 </div>

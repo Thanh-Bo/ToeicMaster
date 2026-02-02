@@ -8,6 +8,8 @@ using ToeicMaster.API.Services;
 using Amazon;
 using Amazon.S3;
 using Amazon.Runtime;
+using StackExchange.Redis;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,10 @@ builder.Services.AddHttpClient<AiExplanationService>();
 
 // Đăng ký TextToSpeechService
 builder.Services.AddScoped<TextToSpeechService>();
+
+// Đăng ký MoMoService cho payment
+builder.Services.AddScoped<MoMoService>();
+builder.Services.AddHttpClient<MoMoService>();
 
 // Đăng ký AWS S3 Client
 var awsAccessKey = builder.Configuration["AWS:AccessKey"];
@@ -65,7 +71,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:3000") // Cho phép Next.js truy cập
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // Cho phép gửi Cookies
         });
 });
 
@@ -90,6 +97,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add Redis cache service
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    ConnectionMultiplexer.Connect("localhost:6379"));
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379";
+});
+
+
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 
@@ -99,7 +115,7 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseHttpsRedirection();
 app.UseHttpsRedirection();
 
 app.UseCors("AllowNextJs");
