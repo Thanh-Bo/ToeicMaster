@@ -5,6 +5,7 @@ interface Props {
   userAnswers: Record<number, string>;
   onScrollToQuestion: (id: number) => void;
   onSubmit: () => void;
+  onClearAll: () => void;
   isSubmitting: boolean;
   timeLeft: number; // Nhận từ parent
   currentQuestionId: number | null; // Để highlight câu đang xem
@@ -16,6 +17,7 @@ export default function ExamRightSidebar({
   userAnswers,
   onScrollToQuestion,
   onSubmit,
+  onClearAll,
   isSubmitting,
   timeLeft,
   currentQuestionId,
@@ -35,7 +37,7 @@ export default function ExamRightSidebar({
   const isLowTime = !isUnlimited && timeLeft <= 300;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sticky top-24">
+    <div className=" dark:text-white text-zinc-600 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sticky top-24">
       {/* 1. ĐỒNG HỒ & NỘP BÀI */}
       <div className="text-center mb-6">
         {isUnlimited ? "Thời gian làm bài:" : "Thời gian còn lại:"}
@@ -68,6 +70,18 @@ export default function ExamRightSidebar({
           {isSubmitting ? "Đang nộp..." : "Nộp bài"}
         </button>
       </div>
+
+      <button
+        onClick={() => {
+          if (confirm("Bạn có chắc chắn muốn xóa tất cả đáp án đã chọn?")) {
+            onClearAll();
+          }
+        }}
+        className="w-full py-2 rounded-lg font-bold transition-all text-sm mb-4 uppercase
+          bg-transparent border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 hover:bg-red-600 dark:hover:bg-red-600 hover:text-white"
+      >
+        Xóa tất cả
+      </button>
 
       <hr className="border-gray-100 dark:border-zinc-700 my-4" />
 

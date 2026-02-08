@@ -176,46 +176,42 @@ export default function TopicStudyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 p-4 md:p-8">
-     
-      {/* Header Process Bar & Exit Button */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 p-4 md:p-8">
+      {/* Header Section */}
       <div className="max-w-4xl mx-auto mb-12">
-         <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 mb-6 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-bold"
-          >
-            <ArrowLeft size={20} />
-            <span>Quay lại</span>
-          </button>
-        <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800 flex items-center gap-4">
-          
-          {/* EXIT BUTTON */}
-         
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 mb-6 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <span>Quay lại</span>
+        </button>
 
-          {/* PROCESS STEPS (Flex-1 để chiếm hết phần còn lại) */}
-          <div className="flex-1 flex justify-between items-center px-2">
+        {/* Progress Bar Card */}
+        <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800">
+          {/* Title */}
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            {topicTitle}
+          </h1>
+
+          {/* Process Steps */}
+          <div className="flex justify-between items-center gap-4">
             {[
               { phase: "LEARN", number: "1", label: "Học từ", icon: "📚" },
-              {
-                phase: "PRACTICE_GAME",
-                number: "2",
-                label: "Ghép thẻ",
-                icon: "🎮",
-              },
+              { phase: "PRACTICE_GAME", number: "2", label: "Ghép thẻ", icon: "🎮" },
               { phase: "TEST", number: "3", label: "Kiểm tra", icon: "✍️" },
             ].map((step, idx) => (
               <React.Fragment key={step.phase}>
                 <button
                   onClick={() => setPhase(step.phase as Phase)}
-                  className={`flex flex-col items-center gap-2 transition-all ${
-                    phase === step.phase ? "scale-110" : "hover:scale-105"
-                  } cursor-pointer`}
+                  className={`flex flex-col items-center gap-2 transition-all flex-1 cursor-pointer`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all ${
+                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all shadow-sm ${
                       phase === step.phase
-                        ? "bg-blue-600 text-white border-blue-600 shadow-lg"
-                        : "border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500"
+                        ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg scale-110"
+                        : "border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105"
                     }`}
                   >
                     {step.number}
@@ -224,7 +220,7 @@ export default function TopicStudyPage() {
                     className={`text-xs font-bold text-center transition-colors hidden md:block ${
                       phase === step.phase
                         ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                        : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
                     {step.label}
@@ -232,11 +228,9 @@ export default function TopicStudyPage() {
                 </button>
                 {idx < 2 && (
                   <div
-                    className={`flex-1 h-1 mx-2 md:mx-4 rounded-full transition-all ${
-                      phase === step.phase ||
-                      (phase === "PRACTICE_GAME" && idx === 0) ||
-                      (phase === "TEST" && idx < 1)
-                        ? "bg-blue-600"
+                    className={`h-1 flex-1 rounded-full transition-all ${
+                      phase === step.phase || (phase === "PRACTICE_GAME" && idx === 0) || (phase === "TEST" && idx < 1)
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500"
                         : "bg-gray-200 dark:bg-zinc-700"
                     }`}
                   ></div>
@@ -251,30 +245,38 @@ export default function TopicStudyPage() {
       <div className="max-w-4xl mx-auto">
         {phase === "LEARN" && (
           <div className="flex flex-col items-center">
-            {/* Sub-phase indicator */}
-            <div className="mb-6 text-center">
-              <div className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg mb-4">
-                Từ {currentWordIndex + 1} / {words.length}
+            {/* Progress Badge */}
+            <div className="mb-8 flex flex-col items-center gap-4">
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-full shadow-lg">
+                <span className="text-sm font-bold">Từ {currentWordIndex + 1} / {words.length}</span>
+                <div className="h-2 w-32 bg-white/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white transition-all duration-300"
+                    style={{ width: `${((currentWordIndex + 1) / words.length) * 100}%` }}
+                  ></div>
+                </div>
               </div>
+
+              {/* Sub-phase Tabs */}
               <div className="flex gap-2 md:gap-3 justify-center flex-wrap">
                 <button
                   onClick={() => setSubPhase("FLASHCARD")}
                   disabled={subPhase === "LISTEN_WRITE" || subPhase === "FILL_BLANK"}
-                  className={`px-3 md:px-4 py-2 md:py-2 rounded-full text-xs md:text-sm font-bold transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                     subPhase === "FLASHCARD"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105"
+                      : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  1️⃣ Flashcard
+                  1️⃣ Thẻ học
                 </button>
                 <button
                   onClick={() => setSubPhase("LISTEN_WRITE")}
                   disabled={subPhase === "FLASHCARD"}
-                  className={`px-3 md:px-4 py-2 md:py-2 rounded-full text-xs md:text-sm font-bold transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                     subPhase === "LISTEN_WRITE"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105"
+                      : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
                   2️⃣ Nghe & Viết
@@ -282,10 +284,10 @@ export default function TopicStudyPage() {
                 <button
                   onClick={() => setSubPhase("FILL_BLANK")}
                   disabled={subPhase === "FLASHCARD" || subPhase === "LISTEN_WRITE"}
-                  className={`px-3 md:px-4 py-2 md:py-2 rounded-full text-xs md:text-sm font-bold transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                     subPhase === "FILL_BLANK"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105"
+                      : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
                   3️⃣ Điền từ
@@ -298,7 +300,6 @@ export default function TopicStudyPage() {
               <div className="w-full animate-fadeIn">
                 <Flashcard
                   word={words[currentWordIndex]}
-                 
                   onBookmark={() => console.log("Bookmark")}
                 />
               </div>
@@ -306,20 +307,19 @@ export default function TopicStudyPage() {
 
             {subPhase === "LISTEN_WRITE" && (
               <div className="w-full max-w-3xl animate-fadeIn pb-20 md:pb-0">
-                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-3xl border border-zinc-300 dark:border-zinc-700 p-6 md:p-12">
-                  <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-center">
+                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-3xl border border-gray-200 dark:border-zinc-700 p-8 md:p-12 shadow-lg">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center">
                     🎧 Nghe và viết lại
                   </h2>
 
-                  {/* Audio button */}
-                  <div className="flex justify-center mb-8 md:mb-10">
+                  {/* Audio Button */}
+                  <div className="flex justify-center mb-10 md:mb-14">
                     <button
                       onClick={() => {
                         const audioUrl = words[currentWordIndex].audioUrl;
                         const word = words[currentWordIndex].word;
 
                         if (audioUrl) {
-                          // Play audio file
                           const audio = new Audio(audioUrl);
                           audio
                             .play()
@@ -328,32 +328,27 @@ export default function TopicStudyPage() {
                             })
                             .catch((e) => {
                               console.error("Audio play error:", e);
-                              // Fallback to speech synthesis if audio file fails
-                              const utterance = new SpeechSynthesisUtterance(
-                                word
-                              );
+                              const utterance = new SpeechSynthesisUtterance(word);
                               utterance.lang = "en-US";
                               window.speechSynthesis.speak(utterance);
                             });
                         } else {
-                          // Use browser speech synthesis as fallback
                           const utterance = new SpeechSynthesisUtterance(word);
                           utterance.lang = "en-US";
                           window.speechSynthesis.speak(utterance);
                         }
                       }}
-                      className="w-20 h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-xl border-4 border-white/30 bg-linear-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                      className="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl border-4 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95"
                     >
-                      <span className="text-4xl md:text-6xl">🔊</span>
+                      <span className="text-5xl md:text-6xl">🔊</span>
                     </button>
                   </div>
 
-                  {/* Instructions */}
-                  <p className="text-center text-base md:text-lg mb-6 md:mb-8 font-semibold text-white">
+                  <p className="text-center text-lg md:text-xl mb-8 font-semibold">
                     Bạn nghe từ ở trên. Gõ lại từ bạn vừa nghe
                   </p>
 
-                  {/* Input field */}
+                  {/* Input */}
                   <input
                     type="text"
                     value={userInput}
@@ -367,80 +362,71 @@ export default function TopicStudyPage() {
                       }
                     }}
                     placeholder="Nhập từ ở đây..."
-                    className="w-full px-4 md:px-6 py-3 md:py-4 rounded-2xl text-gray-900 dark:text-white border border-zinc-200 dark:border-zinc-700 text-center text-base md:text-xl font-semibold mb-6 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:focus:ring-blue-400 transition-all"
+                    className="w-full px-6 py-4 rounded-2xl text-gray-900 dark:text-white border-2 border-gray-200 dark:border-zinc-700 text-center text-lg font-semibold mb-8 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all bg-white dark:bg-zinc-800"
                   />
 
-                  {/* Feedback Card */}
+                  {/* Feedback */}
                   {isAnswerChecked ? (
                     <div
-                      className={`rounded-2xl p-8 mb-6 border ${
+                      className={`rounded-2xl p-8 border-l-4 shadow-lg transition-all ${
                         isAnswerCorrect
-                          ? "bg-green-100 border-green-400 dark:bg-green-900/40 dark:border-green-600" // Màu xanh dịu
-                          : "bg-red-100 border-red-400 dark:bg-red-900/40 dark:border-red-600"
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                          : "bg-red-50 dark:bg-red-900/20 border-red-500"
                       }`}
                     >
-                      <p className="text-center text-2xl font-bold text-white mb-4">
-                        <WordDetailFeedback word={words[currentWordIndex]} />
-                      </p>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-3xl">{isAnswerCorrect ? "🎉" : "😢"}</span>
+                        <h3 className={`text-xl font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                          {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
+                        </h3>
+                      </div>
+                      <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
-                    <p className="text-center text-sm text-white/70">
-                      Nhấn Enter hoặc bấm Tiếp theo để kiểm tra
-                    </p>
+                    <p className="text-center text-sm text-gray-400">⌨️ Nhấn Enter để kiểm tra</p>
                   )}
-
-                  {/* Hint */}
                 </div>
               </div>
             )}
 
             {subPhase === "FILL_BLANK" && (
               <div className="w-full max-w-3xl animate-fadeIn">
-                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-xl p-8 md:p-12 transition-all duration-300">
-                  <h2 className="text-3xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-linear-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-3xl shadow-lg p-8 md:p-12 transition-all">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">
                     📝 Điền từ vào chỗ trống
                   </h2>
 
                   {/* Meaning Hint */}
-                  <div className="bg-blue-50 dark:bg-zinc-900/20 border border-blue-100 dark:border-zinc-800 rounded-2xl p-6 mb-10 text-center shadow-sm">
-                    <p className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 mb-10">
+                    <p className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-300 text-center">
                       {words[currentWordIndex].meaning || "Không có định nghĩa"}
                     </p>
                   </div>
 
                   {/* Input Area */}
-                  <div className="relative bg-gray-50 dark:bg-zinc-900 rounded-2xl p-8 mb-10 border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors group">
-                    
-                    {/* Visual Layer (Hiển thị ký tự) */}
-                    <div className="flex justify-center flex-wrap gap-2 md:gap-3">
+                  <div className="relative bg-gray-50 dark:bg-zinc-800 rounded-2xl p-8 mb-10 border-2 border-dashed border-gray-300 dark:border-zinc-700">
+                    {/* Visual Layer */}
+                    <div className="flex justify-center flex-wrap gap-2 md:gap-3 mb-6">
                       {words[currentWordIndex].word
                         .split("")
                         .map((char: string, idx: number) => {
                           const word = words[currentWordIndex].word;
                           const totalLen = word.length;
-                          // Logic gợi ý: Hiện ký tự đầu, cuối và giữa
-                          const isHint =
-                            idx === 0 ||
-                            idx === totalLen - 1 ||
-                            idx === Math.floor(totalLen / 2);
-
+                          const isHint = idx === 0 || idx === totalLen - 1 || idx === Math.floor(totalLen / 2);
                           const userChar = userInput[idx];
-                          const displayChar = userChar ? userChar : (isHint ? char : "");
+                          const displayChar = userChar ? userChar : isHint ? char : "";
                           const isCurrentCursor = idx === userInput.length;
 
                           return (
                             <div
                               key={idx}
-                              className={`
-                                w-10 h-14 md:w-14 md:h-16 flex items-center justify-center text-3xl md:text-4xl font-mono font-bold rounded-lg transition-all duration-200 select-none
-                                ${userChar 
-                                  ? "bg-blue-600 text-white shadow-md transform scale-105" // Đã nhập
-                                  : isHint 
-                                    ? "bg-gray-200 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500" // Gợi ý
-                                    : "bg-gray-100 dark:bg-zinc-800 text-transparent border border-gray-300 dark:border-zinc-700" // Chưa nhập
-                                }
-                                ${isCurrentCursor ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-zinc-900" : ""}
-                              `}
+                              className={`w-10 h-14 md:w-14 md:h-16 flex items-center justify-center text-2xl md:text-3xl font-bold rounded-lg transition-all ${
+                                userChar
+                                  ? "bg-blue-600 text-white shadow-md transform scale-105"
+                                  : isHint
+                                    ? "bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-400"
+                                    : "bg-white dark:bg-zinc-900 text-transparent border border-gray-300 dark:border-zinc-600"
+                              } ${isCurrentCursor ? "ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900" : ""}`}
                             >
                               {displayChar.toUpperCase()}
                             </div>
@@ -448,7 +434,7 @@ export default function TopicStudyPage() {
                         })}
                     </div>
 
-                    {/* Input Logic (Invisible) */}
+                    {/* Input Logic */}
                     <input
                       type="text"
                       value={userInput}
@@ -463,51 +449,45 @@ export default function TopicStudyPage() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleCheckFillBlank();
                       }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-text"
                       autoComplete="off"
                       autoCorrect="off"
                       spellCheck="false"
                     />
 
-                    <p className="text-center text-sm text-gray-400 mt-6 font-medium">
-                      {words[currentWordIndex].word.length} ký tự • Hãy gõ trực tiếp
+                    <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                      {words[currentWordIndex].word.length} ký tự • Nhấn Enter để kiểm tra
                     </p>
                   </div>
 
-                  {/* Feedback Section */}
+                  {/* Feedback */}
                   {isAnswerChecked ? (
                     <div
-                      className={`rounded-2xl p-6 border-l-4 shadow-sm transition-all duration-500 animate-in fade-in slide-in-from-bottom-2 ${
+                      className={`rounded-2xl p-6 border-l-4 shadow-lg transition-all ${
                         isAnswerCorrect
-                          ? "bg-green-50 border-green-500 dark:bg-green-900/20 dark:border-green-500"
-                          : "bg-red-50 border-red-500 dark:bg-red-900/20 dark:border-red-500"
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                          : "bg-red-50 dark:bg-red-900/20 border-red-500"
                       }`}
                     >
-                      <div className="flex items-center justify-center gap-2 mb-4">
-                        <span className="text-2xl">{isAnswerCorrect ? "🎉" : "😢"}</span>
-                        <h3 className={`text-xl font-bold ${
-                          isAnswerCorrect 
-                            ? "text-green-700 dark:text-green-400" 
-                            : "text-red-700 dark:text-red-400"
-                        }`}>
-                          {isAnswerCorrect ? "Chính xác!" : "Chưa đúng, hãy xem lại nhé!"}
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-3xl">{isAnswerCorrect ? "🎉" : "😢"}</span>
+                        <h3 className={`text-xl font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                          {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
                         </h3>
                       </div>
-                      
-                      {/* Component chi tiết từ vựng (trong suốt) */}
                       <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
                     <div className="text-center h-12 flex items-center justify-center text-gray-400 animate-pulse">
-                      <span>⌨️ Nhập đủ từ rồi nhấn Enter</span>
+                      <span>⌨️ Gõ để điền từ</span>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Navigation buttons */}
-            <div className="mt-8 md:mt-10 flex gap-3 md:gap-4 w-full max-w-md px-4 md:px-0">
+            {/* Navigation Buttons */}
+            <div className="mt-10 flex gap-4 w-full max-w-md px-4 md:px-0">
               <button
                 onClick={
                   subPhase === "FLASHCARD"
@@ -519,7 +499,7 @@ export default function TopicStudyPage() {
                     : handlePreviousSubPhase
                 }
                 disabled={subPhase === "FLASHCARD" && currentWordIndex === 0}
-                className="px-4 md:px-6 py-2 md:py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700 text-sm md:text-base"
+                className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700"
               >
                 ← Quay lại
               </button>
@@ -541,38 +521,38 @@ export default function TopicStudyPage() {
                     handleNextCard();
                   }
                 }}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 md:py-3 rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all hover:shadow-2xl text-sm md:text-base"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all hover:shadow-xl active:scale-95"
               >
-                Tiếp theo <ArrowRight size={16} className="hidden md:inline" />
+                Tiếp theo <ArrowRight size={18} className="hidden md:inline" />
               </button>
             </div>
           </div>
         )}
 
         {phase === "PRACTICE_GAME" && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             <MatchingGame
               words={words}
               onComplete={() => {
-                alert("Xuất sắc! Giờ hãy làm bài kiểm tra cuối cùng.");
+                alert("Xuất sắc! Bây giờ hãy làm bài kiểm tra cuối cùng.");
                 setPhase("TEST");
               }}
             />
             <button
               onClick={() => {
-                if (confirm("⚠️ Bạn chắc chắn muốn bỏ qua phần luyện tập và đi kiểm tra? Điểm số sẽ không được tính.")) {
+                if (confirm("⚠️ Bạn có chắc chắn muốn bỏ qua phần luyện tập?")) {
                   setPhase("TEST");
                 }
               }}
               className="w-full max-w-md mx-auto px-6 py-3 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
             >
-              ⚠️ Bỏ qua và đi kiểm tra
+              ⏭️ Bỏ qua và đi kiểm tra
             </button>
           </div>
         )}
 
         {phase === "TEST" && (
-          <div className="text-center py-16 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800 p-8">
             <VocabularyTest
               topicId={Number(topicId)}
               topicTitle={topicTitle}
@@ -582,21 +562,21 @@ export default function TopicStudyPage() {
         )}
 
         {phase === "COMPLETED" && (
-          <div className="text-center py-20 bg-white dark:bg-zinc-900  rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={40} />
+          <div className="text-center py-24 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl shadow-lg border border-green-200 dark:border-green-800">
+            <div className="w-24 h-24 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle size={48} />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-800 dark:text-white mb-2">
-              Chúc mừng!
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-3">
+              Chúc mừng! 🎉
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Bạn đã hoàn thành chủ đề này.
+            <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
+              Bạn đã hoàn thành chủ đề từ vựng này
             </p>
             <a
               href="/vocabulary"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg inline-block transition-all"
+              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-all"
             >
-              Về trang Từ vựng
+              ← Về trang Từ vựng
             </a>
           </div>
         )}

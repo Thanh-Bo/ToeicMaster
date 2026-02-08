@@ -163,12 +163,12 @@ export default function TestOverviewPage() {
       </div>
 
       {/* Phần bình luận */}
-      <div className="mt-10">
+      {/* <div className="mt-10">
         <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Thảo luận về đề thi</h3>
         <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-700 p-6">
           <CommentSection testId={testId} />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 import { TestDetail } from "@/app/types"; // Đảm bảo bạn có type này
 import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
 import AnswerOption from "@/app/components/tests/AnswerOption";
-import { ListChecks, PlayCircle } from "lucide-react";
+import { ListChecks, PlayCircle, Trash } from "lucide-react";
 import { testService } from "@/app/services/testService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
 
@@ -68,6 +68,11 @@ const formatTime = (seconds: number) => {
       ...prev,
       [questionId]: option,
     }));
+  };
+
+  const handleClearAllAnswers = () => {
+    setUserAnswers({});
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const handleScrollToQuestion = (id: number) => {
@@ -705,6 +710,7 @@ const formatTime = (seconds: number) => {
                 userAnswers={userAnswers}
                 onScrollToQuestion={handleScrollToQuestion}
                 onSubmit={handleSubmit}
+                onClearAll={handleClearAllAnswers}
                 isSubmitting={submitting}
                 timeLeft={timeLeft}
                 currentQuestionId={currentQuestionId}
@@ -717,30 +723,41 @@ const formatTime = (seconds: number) => {
           
       {/* MOBILE BOTTOM NAV */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 shadow-lg z-50">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-3 py-2 gap-2">
           <button
             onClick={() => setShowMobileNav(!showMobileNav)}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm"
           >
-            <ListChecks className="w-6 h-6" />
+            <ListChecks className="w-5 h-5" />
             <span className="font-medium">
               {answeredCount}/{totalQuestions}
             </span>
           </button>
 
           <div
-            className={`font-bold ${
+            className={`font-bold text-sm ${
               timeLeft <= 300 ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-white"
             }`}
-          >
+          >   
             {formatTime(timeLeft)}
           </div>
 
           <button
-            onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold"
+            onClick={() => {
+              if (confirm("Bạn có chắc chắn muốn xóa tất cả đáp án đã chọn?")) {
+                handleClearAllAnswers();
+              }
+            }}
+            className="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-700"
           >
-            Nộp bài
+            <Trash/>
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700"
+          >
+            Nộp
           </button>
         </div>
       </div>
@@ -760,6 +777,7 @@ const formatTime = (seconds: number) => {
               parts={testData?.parts || []}
               userAnswers={userAnswers}
               onScrollToQuestion={handleScrollToQuestion}
+              onClearAll={handleClearAllAnswers}
               onSubmit={handleSubmit}
               isSubmitting={submitting}
               timeLeft={timeLeft}

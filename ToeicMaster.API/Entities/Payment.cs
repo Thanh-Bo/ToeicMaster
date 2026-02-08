@@ -20,8 +20,8 @@ namespace ToeicMaster.API.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? PaidAt { get; set; }
         
-        public string ResponseCode { get; set; } // VNPAY response code (00 = success)
-        public string ResponseMessage { get; set; }
+        public string ResponseCode { get; set; } // VNPAY response code (00 = success) - nullable for pending payments
+        public string ResponseMessage { get; set; } // nullable for pending payments
         
         // Subscription related
         public DateTime? SubscriptionStartDate { get; set; }

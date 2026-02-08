@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { Loader, ArrowLeft, AlertCircle, Book } from "lucide-react";
+import { Loader, ArrowLeft, Book } from "lucide-react";
 import { vocabularyService } from "../services/vocabularyService";
 import TopicCard from "../components/vocabulary/TopicCard";
-import { VocabularyTopic, VocabWord } from "../types";
+import { VocabularyTopic } from "../types";
 
 export default function VocabularyPage() {
   const router = useRouter();
@@ -17,7 +17,6 @@ export default function VocabularyPage() {
 
   useEffect(() => {
     fetchTopics();
-    
   }, []);
 
   const fetchTopics = async () => {
@@ -33,48 +32,77 @@ export default function VocabularyPage() {
     }
   };
 
-  
-
   const filteredTopics = topics.filter((topic) =>
     topic.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader className="w-8 h-8 text-blue-600 animate-spin" />
-          <p className="text-gray-600 dark:text-gray-400">Đang tải chủ đề từ vựng...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-lg opacity-30 animate-pulse"></div>
+            <Loader className="w-16 h-16 text-blue-600 animate-spin relative" />
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Đang tải chủ đề từ vựng...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-white via-blue-50 to-white dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 transition-colors">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header Section */}
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 mb-8 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <span>Quay lại</span>
+        </button>
+
+        {/* Hero Section */}
         <div className="mb-12">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 mb-6 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-bold"
-          >
-            <ArrowLeft size={20} />
-            <span>Quay lại</span>
-          </button>
-          
-          <h1 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
-            Từ Vựng TOEIC
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
-            Phát triển vốn từ vựng chuyên sâu với 10 chủ đề TOEIC. Luyện tập, học flashcard và kiểm tra kiến thức ngay
-          </p>
+          <div className="flex items-start gap-4 mb-4">
+            <div className="text-6xl">📚</div>
+            <div className="flex-1">
+              <h1 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
+                Từ Vựng TOEIC
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl leading-relaxed">
+                Phát triển vốn từ vựng chuyên sâu với các chủ đề TOEIC. Luyện tập, học flashcard và kiểm tra kiến thức
+              </p>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{topics.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Chủ đề</div>
+            </div>
+            <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {topics.reduce((sum, t) => sum + (t.wordCount || 0), 0)}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Từ vựng</div>
+            </div>
+            <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">∞</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Miễn phí</div>
+            </div>
+            <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">3</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Cách học</div>
+            </div>
+          </div>
         </div>
 
         {/* Search Section */}
-        <div className="mb-10">
-          <div className="relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mb-12">
+          <div className="relative max-w-2xl">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -82,43 +110,49 @@ export default function VocabularyPage() {
               placeholder="Tìm kiếm chủ đề từ vựng..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-5 py-3.5 border-2 border-gray-200 dark:border-zinc-700 rounded-xl
-                bg-white dark:bg-zinc-900 text-gray-900 dark:text-white
+              className="w-full pl-12 pr-5 py-4 border-2 border-gray-200 dark:border-zinc-700 rounded-xl
+                bg-white dark:bg-zinc-800 text-gray-900 dark:text-white
                 placeholder-gray-500 dark:placeholder-gray-400
-                focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors
-                text-base font-medium"
+                focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 transition-all
+                text-base font-medium shadow-sm"
             />
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
-            <p className="text-red-700 dark:text-red-300 font-medium">{error}</p>
-          </div>
-        )}
-
-        
-        {/* Error Message */}
-        {error && (
-          <div className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
-            <p className="text-red-700 dark:text-red-300 font-medium">{error}</p>
+          <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl backdrop-blur-sm">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">❌</div>
+              <div>
+                <h3 className="font-bold text-red-700 dark:text-red-300 mb-1">Lỗi tải dữ liệu</h3>
+                <p className="text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Topics Grid */}
         {filteredTopics.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-7">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in">
             {filteredTopics.map((topic) => (
               <TopicCard key={topic.id} topic={topic} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white dark:bg-zinc-900/50 backdrop-blur-sm rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800">
-            <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">Không có chủ đề từ vựng phù hợp</p>
+          <div className="text-center py-24 bg-white dark:bg-zinc-800/30 backdrop-blur-sm rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
+            <div className="text-6xl mb-4">📭</div>
+            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+              {searchTerm ? "Không tìm thấy chủ đề từ vựng phù hợp" : "Chưa có chủ đề từ vựng"}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Xóa tìm kiếm
+              </button>
+            )}
           </div>
         )}
       </div>

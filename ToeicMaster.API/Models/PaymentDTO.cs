@@ -11,8 +11,10 @@ namespace ToeicMaster.API.Models
     {
         public bool Success { get; set; }
         public string Message { get; set; }
-        public string PaymentUrl { get; set; }        public string QrCode { get; set; }
-        public string Deeplink { get; set; }        public long OrderId { get; set; }
+        public string PaymentUrl { get; set; }
+        public string QrCode { get; set; }
+        public string Deeplink { get; set; }
+        public long OrderId { get; set; }
     }
 
     public class PaymentCallbackRequest
