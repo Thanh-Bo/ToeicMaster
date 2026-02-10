@@ -327,6 +327,7 @@ export interface VocabularyTopic {
   description: string;
   totalWords: number;
   learnedWords: number;
+  wordCount : number ;
 }
 
 
