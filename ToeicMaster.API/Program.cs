@@ -107,8 +107,27 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 
 var app = builder.Build();
+// thanks
 
-
+// Add exception handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = ex.Message,
+            stackTrace = ex.StackTrace,
+            innerException = ex.InnerException?.Message
+        });
+    }
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();
