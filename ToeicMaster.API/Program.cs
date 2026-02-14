@@ -67,7 +67,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowNextJs",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000") // Cho phép Next.js truy cập
+            policy.WithOrigins(
+                "http://localhost:3000",
+                "https://luyendetoeic.online",  // Your Vercel domain
+                "https://www.luyendetoeic.online"
+            )
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // Cho phép gửi Cookies

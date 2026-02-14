@@ -49,6 +49,10 @@ namespace ToeicMaster.API.Services
                     $"redirectUrl={returnUrl}&requestId={requestId}&requestType={requestType}";
 
                 var signature = GenerateSignature(signatureRawData, _secretKey);
+                
+                _logger.LogInformation($"MoMo Request Debug:");
+                _logger.LogInformation($"  SignatureRawData: {signatureRawData}");
+                _logger.LogInformation($"  Signature: {signature}");
 
                 var request = new
                 {

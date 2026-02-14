@@ -1,8 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
 
+// Use environment variable or fallback to localhost for development
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5298/api/v1";
+
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5298/api/v1",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -77,7 +80,7 @@ axiosClient.interceptors.response.use(
       try {
         // Gọi API refresh token
         const response = await axios.post(
-          "http://localhost:5298/api/v1/auth/refresh-token",
+          `${API_BASE_URL}/auth/refresh-token`,
           { refreshToken }
         );
 
