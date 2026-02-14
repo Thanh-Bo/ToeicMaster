@@ -366,8 +366,8 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part1-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart1DataOnly(
-    [FromForm] IFormFile excelFile,
-    [FromForm] List<IFormFile>? images,
+    IFormFile excelFile,
+    List<IFormFile>? images,
     [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -489,7 +489,7 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part2-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart2DataOnly(
-    [FromForm] IFormFile excelFile,
+    IFormFile excelFile,
     [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -582,8 +582,8 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part3-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart3DataOnly(
-    [FromForm] IFormFile excelFile,
-    [FromForm] List<IFormFile>? images,
+    IFormFile excelFile,
+    List<IFormFile>? images,
     [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -724,8 +724,8 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part4-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart4DataOnly(
-   [FromForm] IFormFile excelFile,
-   [FromForm] List<IFormFile>? images, // Vẫn giữ ảnh nếu bạn muốn upload ảnh minh họa
+   IFormFile excelFile,
+   List<IFormFile>? images, // Vẫn giữ ảnh nếu bạn muốn upload ảnh minh họa
    [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
