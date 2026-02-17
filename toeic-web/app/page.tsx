@@ -109,11 +109,7 @@ export default function HomePage() {
               {/* MAIN HEADING */}
               <div>
                 <h1 className="text-4xl md:text-6xl font-bold text-white dark:text-white mb-4 leading-tight">
-                  Luyện thi TOEIC
-                  <br />
-                  <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-blue-300 bg-clip-text text-transparent">
-                    hiệu quả & thông minh
-                  </span>
+                  Luyện thi TOEIC hiệu quả & thông minh
                 </h1>
               </div>
 
@@ -134,7 +130,7 @@ export default function HomePage() {
                   className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-blue-600 dark:text-white bg-white dark:bg-gradient-to-r dark:from-blue-600 dark:to-blue-700 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                     Bắt đầu luyện thi
+                    Bắt đầu luyện thi
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-20 transition-opacity"></div>
                 </Link>
@@ -152,12 +148,10 @@ export default function HomePage() {
                     href="/admin"
                     className="px-8 py-4 font-bold text-gray-900 bg-yellow-400 dark:bg-yellow-500 rounded-xl hover:bg-yellow-300 dark:hover:bg-yellow-400 transition shadow-lg hover:shadow-xl"
                   >
-                     Admin Panel
+                    Admin Panel
                   </Link>
                 )}
               </div>
-
-             
             </div>
 
             {/* RIGHT SIDE - VISUAL ELEMENT */}
@@ -197,7 +191,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <p className="text-zinc-500 text-sm">
-                      Kỷ lục: {streakData.longestStreak} ngày 
+                      Kỷ lục: {streakData.longestStreak} ngày
                     </p>
                   </div>
                 )}
@@ -247,9 +241,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      
-      
 
       {/* QUICK ACCESS FEATURES - ENHANCED */}
       <section className="max-w-6xl mx-auto px-4 py-12 -mt-8 relative z-10">
@@ -341,7 +332,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Benefit 1 */}
             <div className="group bg-gradient-to-br from-blue-50 dark:from-zinc-800 to-blue-100 dark:to-zinc-700 rounded-2xl p-8 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 border border-blue-200 dark:border-zinc-600 hover:scale-105">
-              <div className="text-5xl mb-4">📚</div>
+              <div className="text-5xl mb-4"></div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 Học tự do
               </h3>
@@ -353,7 +344,7 @@ export default function HomePage() {
 
             {/* Benefit 2 */}
             <div className="group bg-gradient-to-br from-purple-50 dark:from-zinc-800 to-purple-100 dark:to-zinc-700 rounded-2xl p-8 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 border border-purple-200 dark:border-zinc-600 hover:scale-105">
-              <div className="text-5xl mb-4">🎯</div>
+              <div className="text-5xl mb-4"></div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 Hiệu quả cao
               </h3>
@@ -365,7 +356,7 @@ export default function HomePage() {
 
             {/* Benefit 3 */}
             <div className="group bg-gradient-to-br from-pink-50 dark:from-zinc-800 to-pink-100 dark:to-zinc-700 rounded-2xl p-8 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 border border-pink-200 dark:border-zinc-600 hover:scale-105">
-              <div className="text-5xl mb-4">💰</div>
+              <div className="text-5xl mb-4"></div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 Tiết kiệm chi phí
               </h3>
@@ -377,7 +368,7 @@ export default function HomePage() {
 
             {/* Benefit 4 */}
             <div className="group bg-gradient-to-br from-green-50 dark:from-zinc-800 to-green-100 dark:to-zinc-700 rounded-2xl p-8 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 border border-green-200 dark:border-zinc-600 hover:scale-105">
-              <div className="text-5xl mb-4">🤖</div>
+              <div className="text-5xl mb-4"></div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 AI Cá nhân hóa
               </h3>
