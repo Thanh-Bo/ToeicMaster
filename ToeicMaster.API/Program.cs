@@ -71,7 +71,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:3000",
                 "https://luyendetoeic.online",
                 "https://www.luyendetoeic.online",
-                "https://toeic-master-sigma.vercel.app" 
+                "https://toeic-master-sigma.vercel.app"  // Vercel default domain
             )
                   .AllowAnyHeader()
                   .AllowAnyMethod()
