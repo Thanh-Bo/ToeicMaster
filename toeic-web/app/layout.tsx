@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "TOEIC Master",
   description: "",
   icons: {
-    icon: "/logo.png",
+    icon: "/logo.ico",
   },
 };
 
@@ -29,6 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/logo.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/logo.ico" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

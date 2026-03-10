@@ -14,7 +14,7 @@ const quickFeatures = [
     icon: <BookOpen className="w-8 h-8" />,
     title: "Ngữ pháp",
     description: "Chính thức Part 5 TOEIC với hệ thống bài học và luyện tập toàn diện",
-    href: "/practice",
+    href: "/grammar",
     iconBgColor: "bg-gray-100",
   },
   {
@@ -38,13 +38,13 @@ const quickFeatures = [
     href: "/practice",
     iconBgColor: "bg-gray-100",
   },
-  {
-    icon: <Newspaper className="w-8 h-8" />,
-    title: "Blog",
-    description: "Meo làm bài, chiến lược và kinh nghiệm thi TOEIC",
-    href: "/blog",
-    iconBgColor: "bg-gray-100",
-  },
+  // {
+  //   icon: <Newspaper className="w-8 h-8" />,
+  //   title: "Blog",
+  //   description: "Meo làm bài, chiến lược và kinh nghiệm thi TOEIC",
+  //   href: "/blog",
+  //   iconBgColor: "bg-gray-100",
+  // },
   {
     icon: <Eye className="w-8 h-8" />,
     title: "Luyện đọc",
@@ -52,13 +52,7 @@ const quickFeatures = [
     href: "/reading",
     iconBgColor: "bg-gray-100",
   },
-  {
-    icon: <GraduationCap className="w-8 h-8" />,
-    title: "Khóa học",
-    description: "Lộ trình học TOEIC 800+ với video, bài tập chi tiết",
-    href: "/courses",
-    iconBgColor: "bg-gray-100",
-  },
+  
 ];
 
 export default function HomePage() {

@@ -35,8 +35,8 @@ const defaultNavLinks: NavLink[] = [
   { href: "/vocabulary", label: "Vocab", icon: BookOpen },
   { href: "/listening", label: "Listening", icon: Mic },
   { href: "/reading", label: "Reading", icon: Eye },
-  { href: "/tests", label: "Test", icon: FileText },
-  { href: "/more", label: "More", icon: MoreHorizontal },
+  { href: "/practice", label: "Test", icon: FileText },
+  
 ];
 
 export default function PageHeader({
@@ -59,7 +59,7 @@ export default function PageHeader({
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">
           <div className="size-15 flex items-center justify-center">
             <img 
-              src="/logo.png" 
+              src="/logo.ico" 
               alt="TOEIC Master Logo" 
              
             />
@@ -89,14 +89,7 @@ export default function PageHeader({
         {/* Right: Actions */}
         {user ? (
           <div className="flex items-center gap-4 flex-shrink-0">
-            {/* Course Button */}
-            <Link
-              href="/course"
-              className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition font-medium text-sm hidden sm:flex"
-            >
-              <GraduationCap className="w-5 h-5" />
-              Course
-            </Link>
+            
 
             {/* Upgrade Button */}
             <Link
