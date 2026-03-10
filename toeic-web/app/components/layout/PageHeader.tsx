@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
+import { BookOpen, Mic, Eye, FileText, MoreHorizontal, ShoppingBag, Bell, LogOut, GraduationCap, Crown } from "lucide-react";
 
 // Load ThemeToggle dynamically with SSR disabled - to avoid ThemeProvider error on server
 const ThemeToggle = dynamic(
@@ -16,6 +17,7 @@ const ThemeToggle = dynamic(
 interface NavLink {
   href: string;
   label: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface Props {
@@ -28,12 +30,12 @@ interface Props {
 }
 
 const defaultNavLinks: NavLink[] = [
-  { href: "/practice", label: "Đề thi" },
-  { href: "/vocabulary", label: "Từ vựng" },
-  { href: "/bookmarks", label: "Đánh dấu" },
-  { href: "/statistics", label: "Thống kê" },
-
-  { href: "/history", label: "Lịch sử" },
+  { href: "/grammar", label: "Grammar", icon: BookOpen },
+  { href: "/vocabulary", label: "Vocab", icon: BookOpen },
+  { href: "/listening", label: "Listening", icon: Mic },
+  { href: "/reading", label: "Reading", icon: Eye },
+  { href: "/tests", label: "Test", icon: FileText },
+  { href: "/more", label: "More", icon: MoreHorizontal },
 ];
 
 export default function PageHeader({
@@ -50,76 +52,91 @@ export default function PageHeader({
   };
 
   return (
-    <header className="bg-white/80 dark:bg-zinc-900 backdrop-blur-md shadow-sm dark:shadow-md sticky top-0 z-50 border-b border-gray-100 dark:border-zinc-700">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+    <header className="bg-white dark:bg-gray-950 shadow-sm dark:shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-900">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-800 dark:text-white hidden sm:block">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            T
+          </div>
+          <span className="text-lg font-bold text-white hidden sm:block">
             {logoText}
           </span>
         </Link>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-4">
-          {/* Nav Links */}
+        <nav className="flex items-center gap-8">
+          {/* Nav Links with Icons */}
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm hidden md:block"
+              className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition font-medium text-sm hidden md:flex"
             >
-              {link.label}
+              {link.icon && <link.icon className="w-5 h-5" />}
+              <span>{link.label}</span>
             </Link>
           ))}
 
           <ThemeToggle />
-          {/* User Section */}
+          
+          {/* Right Side Actions */}
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              {/* Course Button */}
+              <Link
+                href="/course"
+                className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition font-medium text-sm hidden sm:flex"
+              >
+                <GraduationCap className="w-5 h-5" />
+                Course
+              </Link>
+
+              {/* Upgrade Button */}
+              <Link
+                href="/upgrade"
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
+              >
+                <Crown className="w-5 h-5" />
+                Upgrade
+              </Link>
+
+              {/* Notification Bell */}
+              <button className="relative text-gray-300 hover:text-blue-400 transition">
+                <Bell className="w-6 h-6" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+
+              {/* User Profile */}
               <Link
                 href="/profile"
-                className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full text-white font-bold text-sm hover:from-blue-600 hover:to-blue-800 transition"
               >
-                <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {user.fullName?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                <span className="font-medium text-gray-700 dark:text-gray-200 text-sm hidden sm:block">
-                  {user.fullName}
-                </span>
+                {user.fullName?.charAt(0)?.toUpperCase() || "U"}
               </Link>
+
+              {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
+                className="text-gray-400 hover:text-red-400 transition"
                 title="Đăng xuất"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
+                <LogOut className="w-5 h-5" />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Link
                 href="/login"
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm px-3 py-2"
+                className="text-gray-300 hover:text-blue-400 transition font-medium text-sm px-3 py-2"
               >
                 Đăng nhập
               </Link>
               <Link
                 href="/register"
-                className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition font-medium text-sm shadow-md shadow-blue-200 dark:shadow-blue-900/50"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
               >
-                Đăng ký miễn phí
+                Đăng ký
               </Link>
             </div>
           )}

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { ReactNode } from "react";
 
 interface Props {
-  /** Icon hoặc emoji */
-  icon: string;
+  /** Icon hoặc emoji, hoặc React component */
+  icon: string | ReactNode;
   /** Tiêu đề */
   title: string;
   /** Mô tả ngắn */
@@ -34,15 +35,14 @@ export default function FeatureCard({
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 group-hover:from-blue-400/20 group-hover:via-blue-400/20 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
 
       {/* Icon Container */}
-      <div className="relative">
-        <div
-          className={`${iconBgColor} dark:bg-opacity-20 w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 shadow-md dark:shadow-lg`}
-        >
+      <div className="relative mb-4">
+        {typeof icon === 'string' ? (
           <span className="text-3xl group-hover:animate-bounce">{icon}</span>
-        </div>
-
-        {/* Glow effect on hover */}
-        <div className="absolute inset-0 rounded-xl bg-blue-400/30 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-150 pointer-events-none"></div>
+        ) : (
+          <div className="group-hover:animate-bounce transition-transform inline-block">
+            {icon}
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -57,10 +57,7 @@ export default function FeatureCard({
         )}
       </div>
 
-      {/* Arrow indicator */}
-      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300 dark:text-gray-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-300">
-        →
-      </div>
+      
     </Link>
   );
 }
