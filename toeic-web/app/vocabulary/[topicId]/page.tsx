@@ -153,7 +153,7 @@ export default function TopicStudyPage() {
 
   const handleCheckFillBlank = () => {
     if (!userInput.trim()) {
-      setInputFeedback("❌ Vui lòng nhập từ!");
+      setInputFeedback(" Vui lòng nhập từ!");
       return;
     }
     const isCorrect =

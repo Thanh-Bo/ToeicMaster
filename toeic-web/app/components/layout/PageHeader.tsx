@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
 import { BookOpen, Mic, Eye, FileText, MoreHorizontal, ShoppingBag, Bell, LogOut, GraduationCap, Crown } from "lucide-react";
@@ -53,18 +54,22 @@ export default function PageHeader({
 
   return (
     <header className="bg-white dark:bg-gray-950 shadow-sm dark:shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-900">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-            T
+      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-8">
+        {/* Left: Logo */}
+        <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+          <div className="size-15 flex items-center justify-center">
+            <img 
+              src="/logo.png" 
+              alt="TOEIC Master Logo" 
+             
+            />
           </div>
           <span className="text-lg font-bold text-white hidden sm:block">
             {logoText}
           </span>
         </Link>
 
-        {/* Navigation */}
+        {/* Middle: Navigation */}
         <nav className="flex items-center gap-8">
           {/* Nav Links with Icons */}
           {links.map((link) => (
@@ -79,68 +84,68 @@ export default function PageHeader({
           ))}
 
           <ThemeToggle />
-          
-          {/* Right Side Actions */}
-          {user ? (
-            <div className="flex items-center gap-4">
-              {/* Course Button */}
-              <Link
-                href="/course"
-                className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition font-medium text-sm hidden sm:flex"
-              >
-                <GraduationCap className="w-5 h-5" />
-                Course
-              </Link>
-
-              {/* Upgrade Button */}
-              <Link
-                href="/upgrade"
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
-              >
-                <Crown className="w-5 h-5" />
-                Upgrade
-              </Link>
-
-              {/* Notification Bell */}
-              <button className="relative text-gray-300 hover:text-blue-400 transition">
-                <Bell className="w-6 h-6" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-
-              {/* User Profile */}
-              <Link
-                href="/profile"
-                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full text-white font-bold text-sm hover:from-blue-600 hover:to-blue-800 transition"
-              >
-                {user.fullName?.charAt(0)?.toUpperCase() || "U"}
-              </Link>
-
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="text-gray-400 hover:text-red-400 transition"
-                title="Đăng xuất"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-gray-300 hover:text-blue-400 transition font-medium text-sm px-3 py-2"
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                href="/register"
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
-              >
-                Đăng ký
-              </Link>
-            </div>
-          )}
         </nav>
+
+        {/* Right: Actions */}
+        {user ? (
+          <div className="flex items-center gap-4 flex-shrink-0">
+            {/* Course Button */}
+            <Link
+              href="/course"
+              className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition font-medium text-sm hidden sm:flex"
+            >
+              <GraduationCap className="w-5 h-5" />
+              Course
+            </Link>
+
+            {/* Upgrade Button */}
+            <Link
+              href="/upgrade"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
+            >
+              <Crown className="w-5 h-5" />
+              Upgrade
+            </Link>
+
+            {/* Notification Bell */}
+            <button className="relative text-gray-300 hover:text-blue-400 transition">
+              <Bell className="w-6 h-6" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            {/* User Profile */}
+            <Link
+              href="/profile"
+              className="flex items-center justify-center w-9 h-9 bg-linear-to-br from-blue-500 to-blue-700 rounded-full text-white font-bold text-sm hover:from-blue-600 hover:to-blue-800 transition"
+            >
+              {user.fullName?.charAt(0)?.toUpperCase() || "U"}
+            </Link>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="text-gray-400 hover:text-red-400 transition"
+              title="Đăng xuất"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link
+              href="/login"
+              className="text-gray-300 hover:text-blue-400 transition font-medium text-sm px-3 py-2"
+            >
+              Đăng nhập
+            </Link>
+            <Link
+              href="/register"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
+            >
+              Đăng ký
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );

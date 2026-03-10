@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TOEIC Master - Luyện thi TOEIC Online",
-  description: "Nền tảng luyện thi TOEIC trực tuyến với AI giải thích chi tiết",
+  title: "TOEIC Master",
+  description: "",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
