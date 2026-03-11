@@ -91,49 +91,15 @@ export default function ProfilePage() {
                     {user.fullName.charAt(0).toUpperCase()}
                   </div>
                 )}
-                {user.isPremium && (
-                  <div className="absolute -bottom-1 -right-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full shadow">
-                    ⭐ PREMIUM
-                  </div>
-                )}
+                
               </div>
 
               <h2 className="text-xl font-bold text-gray-800 dark:text-white">{user.fullName}</h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
 
-              {/* Premium Status */}
-              <div className={`mt-4 p-3 rounded-xl ${user.isPremium ? "bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700" : "bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700"}`}>
-                {user.isPremium ? (
-                  <>
-                    <p className="text-yellow-700 dark:text-yellow-300 font-medium text-sm">🌟 Tài khoản Premium</p>
-                    {user.premiumExpiredAt && (
-                      <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">
-                        Hết hạn: {new Date(user.premiumExpiredAt).toLocaleDateString("vi-VN")}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="text-gray-600 dark:text-gray-300 font-medium text-sm">Tài khoản Miễn phí</p>
-                    <Link href="/premium" className="mt-2 text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline inline-block">
-                      Nâng cấp Premium →
-                    </Link>
-                  </>
-                )}
-              </div>
+              
 
-              {/* Balance */}
-              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
-                <p className="text-blue-600 dark:text-blue-300 text-xs uppercase tracking-wider">Số dư</p>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{(user.balance || 0).toLocaleString("vi-VN")} đ</p>
-              </div>
-
-              {/* Quick Links */}
-              <div className="mt-6 space-y-2">
-                <Link href="/history" className="block w-full py-2.5 px-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium text-sm transition-colors">
-                  📋 Lịch sử làm bài
-                </Link>
-              </div>
+              
             </div>
           </div>
 
@@ -147,7 +113,7 @@ export default function ProfilePage() {
                   activeTab === "info" ? "bg-blue-600 text-white shadow" : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                👤 Thông tin
+                 Thông tin
               </button>
               <button
                 onClick={() => setActiveTab("password")}
@@ -155,7 +121,7 @@ export default function ProfilePage() {
                   activeTab === "password" ? "bg-blue-600 text-white shadow" : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                🔒 Mật khẩu
+                 Mật khẩu
               </button>
               <button
                 onClick={() => setActiveTab("stats")}
@@ -163,7 +129,7 @@ export default function ProfilePage() {
                   activeTab === "stats" ? "bg-blue-600 text-white shadow" : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                📊 Thống kê
+                 Thống kê
               </button>
             </div>
 

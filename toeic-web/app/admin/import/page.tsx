@@ -7,7 +7,6 @@ import { adminService } from "@/app/services/adminService";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { Upload, FileUp, Settings, ArrowLeft, Filter } from "lucide-react";
 import { AdminTest } from "@/app/types";
-import ListeningAudioManager from "@/app/components/listening/ListeningAudioManager";
 
 export default function ImportManagementPage() {
   const { user, loading } = useAuth();
@@ -230,26 +229,7 @@ export default function ImportManagementPage() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: QUẢN LÝ AUDIO */}
-          <div className="lg:col-span-2">
-            {selectedTestId ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
-                  <FileUp size={24} className="text-green-500" />
-                  Bước 2: Tạo Audio & Quản lý
-                </h2>
-                {/* Gọi Component quản lý chung cho các Part */}
-                <ListeningAudioManager testId={selectedTestId} />
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
-                <Settings size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500 text-lg">
-                  Vui lòng chọn đề thi từ cột bên trái
-                </p>
-              </div>
-            )}
-          </div>
+          
         </div>
       </div>
     </div>

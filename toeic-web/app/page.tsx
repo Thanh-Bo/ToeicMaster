@@ -82,7 +82,7 @@ export default function HomePage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-600 via-blue-500 to-blue-700 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+    <div className="min-h-screen bg-white dark:bg-zinc-900">
       {/* HEADER */}
       <PageHeader />
 
@@ -173,12 +173,12 @@ export default function HomePage() {
 
             {/* Title */}
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Đăng ký và học ngay, không cần thẻ tín dụng
+              Website hoàn toàn miễn phí
             </h2>
 
             {/* Subtitle */}
             <p className="text-gray-600 dark:text-zinc-400 text-lg mb-12 max-w-2xl mx-auto">
-              Trải nghiệm đầy đủ các tính năng cơ bản. Nâng cấp PRO khi bạn sẵn sàng.
+              Trải nghiệm đầy đủ các tính năng 
             </p>
 
             {/* Features Grid */}
@@ -221,7 +221,7 @@ export default function HomePage() {
 
           <div className="space-y-6">
             {/* Step 1 */}
-            <div className="group relative bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
+            <div className="group relative  border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
               <div className="flex gap-6">
                 <div className="shrink-0">
                   <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 text-white font-bold text-xl">
@@ -240,7 +240,7 @@ export default function HomePage() {
             </div>
 
             {/* Step 2 */}
-            <div className="group relative bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
+            <div className="group relative  border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
               <div className="flex gap-6">
                 <div className="shrink-0">
                   <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 text-white font-bold text-xl">
@@ -258,24 +258,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="group relative bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
-              <div className="flex gap-6">
-                <div className="shrink-0">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 text-white font-bold text-xl">
-                    03
-                  </div>
-                </div>
-                <div className="grow">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Đăng nhập để lưu tiến độ
-                  </h3>
-                  <p className="text-gray-600 dark:text-zinc-400">
-                    Theo dõi streak, XP, và xem análysis điểm/yêu cầu của bạn
-                  </p>
-                </div>
-              </div>
-            </div>
+           
+            
           </div>
         </div>
       </section>
@@ -287,8 +271,7 @@ export default function HomePage() {
           { label: "Luyện đề", href: "/practice" },
           { label: "Từ vựng", href: "/vocabulary" },
           { label: "Đánh dấu", href: "/bookmarks" },
-          { label: "Thống kê", href: "/statistics" },
-          { label: "Lịch sử", href: "/history" },
+         
         ]}
       />
     </div>

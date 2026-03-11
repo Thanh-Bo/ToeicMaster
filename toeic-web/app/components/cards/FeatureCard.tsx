@@ -26,13 +26,13 @@ export default function FeatureCard({
   return (
     <Link
       href={href}
-      className="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-zinc-700 p-6 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 text-center overflow-hidden hover:-translate-y-2"
+      className="group relative  rounded-2xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-zinc-700 p-6 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 text-center overflow-hidden hover:-translate-y-2"
     >
       {/* Gradient Background on Hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent dark:from-blue-900/20 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      <div className="absolute inset-0  transition-opacity duration-300 pointer-events-none"></div>
 
       {/* Border Gradient Effect */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 group-hover:from-blue-400/20 group-hover:via-blue-400/20 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
+      <div className="absolute inset-0 rounded-2xl  transition-all duration-500 pointer-events-none"></div>
 
       {/* Icon Container */}
       <div className="relative mb-4">

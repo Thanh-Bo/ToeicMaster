@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { bookmarkService, BookmarkItem } from "../services/bookmarkService";
+import { bookmarkService, BookmarkItem } from "@/app/services/bookmarkService";
 import {
   Trash2,
   Filter,
@@ -13,12 +13,12 @@ import {
   X,
   Edit,
 } from "lucide-react";
-import SidebarFilterItem from "../components/boomarks/SidebarFilterItem";
-import BookmarkNoteModal from "../components/boomarks/BookmarkNoteModal";
-import ReviewTestModal from "../components/boomarks/ReviewTestModal";
-import ReviewSetupModal from "../components/boomarks/ReviewSetupModal";
+import SidebarFilterItem from "@/app/components/boomarks/SidebarFilterItem";
+import BookmarkNoteModal from "@/app/components/boomarks/BookmarkNoteModal";
+import ReviewTestModal from "@/app/components/boomarks/ReviewTestModal";
+import ReviewSetupModal from "@/app/components/boomarks/ReviewSetupModal";
 
-export default function BookmarksPage() {
+export default function BookmarksTab() {
   const router = useRouter();
 
   // --- STATE ---

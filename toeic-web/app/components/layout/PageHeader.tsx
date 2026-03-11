@@ -53,7 +53,7 @@ export default function PageHeader({
   };
 
   return (
-    <header className="bg-white dark:bg-gray-950 shadow-sm dark:shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-900">
+    <header className="bg-white dark:bg-zinc-900 shadow-sm dark:shadow-md sticky top-0 z-50 border-b text-gray-700 dark:text-gray-400  border-gray-200 dark:border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-8">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">
@@ -83,7 +83,7 @@ export default function PageHeader({
             </Link>
           ))}
 
-          <ThemeToggle />
+          
         </nav>
 
         {/* Right: Actions */}
@@ -91,15 +91,8 @@ export default function PageHeader({
           <div className="flex items-center gap-4 flex-shrink-0">
             
 
-            {/* Upgrade Button */}
-            <Link
-              href="/upgrade"
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
-            >
-              <Crown className="w-5 h-5" />
-              Upgrade
-            </Link>
-
+           
+            <ThemeToggle />
             {/* Notification Bell */}
             <button className="relative text-gray-300 hover:text-blue-400 transition">
               <Bell className="w-6 h-6" />
