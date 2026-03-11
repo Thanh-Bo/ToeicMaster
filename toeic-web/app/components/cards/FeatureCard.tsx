@@ -26,7 +26,7 @@ export default function FeatureCard({
   return (
     <Link
       href={href}
-      className="group relative  rounded-2xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-zinc-700 p-6 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 text-center overflow-hidden hover:-translate-y-2"
+      className="group relative text-gray-800 dark:text-white  rounded-2xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-zinc-700 p-6 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 text-center overflow-hidden hover:-translate-y-2"
     >
       {/* Gradient Background on Hover */}
       <div className="absolute inset-0  transition-opacity duration-300 pointer-events-none"></div>

@@ -375,41 +375,38 @@ const formatTime = (seconds: number) => {
 
                 {/* === PART 1: Photographs === */}
                 {partNum === 1 && (
-                  <>
-                    {/* Audio Player chung cho Part */}
-                    {part.groups[0]?.audioUrl && (
-                      <div className="sticky top-24 z-30 mb-6">
-                        <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
-                          <PlayCircle className="text-blue-400" />
-                          <span className="text-sm font-medium">
-                            Part 1 Audio
-                          </span>
-                          <audio
-                            controls
-                            src={part.groups[0].audioUrl.startsWith('http') ? part.groups[0].audioUrl : `${BASE_URL}${part.groups[0].audioUrl}`}
-                            className="h-8 flex-1"
-                          />
-                        </div>
-                      </div>
-                    )}
+                  <div className="space-y-8">
+                    {part.groups.map((group, idx) => (
+                      <div
+                        key={group.id}
+                        className="rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
+                      >
+                        {/* Audio Player for each group */}
+                        {group.audioUrl && (
+                          <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 flex items-center gap-3 border-b border-gray-700">
+                            <PlayCircle className="text-blue-400 shrink-0" />
+                            <span className="text-sm font-medium">
+                              Question {idx + 1} Audio
+                            </span>
+                            <audio
+                              controls
+                              src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                              className="h-8 flex-1"
+                            />
+                          </div>
+                        )}
 
-                    <div className="space-y-8">
-                      {part.groups.map((group) => (
-                        <div
-                          key={group.id}
-                          className="rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
-                        >
-                          <div className="flex flex-col md:flex-row">
-                            <div className="md:w-1/2 bg-white dark:bg-zinc-900  p-4 flex items-center justify-center">
-                              {group.imageUrl && (
-                                <img
-                                  src={`${BASE_URL}${group.imageUrl}`}
-                                  alt="Part 1"
-                                  className="rounded-lg shadow-sm max-h-100 w-auto"
-                                />
-                              )}
-                            </div>
-                            <div className="md:w-1/2 bg-white dark:bg-zinc-900 p-6 space-y-6">
+                        <div className="flex flex-col md:flex-row">
+                          <div className="md:w-1/2 bg-white dark:bg-zinc-900  p-4 flex items-center justify-center">
+                            {group.imageUrl && (
+                              <img
+                                src={`${BASE_URL}${group.imageUrl}`}
+                                alt="Part 1"
+                                className="rounded-lg shadow-sm max-h-100 w-auto"
+                              />
+                            )}
+                          </div>
+                          <div className="md:w-1/2 bg-white dark:bg-zinc-900 p-6 space-y-6">
                               {group.questions.map((q) => (
                                 <div
                                   key={q.id}
@@ -459,33 +456,31 @@ const formatTime = (seconds: number) => {
                         </div>
                       ))}
                     </div>
-                  </>
                 )}
 
                 {/* === PART 2: Question-Response === */}
                 {partNum === 2 && (
-                  <>
-                    {part.groups[0]?.audioUrl && (
-                      <div className="sticky top-24 z-30 mb-6">
-                        <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 rounded-xl shadow-lg flex items-center gap-3">
-                          <PlayCircle className="text-blue-400" />
-                          <span className="text-sm font-medium">
-                            Part 2 Audio
-                          </span>
-                          <audio
-                            controls
-                            src={part.groups[0].audioUrl.startsWith('http') ? part.groups[0].audioUrl : `${BASE_URL}${part.groups[0].audioUrl}`}
-                            className="h-8 flex-1"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div className="space-y-4">
-                      {part.groups.map((group) => (
-                        <div
-                          key={group.id}
-                          className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
-                        >
+                  <div className="space-y-4">
+                    {part.groups.map((group, idx) => (
+                      <div
+                        key={group.id}
+                        className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
+                      >
+                        {/* Audio Player for each group */}
+                        {group.audioUrl && (
+                          <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 flex items-center gap-3 border-b border-gray-700">
+                            <PlayCircle className="text-blue-400 shrink-0" />
+                            <span className="text-sm font-medium">
+                              Question {idx + 1} Audio
+                            </span>
+                            <audio
+                              controls
+                              src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                              className="h-8 flex-1"
+                            />
+                          </div>
+                        )}
+                        <div className="p-6">
                           {group.questions.map((q) => (
                             <div
                               key={q.id}
@@ -529,9 +524,9 @@ const formatTime = (seconds: number) => {
                             </div>
                           ))}
                         </div>
-                      ))}
-                    </div>
-                  </>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* === PART 3 & 4 & 6 & 7 (Reading/Listening with Context) === */}

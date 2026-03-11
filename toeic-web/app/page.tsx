@@ -82,7 +82,7 @@ export default function HomePage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 text-gray-800 dark:text-white">
       {/* HEADER */}
       <PageHeader />
 
@@ -93,7 +93,7 @@ export default function HomePage() {
 
           {/* MAIN HEADING */}
           <div className="text-center space-y-4 mb-8 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold text-white dark:text-white leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold  leading-tight">
               Luyện TOEIC hiệu quả
             </h1>
             <h2 className="text-4xl md:text-6xl font-bold bg-linear-to-r from-blue-200 via-cyan-200 to-blue-200 bg-clip-text text-transparent">
@@ -113,7 +113,7 @@ export default function HomePage() {
               className="group relative inline-flex items-center justify-center px-10 py-4 font-bold text-white bg-linear-to-r from-cyan-400 to-blue-400 dark:from-cyan-500 dark:to-blue-500 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Tiếp tục học →
+                Tiếp tục học 
               </span>
             </Link>
 
@@ -163,9 +163,9 @@ export default function HomePage() {
       </section>
 
       {/* PREMIUM SIGNUP SECTION */}
-      <section className="bg-linear-to-b from-white to-blue-50 dark:from-zinc-900 dark:to-zinc-800 py-20">
+      <section className=" py-20">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="relative bg-linear-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-12 md:p-16 border border-blue-200 dark:border-zinc-700 text-center">
+          <div className="relative rounded-3xl p-12 md:p-16 border border-blue-200 dark:border-zinc-700 text-center">
             {/* Checkmark */}
             <div className="flex justify-center mb-6">
               <span className="text-green-500 dark:text-green-400 text-lg font-semibold">✓ Bắt đầu miễn phí</span>
@@ -173,7 +173,7 @@ export default function HomePage() {
 
             {/* Title */}
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Website hoàn toàn miễn phí
+              
             </h2>
 
             {/* Subtitle */}

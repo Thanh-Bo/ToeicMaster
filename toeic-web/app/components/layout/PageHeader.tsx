@@ -53,7 +53,7 @@ export default function PageHeader({
   };
 
   return (
-    <header className="bg-white dark:bg-zinc-900 shadow-sm dark:shadow-md sticky top-0 z-50 border-b text-gray-700 dark:text-gray-400  border-gray-200 dark:border-zinc-800">
+    <header className="bg-white dark:bg-zinc-900  text-gray-700 dark:text-white shadow-sm dark:shadow-md sticky top-0 z-50 border-b  border-gray-200 dark:border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-8">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">
@@ -64,7 +64,7 @@ export default function PageHeader({
              
             />
           </div>
-          <span className="text-lg font-bold text-white hidden sm:block">
+          <span className="text-lg font-bold hidden sm:block">
             {logoText}
           </span>
         </Link>
@@ -76,7 +76,7 @@ export default function PageHeader({
             <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition font-medium text-sm hidden md:flex"
+              className="flex items-center gap-2  transition font-medium text-sm hidden md:flex"
             >
               {link.icon && <link.icon className="w-5 h-5" />}
               <span>{link.label}</span>

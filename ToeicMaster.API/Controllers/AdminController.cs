@@ -368,6 +368,7 @@ namespace ToeicMaster.API.Controllers
         public async Task<IActionResult> ImportPart1DataOnly(
     IFormFile excelFile,
     List<IFormFile>? images,
+    List<IFormFile>? audios,
     [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -394,7 +395,8 @@ namespace ToeicMaster.API.Controllers
                 var worksheet = package.Workbook.Worksheets[0];
                 int rowCount = worksheet.Dimension.Rows;
 
-                var savedImages = new Dictionary<string, string>(); // Chỉ lưu ảnh
+                var savedImages = new Dictionary<string, string>(); // Lưu ảnh
+                var savedAudios = new Dictionary<string, string>(); // Lưu audio
                 int countSuccess = 0;
 
                 for (int row = 2; row <= rowCount; row++)
@@ -406,8 +408,9 @@ namespace ToeicMaster.API.Controllers
                     var imgName = worksheet.Cells[row, 2].Text?.Trim();  // Col B - Image
                     var transcript = worksheet.Cells[row, 3].Text?.Trim(); // Col C - Transcript (4 options)
                     var correctOpt = worksheet.Cells[row, 4].Text?.Trim().ToUpper();  // Col D - Answer
+                    var audioName = worksheet.Cells[row, 5].Text?.Trim(); // Col E - Audio File
 
-                    // --- XỬ LÝ ẢNH (GIỮ NGUYÊN) ---
+                    // --- XỬ LÝ ẢNH ---
                     string? finalImageUrl = null;
                     if (!string.IsNullOrEmpty(imgName))
                     {
@@ -420,7 +423,7 @@ namespace ToeicMaster.API.Controllers
                             {
                                 var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/images");
                                 if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                                var fileName = Guid.NewGuid() + Path.GetExtension(imgFile.FileName); // Đổi tên file cho an toàn
+                                var fileName = Guid.NewGuid() + Path.GetExtension(imgFile.FileName);
                                 var path = Path.Combine(folderPath, fileName);
                                 using (var streamImg = new FileStream(path, FileMode.Create))
                                 {
@@ -432,13 +435,38 @@ namespace ToeicMaster.API.Controllers
                         }
                     }
 
+                    // --- XỬ LÝ AUDIO ---
+                    string? finalAudioUrl = null;
+                    if (!string.IsNullOrEmpty(audioName))
+                    {
+                        if (savedAudios.ContainsKey(audioName))
+                            finalAudioUrl = savedAudios[audioName];
+                        else
+                        {
+                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            if (audioFile != null)
+                            {
+                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part1");
+                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
+                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
+                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
+                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
+                                {
+                                    await audioFile.CopyToAsync(streamAudio);
+                                }
+                                finalAudioUrl = "/uploads/audio/part1/" + audioFileName;
+                                savedAudios[audioName] = finalAudioUrl;
+                            }
+                        }
+                    }
+
                     // --- LƯU DATABASE ---
                     var group = new QuestionGroup
                     {
                         PartId = part.Id,
                         ImageUrl = finalImageUrl,
-                        AudioUrl = null,         // <--- QUAN TRỌNG: Để null
-                        Transcript = transcript, // Lưu 4 câu mô tả vào đây
+                        AudioUrl = finalAudioUrl,  // AUDIO URL
+                        Transcript = transcript,
                         TextContent = null
                     };
                     _efContext.QuestionGroups.Add(group);
@@ -472,8 +500,8 @@ namespace ToeicMaster.API.Controllers
 
                 return Ok(new
                 {
-                    message = $"Import Part 1 thành công! Đã nhập {countSuccess} câu hỏi.",
-                    nextStep = "Vui lòng bấm 'Generate Audio' để tạo giọng đọc cho 4 câu mô tả."
+                    message = $"Import Part 1 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
+                    
                 });
             }
             catch (Exception ex)
@@ -490,6 +518,7 @@ namespace ToeicMaster.API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart2DataOnly(
     IFormFile excelFile,
+    List<IFormFile>? audios,
     [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -514,6 +543,7 @@ namespace ToeicMaster.API.Controllers
                 using var package = new ExcelPackage(stream);
                 var worksheet = package.Workbook.Worksheets[0];
                 int rowCount = worksheet.Dimension.Rows;
+                var savedAudios = new Dictionary<string, string>();
                 int countSuccess = 0;
 
                 for (int row = 2; row <= rowCount; row++)
@@ -522,17 +552,41 @@ namespace ToeicMaster.API.Controllers
                     if (string.IsNullOrEmpty(qNoText)) continue;
 
                     var qNo = int.Parse(qNoText);
-                    // var audioName = worksheet.Cells[row, 2].Text?.Trim(); // BỎ Col B
-                    // Transcript chứa: Question + 3 Answers (A, B, C)
                     var transcript = worksheet.Cells[row, 2].Text?.Trim();  // Col B - Transcript
                     var correctOpt = worksheet.Cells[row, 3].Text?.Trim().ToUpper();  // Col C - Answer
+                    var audioName = worksheet.Cells[row, 4].Text?.Trim();  // Col D - Audio File (NEW)
+
+                    // --- XỬ LÝ AUDIO ---
+                    string? finalAudioUrl = null;
+                    if (!string.IsNullOrEmpty(audioName))
+                    {
+                        if (savedAudios.ContainsKey(audioName))
+                            finalAudioUrl = savedAudios[audioName];
+                        else
+                        {
+                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            if (audioFile != null)
+                            {
+                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part2");
+                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
+                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
+                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
+                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
+                                {
+                                    await audioFile.CopyToAsync(streamAudio);
+                                }
+                                finalAudioUrl = "/uploads/audio/part2/" + audioFileName;
+                                savedAudios[audioName] = finalAudioUrl;
+                            }
+                        }
+                    }
 
                     // --- LƯU DATABASE ---
                     var group = new QuestionGroup
                     {
                         PartId = part.Id,
-                        AudioUrl = null,         // <--- QUAN TRỌNG: Để null
-                        Transcript = transcript, // Lưu Question + Answers text
+                        AudioUrl = finalAudioUrl,  // AUDIO URL
+                        Transcript = transcript,    // Lưu Question + Answers text
                         ImageUrl = null,
                         TextContent = null
                     };
@@ -566,8 +620,8 @@ namespace ToeicMaster.API.Controllers
 
                 return Ok(new
                 {
-                    message = $"Import Part 2 thành công! Đã nhập {countSuccess} câu hỏi.",
-                    nextStep = "Vui lòng bấm 'Generate Audio' để tạo giọng đọc câu hỏi và trả lời."
+                    message = $"Import Part 2 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
+                    nextStep = "Dữ liệu âm thanh đã được lưu thành công."
                 });
             }
             catch (Exception ex)
@@ -584,6 +638,7 @@ namespace ToeicMaster.API.Controllers
         public async Task<IActionResult> ImportPart3DataOnly(
     IFormFile excelFile,
     List<IFormFile>? images,
+    List<IFormFile>? audios,
     [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -610,6 +665,7 @@ namespace ToeicMaster.API.Controllers
                 int rowCount = worksheet.Dimension.Rows;
 
                 var savedImages = new Dictionary<string, string>();
+                var savedAudios = new Dictionary<string, string>();
                 int countGroups = 0;
                 int countQuestions = 0;
 
@@ -619,7 +675,8 @@ namespace ToeicMaster.API.Controllers
                     if (string.IsNullOrEmpty(groupNoText)) continue;
 
                     var imageName = worksheet.Cells[row, 2].Text?.Trim();  // Col B (2)
-                    var transcript = worksheet.Cells[row, 3].Text?.Trim();  // Col C (3) ← FIX!
+                    var transcript = worksheet.Cells[row, 3].Text?.Trim();  // Col C (3)
+                    var audioName = worksheet.Cells[row, 4].Text?.Trim();  // Col D (4) - Audio File (NEW)
 
                     string? finalImageUrl = null;
                     if (!string.IsNullOrEmpty(imageName))
@@ -646,11 +703,36 @@ namespace ToeicMaster.API.Controllers
                         }
                     }
 
+                    // --- XỬ LÝ AUDIO ---
+                    string? finalAudioUrl = null;
+                    if (!string.IsNullOrEmpty(audioName))
+                    {
+                        if (savedAudios.ContainsKey(audioName))
+                            finalAudioUrl = savedAudios[audioName];
+                        else
+                        {
+                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            if (audioFile != null)
+                            {
+                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part3");
+                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
+                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
+                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
+                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
+                                {
+                                    await audioFile.CopyToAsync(streamAudio);
+                                }
+                                finalAudioUrl = "/uploads/audio/part3/" + audioFileName;
+                                savedAudios[audioName] = finalAudioUrl;
+                            }
+                        }
+                    }
+
                     var group = new QuestionGroup
                     {
                         PartId = part.Id,
                         Transcript = transcript,
-                        AudioUrl = null,
+                        AudioUrl = finalAudioUrl,  // AUDIO URL
                         ImageUrl = finalImageUrl,
                         TextContent = null
                     };
@@ -659,8 +741,8 @@ namespace ToeicMaster.API.Controllers
                     await _efContext.SaveChangesAsync();
                     countGroups++;
 
-                    // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 4 (D)
-                    int col = 4;  // D = Q1 No
+                    // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 5 (E)
+                    int col = 5;  // E = Q1 No (shifted because audio is now in Col D)
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
@@ -708,8 +790,8 @@ namespace ToeicMaster.API.Controllers
 
                 return Ok(new
                 {
-                    message = $"Import dữ liệu thành công! Đã lưu {countGroups} nhóm hội thoại.",
-                    nextStep = "Vui lòng bấm nút 'Generate Audio AI' để tạo file nghe."
+                    message = $"Import dữ liệu thành công! Đã lưu {countGroups} nhóm hội thoại với âm thanh.",
+                    nextStep = "Dữ liệu âm thanh đã được lưu thành công."
                 });
             }
             catch (Exception ex)
@@ -725,7 +807,8 @@ namespace ToeicMaster.API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart4DataOnly(
    IFormFile excelFile,
-   List<IFormFile>? images, // Vẫn giữ ảnh nếu bạn muốn upload ảnh minh họa
+   List<IFormFile>? images,
+   List<IFormFile>? audios,
    [FromQuery] int testId)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -752,8 +835,8 @@ namespace ToeicMaster.API.Controllers
                 var worksheet = package.Workbook.Worksheets[0];
                 int rowCount = worksheet.Dimension.Rows;
 
-                // Bỏ dictionary savedFiles cho audio, chỉ giữ cho image
                 var savedImages = new Dictionary<string, string>();
+                var savedAudios = new Dictionary<string, string>();
                 int countGroups = 0;
                 int countQuestions = 0;
 
@@ -763,16 +846,13 @@ namespace ToeicMaster.API.Controllers
                     var groupNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A - GroupNo
                     if (string.IsNullOrEmpty(groupNoText)) continue;
 
-                    // BỎ CỘT AUDIO FILE NAME, CHỈ CẦN IMAGE & TRANSCRIPT
                     var imageName = worksheet.Cells[row, 2].Text?.Trim();    // Col B - Image
                     var transcript = worksheet.Cells[row, 3].Text?.Trim();   // Col C - Transcript
+                    var audioName = worksheet.Cells[row, 4].Text?.Trim();    // Col D - Audio File (NEW)
                     
-                    // Câu hỏi bắt đầu từ Col D (4)
+                    // Câu hỏi bắt đầu từ Col E (5)
 
-                    // --- BỎ HOÀN TOÀN ĐOẠN XỬ LÝ AUDIO FILE ---
-                    // Chúng ta không cần đọc file, không cần lưu vào wwwroot nữa.
-
-                    // Xử lý Image (Giữ nguyên logic cũ nếu bạn vẫn muốn upload ảnh từ Excel)
+                    // Xử lý Image
                     string? finalImageUrl = null;
                     if (!string.IsNullOrEmpty(imageName))
                     {
@@ -785,10 +865,9 @@ namespace ToeicMaster.API.Controllers
 
                             if (imgFile != null)
                             {
-                                // Logic lưu ảnh (giữ nguyên hoặc upload S3 tùy bạn)
                                 var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/images");
                                 if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                                var fileName = Path.GetFileName(imgFile.FileName); // Nên đổi tên file bằng Guid để tránh trùng
+                                var fileName = Path.GetFileName(imgFile.FileName);
                                 var path = Path.Combine(folderPath, fileName);
                                 using var streamImg = new FileStream(path, FileMode.Create);
                                 await imgFile.CopyToAsync(streamImg);
@@ -799,23 +878,47 @@ namespace ToeicMaster.API.Controllers
                         }
                     }
 
-                    // --- LƯU VÀO DB (QUAN TRỌNG) ---
+                    // --- XỬ LÝ AUDIO ---
+                    string? finalAudioUrl = null;
+                    if (!string.IsNullOrEmpty(audioName))
+                    {
+                        if (savedAudios.ContainsKey(audioName))
+                            finalAudioUrl = savedAudios[audioName];
+                        else
+                        {
+                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            if (audioFile != null)
+                            {
+                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part4");
+                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
+                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
+                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
+                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
+                                {
+                                    await audioFile.CopyToAsync(streamAudio);
+                                }
+                                finalAudioUrl = "/uploads/audio/part4/" + audioFileName;
+                                savedAudios[audioName] = finalAudioUrl;
+                            }
+                        }
+                    }
+
+                    // --- LƯU VÀO DB ---
                     var group = new QuestionGroup
                     {
                         PartId = part.Id,
-                        Transcript = transcript, // Lưu transcript để tí nữa AI đọc
-                        AudioUrl = null,         // <--- QUAN TRỌNG: Để Null để biết chưa có Audio
+                        Transcript = transcript,
+                        AudioUrl = finalAudioUrl,  // AUDIO URL
                         ImageUrl = finalImageUrl,
                         TextContent = null
-                        // Nếu DB có cột IsProcessed, hãy set = false
                     };
 
                     _efContext.QuestionGroups.Add(group);
                     await _efContext.SaveChangesAsync();
                     countGroups++;
 
-                    // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 4 (D) - GIỐNG PART 3
-                    int col = 4;  // D = Q1 No
+                    // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 5 (E) - GIỐNG PART 3
+                    int col = 5;  // E = Q1 No (shifted because audio is now in Col D)
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
@@ -864,8 +967,8 @@ namespace ToeicMaster.API.Controllers
                 // Return thông báo rõ ràng cho Frontend biết bước tiếp theo
                 return Ok(new
                 {
-                    message = $"Import dữ liệu thành công! Đã lưu {countGroups} nhóm hội thoại.",
-                    nextStep = "Vui lòng bấm nút 'Generate Audio AI' để tạo file nghe."
+                    message = $"Import dữ liệu thành công! Đã lưu {countGroups} nhóm hội thoại với âm thanh.",
+                    nextStep = "Dữ liệu âm thanh đã được lưu thành công."
                 });
             }
             catch (Exception ex)
