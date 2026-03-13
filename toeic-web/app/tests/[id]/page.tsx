@@ -104,9 +104,9 @@ export default function TestOverviewPage() {
               {PARTS.map((part) => (
                 <label 
                   key={part.id} 
-                  className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all border-gray-100 dark:border-zinc-700 hover:border-gray-200 dark:hover:border-zinc-600 ${
                     selectedParts.includes(part.id) 
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-600" 
+                    ? "" 
                     : "border-gray-100 dark:border-zinc-700 hover:border-gray-200 dark:hover:border-zinc-600"
                   }`}
                 >
@@ -139,10 +139,10 @@ export default function TestOverviewPage() {
                 <button
                   key={d.value}
                   onClick={() => setDuration(d.value)}
-                  className={`p-3 rounded-xl border-2 text-sm font-bold transition-all ${
+                  className={`p-3 rounded-xl border text-sm font-bold transition-all ${
                     duration === d.value 
-                    ? "border-blue-600 bg-blue-600 text-white shadow-lg" 
-                    : "border-gray-100 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:border-gray-200 dark:hover:border-zinc-600"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-lg" 
+                    : "border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-zinc-900 dark:hover:bg-white hover:text-gray-200 dark:hover:text-gray-800"
                   }`}
                 >
                   {d.label}

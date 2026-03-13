@@ -47,7 +47,7 @@ export default function FeatureCard({
 
       {/* Content */}
       <div className="relative z-10">
-        <h3 className="font-bold text-gray-800 dark:text-white text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+        <h3 className="font-bold text-gray-800 dark:text-white text-base  transition-colors duration-300">
           {title}
         </h3>
         {description && (

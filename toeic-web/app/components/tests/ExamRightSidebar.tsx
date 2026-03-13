@@ -60,11 +60,11 @@ export default function ExamRightSidebar({
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className={`w-full py-2.5 rounded-lg font-bold transition-all uppercase text-sm
+          className={`w-full py-2.5 rounded-lg font-bold transition-all uppercase text-sm border border-gray-200 dark:border-zinc-700
             ${
               isLowTime
                 ? "bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-800"
-                : "bg-transparent border-2 border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white"
+                : "bg-transparent border   dark:hover:bg-white hover:bg-zinc-900 dark:hover:text-gray-800  hover:text-gray-200"
             }`}
         >
           {isSubmitting ? "Đang nộp..." : "Nộp bài"}
@@ -78,7 +78,7 @@ export default function ExamRightSidebar({
           }
         }}
         className="w-full py-2 rounded-lg font-bold transition-all text-sm mb-4 uppercase
-          bg-transparent border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 hover:bg-red-600 dark:hover:bg-red-600 hover:text-white"
+          bg-transparent  border border-gray-200 dark:border-zinc-700  dark:hover:bg-white hover:bg-zinc-900 dark:hover:text-gray-800  hover:text-gray-200"
       >
         Xóa tất cả
       </button>

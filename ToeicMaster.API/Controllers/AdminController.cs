@@ -180,7 +180,7 @@ namespace ToeicMaster.API.Controllers
                     for (int row = 2; row <= rowCount; row++)
                     {
                         // Lấy nội dung đoạn văn ở Cột A
-                        var passageContent = worksheet.Cells[row, 1].Text?.Trim();
+                        var passageContent = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");
                         if (string.IsNullOrEmpty(passageContent)) continue; // Bỏ qua dòng trống
 
                         // --- LOGIC GOM NHÓM ---
@@ -282,7 +282,7 @@ namespace ToeicMaster.API.Controllers
                     for (int row = 2; row <= rowCount; row++)
                     {
                         // --- ĐỌC DỮ LIỆU TỪ EXCEL ---
-                        var passageRaw = worksheet.Cells[row, 1].Text?.Trim();     // Cột A: Đoạn văn
+                       var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");     // Cột A: Đoạn văn   // Cột A: Đoạn văn
                         var qNoText = worksheet.Cells[row, 2].Text?.Trim();        // Cột B: Số thứ tự
                         var content = worksheet.Cells[row, 3].Text?.Trim();        // Cột C: Câu hỏi
 
@@ -790,8 +790,7 @@ namespace ToeicMaster.API.Controllers
 
                 return Ok(new
                 {
-                    message = $"Import dữ liệu thành công! Đã lưu {countGroups} nhóm hội thoại với âm thanh.",
-                    nextStep = "Dữ liệu âm thanh đã được lưu thành công."
+                    message = "Import dữ liệu thành công"
                 });
             }
             catch (Exception ex)
@@ -967,8 +966,7 @@ namespace ToeicMaster.API.Controllers
                 // Return thông báo rõ ràng cho Frontend biết bước tiếp theo
                 return Ok(new
                 {
-                    message = $"Import dữ liệu thành công! Đã lưu {countGroups} nhóm hội thoại với âm thanh.",
-                    nextStep = "Dữ liệu âm thanh đã được lưu thành công."
+                    message = "Import dữ liệu thành công!"
                 });
             }
             catch (Exception ex)

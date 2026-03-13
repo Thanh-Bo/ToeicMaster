@@ -1,0 +1,16 @@
+bin/
+obj/
+.git/
+.gitignore
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+.DS_Store
+node_modules/
+dist/
+coverage/
+logs/
+*.log

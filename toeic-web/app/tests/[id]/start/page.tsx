@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import { TestDetail } from "@/app/types"; // Đảm bảo bạn có type này
 import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
 import AnswerOption from "@/app/components/tests/AnswerOption";
+import AudioPlayer from "@/app/components/audio/AudioPlayer";
 import { ListChecks, PlayCircle, Trash } from "lucide-react";
 import { testService } from "@/app/services/testService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
@@ -247,7 +248,7 @@ const formatTime = (seconds: number) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-zinc-700 mx-auto mb-4"></div>
           <p className="text-blue-600 font-bold text-lg">
-            ⏳ Đang tải đề thi...
+            Đang tải đề thi...
           </p>
         </div>
       </div>
@@ -265,7 +266,7 @@ const formatTime = (seconds: number) => {
     <main className="min-h-screen bg-white dark:bg-zinc-900 pb-24 lg:pb-20 font-sans">
       {/* HEADER Sticky */}
       <header className="bg-white dark:bg-zinc-900 shadow-sm border-b border-gray-200 dark:border-zinc-700 p-3 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
+        <div className="w-full flex justify-between items-center px-4">
           <button
             onClick={() => {
               if (Object.keys(userAnswers).length > 0) {
@@ -331,7 +332,7 @@ const formatTime = (seconds: number) => {
         </div>
 
         {/* Progress Bar */}
-        <div className="max-w-7xl mx-auto px-4 mt-2">
+        <div className="w-full px-4 mt-2">
           <div className="h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-600 transition-all duration-300"
@@ -350,14 +351,14 @@ const formatTime = (seconds: number) => {
       {/* Warning when time is low */}
       {durationParam !== "0" && timeLeft <= 300 && timeLeft > 0 && (
         <div className="bg-red-500 dark:bg-red-600 text-white text-center py-2 text-sm font-medium animate-pulse sticky top-17.5 z-40">
-          ⚠️ Còn dưới {Math.ceil(timeLeft / 60)} phút! Hãy kiểm tra và nộp bài.
+           Còn dưới {Math.ceil(timeLeft / 60)} phút! Hãy kiểm tra và nộp bài.
         </div>
       )}
 
       {/* --- MAIN CONTENT --- */}
-      <div className="max-w-7xl mx-auto p-4 md:p-6 flex flex-col lg:flex-row gap-8">
+      <div className="w-full p-4 md:p-6 flex flex-col lg:flex-row gap-8">
         {/* CỘT TRÁI: NỘI DUNG ĐỀ THI */}
-        <div className="w-full lg:w-3/4">
+        <div className="w-full lg:w-5/6">
           {testData.parts.map((part) => {
             const partNum = getPartNumber(part.name);
 
@@ -383,17 +384,10 @@ const formatTime = (seconds: number) => {
                       >
                         {/* Audio Player for each group */}
                         {group.audioUrl && (
-                          <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 flex items-center gap-3 border-b border-gray-700">
-                            <PlayCircle className="text-blue-400 shrink-0" />
-                            <span className="text-sm font-medium">
-                              Question {idx + 1} Audio
-                            </span>
-                            <audio
-                              controls
-                              src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
-                              className="h-8 flex-1"
-                            />
-                          </div>
+                          <AudioPlayer
+                            src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                            label={`Question ${idx + 1} Audio`}
+                          />
                         )}
 
                         <div className="flex flex-col md:flex-row">
@@ -468,17 +462,10 @@ const formatTime = (seconds: number) => {
                       >
                         {/* Audio Player for each group */}
                         {group.audioUrl && (
-                          <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 flex items-center gap-3 border-b border-gray-700">
-                            <PlayCircle className="text-blue-400 shrink-0" />
-                            <span className="text-sm font-medium">
-                              Question {idx + 1} Audio
-                            </span>
-                            <audio
-                              controls
-                              src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
-                              className="h-8 flex-1"
-                            />
-                          </div>
+                          <AudioPlayer
+                            src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                            label={`Question ${idx + 1} Audio`}
+                          />
                         )}
                         <div className="p-6">
                           {group.questions.map((q) => (
@@ -544,15 +531,10 @@ const formatTime = (seconds: number) => {
                           {/* Audio Player (cho Part 3, 4) - 1 audio cho mỗi conversation */}
                           {(partNum === 3 || partNum === 4) &&
                             group.audioUrl && (
-                              <div className="bg-gray-900 dark:bg-zinc-900 text-white p-3 flex items-center gap-3 border-b border-gray-700">
-                                <PlayCircle className="text-blue-400 shrink-0" />
-                                <span className="text-sm font-medium">
-                                  Conversation {group.id}
-                                </span>
-                                <audio
-                                  controls
+                              <div className="p-4">
+                                <AudioPlayer
                                   src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
-                                  className="h-8 flex-1"
+                                  label={`Conversation ${group.id}`}
                                 />
                               </div>
                             )}
@@ -560,7 +542,7 @@ const formatTime = (seconds: number) => {
                           {/* Group Context (Image/Text) */}
                           <div className="flex flex-col lg:flex-row">
                             {(group.imageUrl || group.textContent) && (
-                              <div className="lg:w-1/2 bg-gray-50 dark:bg-zinc-900 p-6 border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
+                              <div className="lg:w-6/10 bg-gray-50 dark:bg-zinc-900 p-6 border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
                                 <div className="lg:sticky lg:top-36 max-h-[80vh] overflow-y-auto">
                                   {group.imageUrl && (
                                     <img
@@ -571,7 +553,7 @@ const formatTime = (seconds: number) => {
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-sm [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
+                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-sm [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
@@ -585,7 +567,7 @@ const formatTime = (seconds: number) => {
                             <div
                               className={`${
                                 group.imageUrl || group.textContent
-                                  ? "lg:w-1/2"
+                                  ? "lg:w-4/10"
                                   : "w-full"
                               } p-6 space-y-6`}
                             >
@@ -697,7 +679,7 @@ const formatTime = (seconds: number) => {
         </div>
 
         {/* CỘT PHẢI: SIDEBAR (Desktop) */}
-        <div className="hidden lg:block lg:w-1/4">
+        <div className="hidden lg:block lg:w-1/6">
           {testData && (
             <div className="sticky top-24">
               <ExamRightSidebar
