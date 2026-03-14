@@ -31,9 +31,8 @@ export default function ExamPage() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState<number | null>(
-    null
+    null,
   );
-  
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
@@ -44,21 +43,21 @@ export default function ExamPage() {
     testData?.parts.reduce(
       (sum, part) =>
         sum + part.groups.reduce((s, g) => s + g.questions.length, 0),
-      0
+      0,
     ) || 0;
   const answeredCount = Object.keys(userAnswers).length;
 
   // --- HELPER FUNCTIONS ---
   // Thay thế hàm formatTime cũ
   // Thay thế hàm formatTime cũ
-const formatTime = (seconds: number) => {
-  // Tính tổng số phút (không chia ra giờ)
-  const m = Math.floor(seconds / 60); 
-  const s = seconds % 60;
-  
-  // Trả về dạng MM:SS (Ví dụ: 0:00, 5:30, 120:00)
-  return `${m}:${s < 10 ? "0" : ""}${s}`;
-};
+  const formatTime = (seconds: number) => {
+    // Tính tổng số phút (không chia ra giờ)
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+
+    // Trả về dạng MM:SS (Ví dụ: 0:00, 5:30, 120:00)
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
   const getPartNumber = (partName: string): number => {
     const match = partName.match(/part\s*(\d)/i);
     return match ? parseInt(match[1]) : 0;
@@ -97,9 +96,9 @@ const formatTime = (seconds: number) => {
         .then((res) => {
           const data = res.data.data;
           setTestData(data);
-          
+
           // DEBUG: Log audio URLs for each part
-          console.log('[TestPage] Loaded test data:', data);
+          console.log("[TestPage] Loaded test data:", data);
           data.parts.forEach((part: any) => {
             console.log(`[TestPage] Part ${part.name}:`, {
               id: part.id,
@@ -108,7 +107,7 @@ const formatTime = (seconds: number) => {
                 id: g.id,
                 audioUrl: g.audioUrl,
                 hasAudio: !!g.audioUrl,
-              }))
+              })),
             });
           });
 
@@ -117,7 +116,6 @@ const formatTime = (seconds: number) => {
           if (savedAnswers) {
             try {
               setUserAnswers(JSON.parse(savedAnswers));
-              
             } catch (e) {
               console.error("Lỗi parse localStorage:", e);
             }
@@ -147,11 +145,9 @@ const formatTime = (seconds: number) => {
   useEffect(() => {
     if (Object.keys(userAnswers).length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userAnswers));
-      
     }
   }, [userAnswers, STORAGE_KEY]);
 
-  
   // --- EFFECT 2: Timer Logic ---
   useEffect(() => {
     if (loading) return; // Bỏ check timeLeft <= 0 ở đây để cho phép đếm lên từ 0
@@ -179,12 +175,18 @@ const formatTime = (seconds: number) => {
 
   // --- EFFECT 3: Auto Submit ---
   useEffect(() => {
-    if (durationParam !== "0" && timeLeft === 0 && !loading && testData && !hasAutoSubmitted.current) {
+    if (
+      durationParam !== "0" &&
+      timeLeft === 0 &&
+      !loading &&
+      testData &&
+      !hasAutoSubmitted.current
+    ) {
       hasAutoSubmitted.current = true;
       alert(" Hết giờ! Bài thi sẽ được nộp tự động.");
       handleForceSubmit();
     }
-  }, [timeLeft, loading, testData , durationParam ]);
+  }, [timeLeft, loading, testData, durationParam]);
 
   // --- EFFECT 4: Keyboard Shortcuts (A, B, C, D) ---
   useEffect(() => {
@@ -261,9 +263,7 @@ const formatTime = (seconds: number) => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-zinc-700 mx-auto mb-4"></div>
-          <p className="text-blue-600 font-bold text-lg">
-            Đang tải đề thi...
-          </p>
+          <p className="text-blue-600 font-bold text-lg">Đang tải đề thi...</p>
         </div>
       </div>
     );
@@ -285,7 +285,7 @@ const formatTime = (seconds: number) => {
             onClick={() => {
               if (Object.keys(userAnswers).length > 0) {
                 const confirmExit = window.confirm(
-                  "Bạn chưa nộp bài. Dữ liệu sẽ được lưu. Bạn có chắc chắn muốn thoát?"
+                  "Bạn chưa nộp bài. Dữ liệu sẽ được lưu. Bạn có chắc chắn muốn thoát?",
                 );
                 if (confirmExit) router.push("/");
               } else {
@@ -365,7 +365,7 @@ const formatTime = (seconds: number) => {
       {/* Warning when time is low */}
       {durationParam !== "0" && timeLeft <= 300 && timeLeft > 0 && (
         <div className="bg-red-500 dark:bg-red-600 text-white text-center py-2 text-sm font-medium animate-pulse sticky top-17.5 z-40">
-           Còn dưới {Math.ceil(timeLeft / 60)} phút! Hãy kiểm tra và nộp bài.
+          Còn dưới {Math.ceil(timeLeft / 60)} phút! Hãy kiểm tra và nộp bài.
         </div>
       )}
 
@@ -384,8 +384,6 @@ const formatTime = (seconds: number) => {
                     {part.name}
                   </h2>
                   <div className="h-1 flex-1 bg-gray-200 dark:bg-zinc-700 rounded-full"></div>
-                  
-                 
                 </div>
 
                 {/* === PART 1: Photographs === */}
@@ -399,7 +397,11 @@ const formatTime = (seconds: number) => {
                         {/* Audio Player for each group */}
                         {group.audioUrl && (
                           <AudioPlayer
-                            src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                            src={
+                              group.audioUrl.startsWith("http")
+                                ? group.audioUrl
+                                : `${BASE_URL}${group.audioUrl}`
+                            }
                             label={`Question ${idx + 1} Audio`}
                           />
                         )}
@@ -408,62 +410,64 @@ const formatTime = (seconds: number) => {
                           <div className="md:w-1/2 bg-white dark:bg-zinc-900  p-4 flex items-center justify-center">
                             {group.imageUrl && (
                               <img
-                                src={`${BASE_URL}${group.imageUrl}`}
+                                src={
+                                  group.imageUrl.startsWith("http")
+                                    ? group.imageUrl
+                                    : `${BASE_URL}${group.imageUrl}`
+                                }
                                 alt="Part 1"
                                 className="rounded-lg shadow-sm max-h-100 w-auto"
                               />
                             )}
                           </div>
                           <div className="md:w-1/2 bg-white dark:bg-zinc-900 p-6 space-y-6">
-                              {group.questions.map((q) => (
-                                <div
-                                  key={q.id}
-                                  id={`question-${q.id}`}
-                                  onClick={() => setCurrentQuestionId(q.id)}
-                                  className={`p-4 rounded-xl transition-all ${
-                                    currentQuestionId === q.id
-                                      ? ""
-                                      : ""
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3 mb-3">
-                                    <span
-                                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                        userAnswers[q.id]
-                                          ? "bg-blue-600 text-white"
-                                          : "bg-zinc-700 text-gray-300"
+                            {group.questions.map((q) => (
+                              <div
+                                key={q.id}
+                                id={`question-${q.id}`}
+                                onClick={() => setCurrentQuestionId(q.id)}
+                                className={`p-4 rounded-xl transition-all ${
+                                  currentQuestionId === q.id ? "" : ""
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 mb-3">
+                                  <span
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                      userAnswers[q.id]
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-zinc-700 text-gray-300"
+                                    }`}
+                                  >
+                                    {q.questionNo}
+                                  </span>
+                                  <p className="text-gray-700 dark:text-gray-400 text-sm">
+                                    Chọn đáp án đúng:
+                                  </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 ml-11">
+                                  {["A", "B", "C", "D"].map((label) => (
+                                    <button
+                                      key={label}
+                                      onClick={() =>
+                                        handleSelectAnswer(q.id, label)
+                                      }
+                                      className={`py-2 px-4 rounded-lg border font-bold transition-all ${
+                                        userAnswers[q.id] === label
+                                          ? "bg-blue-600 text-white "
+                                          : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
                                       }`}
                                     >
-                                      {q.questionNo}
-                                    </span>
-                                    <p className="text-gray-700 dark:text-gray-400 text-sm">
-                                      Chọn đáp án đúng:
-                                    </p>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-3 ml-11">
-                                    {["A", "B", "C", "D"].map((label) => (
-                                      <button
-                                        key={label}
-                                        onClick={() =>
-                                          handleSelectAnswer(q.id, label)
-                                        }
-                                        className={`py-2 px-4 rounded-lg border font-bold transition-all ${
-                                          userAnswers[q.id] === label
-                                            ? "bg-blue-600 text-white "
-                                            : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
-                                        }`}
-                                      >
-                                        {label}
-                                      </button>
-                                    ))}
-                                  </div>
+                                      {label}
+                                    </button>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* === PART 2: Question-Response === */}
@@ -477,7 +481,11 @@ const formatTime = (seconds: number) => {
                         {/* Audio Player for each group */}
                         {group.audioUrl && (
                           <AudioPlayer
-                            src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                            src={
+                              group.audioUrl.startsWith("http")
+                                ? group.audioUrl
+                                : `${BASE_URL}${group.audioUrl}`
+                            }
                             label={`Question ${idx + 1} Audio`}
                           />
                         )}
@@ -547,7 +555,11 @@ const formatTime = (seconds: number) => {
                             group.audioUrl && (
                               <div className="p-4">
                                 <AudioPlayer
-                                  src={group.audioUrl.startsWith('http') ? group.audioUrl : `${BASE_URL}${group.audioUrl}`}
+                                  src={
+                                    group.audioUrl.startsWith("http")
+                                      ? group.audioUrl
+                                      : `${BASE_URL}${group.audioUrl}`
+                                  }
                                   label={`Conversation ${group.id}`}
                                 />
                               </div>
@@ -560,9 +572,13 @@ const formatTime = (seconds: number) => {
                                 <div className="lg:sticky lg:top-36 max-h-[80vh] overflow-y-auto">
                                   {group.imageUrl && (
                                     <img
-                                      src={`${BASE_URL}${group.imageUrl}`}
-                                      alt="Context"
-                                      className="w-full rounded mb-4"
+                                      src={
+                                        group.imageUrl.startsWith("http")
+                                          ? group.imageUrl
+                                          : `${BASE_URL}${group.imageUrl}`
+                                      }
+                                      alt="Part 1"
+                                      className="rounded-lg shadow-sm max-h-100 w-auto"
                                     />
                                   )}
                                   {group.textContent && (
@@ -591,9 +607,7 @@ const formatTime = (seconds: number) => {
                                   id={`question-${q.id}`}
                                   onClick={() => setCurrentQuestionId(q.id)}
                                   className={`p-4 rounded-xl transition-colors ${
-                                    currentQuestionId === q.id
-                                      ? ""
-                                      : ""
+                                    currentQuestionId === q.id ? "" : ""
                                   }`}
                                 >
                                   <div className="flex gap-3 mb-3">
@@ -603,7 +617,7 @@ const formatTime = (seconds: number) => {
                                           ? "bg-blue-600 text-white"
                                           : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                       }`}
-                                    > 
+                                    >
                                       {q.questionNo}
                                     </span>
                                     <p className="font-medium text-gray-900 dark:text-white pt-1">
@@ -649,9 +663,7 @@ const formatTime = (seconds: number) => {
                             id={`question-${q.id}`}
                             onClick={() => setCurrentQuestionId(q.id)}
                             className={`p-4 rounded-xl transition-colors ${
-                              currentQuestionId === q.id
-                                ? ""
-                                : ""
+                              currentQuestionId === q.id ? "" : ""
                             }`}
                           >
                             <div className="flex gap-3 mb-4">
@@ -711,7 +723,7 @@ const formatTime = (seconds: number) => {
           )}
         </div>
       </div>
-          
+
       {/* MOBILE BOTTOM NAV */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 shadow-lg z-50">
         <div className="flex items-center justify-between px-3 py-2 gap-2">
@@ -727,9 +739,11 @@ const formatTime = (seconds: number) => {
 
           <div
             className={`font-bold text-sm ${
-              timeLeft <= 300 ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-white"
+              timeLeft <= 300
+                ? "text-red-600 dark:text-red-400"
+                : "text-gray-800 dark:text-white"
             }`}
-          >   
+          >
             {formatTime(timeLeft)}
           </div>
 
@@ -741,7 +755,7 @@ const formatTime = (seconds: number) => {
             }}
             className="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-700"
           >
-            <Trash/>
+            <Trash />
           </button>
 
           <button
@@ -763,7 +777,9 @@ const formatTime = (seconds: number) => {
             className="absolute bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 rounded-t-2xl p-4 max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-bold mb-4 text-gray-900 dark:text-white">Danh sách câu hỏi</h3>
+            <h3 className="font-bold mb-4 text-gray-900 dark:text-white">
+              Danh sách câu hỏi
+            </h3>
             <ExamRightSidebar
               parts={testData?.parts || []}
               userAnswers={userAnswers}

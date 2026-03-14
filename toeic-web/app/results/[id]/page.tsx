@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { Check, X } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
 import { ResultDetail } from "../../types";
@@ -396,11 +397,11 @@ export default function ResultPage() {
 
         <div className="max-w-7xl mx-auto px-4 pb-3">
           <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-            <span className="text-green-600 dark:text-green-400 font-bold">
-              ✓ {correctCount} đúng
+            <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
+              <Check size={18} /> {correctCount} đúng
             </span>
-            <span className="text-red-500 dark:text-red-400 font-bold">
-              ✗ {incorrectCount} sai
+            <span className="text-red-500 dark:text-red-400 font-bold flex items-center gap-1">
+              <X size={18} /> {incorrectCount} sai
             </span>
             <span className="text-gray-500 dark:text-gray-500">○ {skippedCount} bỏ qua</span>
             <div className="flex-1 h-2 bg-gray-300 dark:bg-zinc-900 rounded-full overflow-hidden">
@@ -797,11 +798,11 @@ export default function ResultPage() {
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="text-green-600 dark:text-green-400 font-bold text-sm">
-              ✓{correctCount}
+            <span className="text-green-600 dark:text-green-400 font-bold text-sm flex items-center gap-1">
+              <Check size={18} />{correctCount}
             </span>
-            <span className="text-red-500 dark:text-red-400 font-bold text-sm">
-              ✗{incorrectCount}
+            <span className="text-red-500 dark:text-red-400 font-bold text-sm flex items-center gap-1">
+              <X size={18} />{incorrectCount}
             </span>
           </div>
 

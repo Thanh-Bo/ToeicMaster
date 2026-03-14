@@ -6,7 +6,7 @@ import { PageHeader, Footer } from "./components/layout";
 import { FeatureCard } from "./components/cards";
 import { useAuth } from "./contexts/AuthContext";
 import { statisticsService, StreakData } from "./services/statisticsService";
-import { BookOpen, Mic, Eye, FileText, ShoppingBag, PenTool, GraduationCap, Newspaper } from "lucide-react";
+import { BookOpen, Mic, Eye, FileText, ShoppingBag, PenTool, GraduationCap, Newspaper, Check } from "lucide-react";
 
 // Quick access features
 const quickFeatures = [
@@ -138,15 +138,15 @@ export default function HomePage() {
           {/* FEATURES CHECKMARKS */}
           <div className="flex flex-col sm:flex-row gap-8 justify-center text-white">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">✓</span>
+              <Check size={28} className="text-white" />
               <span className="text-sm md:text-base">Đăng ký miễn phí, bắt đầu ngay</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-2xl">✓</span>
+              <Check size={28} className="text-white" />
               <span className="text-sm md:text-base">Theo dõi tiến độ học tập</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-2xl">✓</span>
+              <Check size={28} className="text-white" />
               <span className="text-sm md:text-base">Giải thích chi tiết từng câu</span>
             </div>
           </div>
@@ -168,7 +168,10 @@ export default function HomePage() {
           <div className="relative rounded-3xl p-12 md:p-16 border border-gray-200 dark:border-zinc-700 text-center">
             {/* Checkmark */}
             <div className="flex justify-center mb-6">
-              <span className="text-green-500 dark:text-green-400 text-lg font-semibold">✓ Bắt đầu miễn phí</span>
+              <div className="flex items-center gap-2 text-green-500 dark:text-green-400 text-lg font-semibold">
+                <Check size={24} />
+                <span>Bắt đầu miễn phí</span>
+              </div>
             </div>
 
             {/* Title */}
@@ -184,19 +187,19 @@ export default function HomePage() {
             {/* Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-2xl mx-auto">
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <span className="text-green-500 dark:text-green-400 text-xl">✓</span>
+                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
                 <span>Luyện tập ngữ pháp & từ vựng miễn phí</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <span className="text-green-500 dark:text-green-400 text-xl">✓</span>
+                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
                 <span>Giải thích chi tiết mỗi đáp án</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <span className="text-green-500 dark:text-green-400 text-xl">✓</span>
+                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
                 <span>Hỏi AI khi không hiểu</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <span className="text-green-500 dark:text-green-400 text-xl">✓</span>
+                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
                 <span>Đăng nhập để lưu tiến độ & streak</span>
               </div>
             </div>

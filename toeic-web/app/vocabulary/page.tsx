@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { Loader, ArrowLeft, Book } from "lucide-react";
+import { Loader, ArrowLeft, Book, X } from "lucide-react";
 import { vocabularyService } from "../services/vocabularyService";
 import TopicCard from "../components/vocabulary/TopicCard";
 import { VocabularyTopic } from "../types";
@@ -123,7 +123,7 @@ export default function VocabularyPage() {
         {error && (
           <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl backdrop-blur-sm">
             <div className="flex items-start gap-3">
-              <div className="text-2xl">❌</div>
+              <X size={32} className="text-red-600 dark:text-red-400 flex-shrink-0" />
               <div>
                 <h3 className="font-bold text-red-700 dark:text-red-300 mb-1">Lỗi tải dữ liệu</h3>
                 <p className="text-red-600 dark:text-red-400">{error}</p>

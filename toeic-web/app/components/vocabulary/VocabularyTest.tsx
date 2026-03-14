@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { vocabularyService } from "@/app/services/vocabularyService";
-import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, XCircle, Check, X } from "lucide-react";
 import { Part5Question, Question, UserTestResult } from "@/app/types";
 
 interface VocabularyTestProps {
@@ -276,7 +276,7 @@ export default function VocabularyTest({
                       : "bg-red-500 text-white"
                   } ${reviewIndex === idx ? "ring-2 ring-blue-600" : ""}`}
                 >
-                  {result?.isCorrect ? "✓" : "✕"}
+                  {result?.isCorrect ? <Check size={20} /> : <X size={20} />}
                 </button>
               );
             })}
@@ -460,7 +460,7 @@ export default function VocabularyTest({
                 </span>
                 {selectedAnswers[currentQuestion.id] === option.label && (
                   <span className="ml-2 text-blue-600 dark:text-blue-400">
-                    ✓
+                    <Check size={20} />
                   </span>
                 )}
               </button>

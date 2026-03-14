@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Flame, CheckCircle, FileText, Award, Target, Clock, TrendingUp, TrendingDown, AlertTriangle, Bookmark } from "lucide-react";
+import { Flame, CheckCircle, FileText, Award, Target, Clock, TrendingUp, TrendingDown, AlertTriangle, Bookmark, Check, Circle } from "lucide-react";
 import { statisticsService, DashboardStats, PartAnalysis, ProgressData, StreakData } from "../../services/statisticsService";
 import HistoryTab from "./HistoryTab";
 
@@ -136,14 +136,14 @@ export default function ProgressTab() {
                 <div key={idx} className="flex flex-col items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
                     ${day.hasActivity ? 'bg-white text-orange-500 dark:text-red-600' : 'bg-white/30 text-white/70'}`}>
-                    {day.hasActivity ? '✓' : '○'}
+                    {day.hasActivity ? <Check size={18} /> : <Circle size={18} />}
                   </div>
                   <span className="text-xs text-white/70 mt-1">{day.dayName}</span>
                 </div>
               ))}
             </div>
             {streakData.todayActive ? (
-              <div className="px-4 py-2 bg-white/20 rounded-full">✓ Đã học hôm nay</div>
+              <div className="px-4 py-2 bg-white/20 rounded-full flex items-center gap-2"><Check size={18} /> Đã học hôm nay</div>
             ) : (
               <div className="px-4 py-2 bg-white/30 rounded-full animate-pulse">Chưa học hôm nay!</div>
             )}

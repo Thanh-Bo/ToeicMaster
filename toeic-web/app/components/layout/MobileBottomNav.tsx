@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check, X } from "lucide-react";
 
 interface Props {
   /** Hiển thị nav */
@@ -70,9 +71,15 @@ export default function MobileBottomNav({
         )}
 
         {mode === "result" && stats && (
-          <div className="flex items-center gap-2">
-            <span className="text-green-600 font-bold text-sm">✓{stats.correctCount}</span>
-            <span className="text-red-500 font-bold text-sm">✗{stats.incorrectCount}</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 text-green-600 font-bold text-sm">
+              <Check size={20} />
+              <span>{stats.correctCount}</span>
+            </div>
+            <div className="flex items-center gap-1 text-red-500 font-bold text-sm">
+              <X size={20} />
+              <span>{stats.incorrectCount}</span>
+            </div>
           </div>
         )}
 

@@ -328,11 +328,15 @@ namespace ToeicMaster.API.Controllers
                 new Claim("IsPremium", (user.IsPremium ?? false).ToString()),
                 new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
+            // Use shorter expiry in development
+    var expiryMinutes = int.TryParse(_configuration["Jwt:AccessTokenExpiryMinutes"], out var minutes) 
+        ? minutes 
+        : 1440; // Default 1 day
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7), // Access Token sống 7 ngay
+                Expires = DateTime.UtcNow.AddMinutes(expiryMinutes),
                 Issuer = jwtSettings["Issuer"],
                 Audience = jwtSettings["Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

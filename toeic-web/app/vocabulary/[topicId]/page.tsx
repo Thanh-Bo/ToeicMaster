@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams , useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle, X, Loader, ArrowLeft } from "lucide-react";
+import { ArrowRight, CheckCircle, X, Loader, ArrowLeft, Gamepad2, PenTool, Volume2, Sparkles, FileText, Keyboard, SkipForward, BookText, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import Flashcard from "@/app/components/vocabulary/Flashcard";
 import MatchingGame from "@/app/components/vocabulary/MatchingGame";
@@ -61,7 +61,7 @@ export default function TopicStudyPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center p-4">
         <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-2xl p-8 max-w-md text-center shadow-lg">
-          <div className="text-5xl mb-4">❌</div>
+          <div className="flex justify-center mb-4"><X size={64} className="text-red-600 dark:text-red-400" /></div>
           <h2 className="text-2xl font-bold text-red-700 dark:text-red-400 mb-3">Có lỗi xảy ra</h2>
           <p className="text-red-600 dark:text-red-300 mb-6 font-semibold">{error}</p>
           <button
@@ -136,7 +136,7 @@ export default function TopicStudyPage() {
 
   const handleCheckListenWrite = () => {
     if (!userInput.trim()) {
-      setInputFeedback("❌ Vui lòng nhập từ!");
+      setInputFeedback("Vui lòng nhập từ!");
       return;
     }
     const isCorrect =
@@ -145,15 +145,15 @@ export default function TopicStudyPage() {
     setIsAnswerCorrect(isCorrect);
     setInputFeedback(
       isCorrect
-        ? "✅ Chính xác!"
-        : `❌ Sai rồi! Đáp án là: ${words[currentWordIndex].word}`
+        ? "Chính xác!"
+        : `Sai rồi! Đáp án là: ${words[currentWordIndex].word}`
     );
     setIsAnswerChecked(true);
   };
 
   const handleCheckFillBlank = () => {
     if (!userInput.trim()) {
-      setInputFeedback(" Vui lòng nhập từ!");
+      setInputFeedback("Vui lòng nhập từ!");
       return;
     }
     const isCorrect =
@@ -162,8 +162,8 @@ export default function TopicStudyPage() {
     setIsAnswerCorrect(isCorrect);
     setInputFeedback(
       isCorrect
-        ? "✅ Chính xác!"
-        : `❌ Sai rồi! Đáp án là: ${words[currentWordIndex].word}`
+        ? "Chính xác!"
+        : `Sai rồi! Đáp án là: ${words[currentWordIndex].word}`
     );
     setIsAnswerChecked(true);
   };
@@ -198,9 +198,9 @@ export default function TopicStudyPage() {
           {/* Process Steps */}
           <div className="flex justify-between items-center gap-4">
             {[
-              { phase: "LEARN", number: "1", label: "Học từ", icon: "📚" },
-              { phase: "PRACTICE_GAME", number: "2", label: "Ghép thẻ", icon: "🎮" },
-              { phase: "TEST", number: "3", label: "Kiểm tra", icon: "✍️" },
+              { phase: "LEARN", number: "1", label: "Học từ", icon: BookText  },
+              { phase: "PRACTICE_GAME", number: "2", label: "Ghép thẻ", icon: Gamepad2 },
+              { phase: "TEST", number: "3", label: "Kiểm tra", icon: PenTool },
             ].map((step, idx) => (
               <React.Fragment key={step.phase}>
                 <button
@@ -214,7 +214,7 @@ export default function TopicStudyPage() {
                         : "border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105"
                     }`}
                   >
-                    {step.number}
+                    <step.icon size={20} />
                   </div>
                   <span
                     className={`text-xs font-bold text-center transition-colors hidden md:block ${
@@ -268,7 +268,7 @@ export default function TopicStudyPage() {
                       : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  1️⃣ Thẻ học
+                  <BookText  className="inline w-4 h-4 mr-2" />1. Thẻ học
                 </button>
                 <button
                   onClick={() => setSubPhase("LISTEN_WRITE")}
@@ -279,7 +279,7 @@ export default function TopicStudyPage() {
                       : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  2️⃣ Nghe & Viết
+                  <Volume2 className="inline w-4 h-4 mr-2" />2. Nghe & Viết
                 </button>
                 <button
                   onClick={() => setSubPhase("FILL_BLANK")}
@@ -290,7 +290,7 @@ export default function TopicStudyPage() {
                       : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  3️⃣ Điền từ
+                  <FileText className="inline w-4 h-4 mr-2" />3. Điền từ
                 </button>
               </div>
             </div>
@@ -309,7 +309,8 @@ export default function TopicStudyPage() {
               <div className="w-full max-w-3xl animate-fadeIn pb-20 md:pb-0">
                 <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-3xl border border-gray-200 dark:border-zinc-700 p-8 md:p-12 shadow-lg">
                   <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center">
-                    🎧 Nghe và viết lại
+                    <Volume2 className="inline w-8 h-8 mr-3" />
+                    Nghe và viết lại
                   </h2>
 
                   {/* Audio Button */}
@@ -340,7 +341,7 @@ export default function TopicStudyPage() {
                       }}
                       className="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl border-4 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95"
                     >
-                      <span className="text-5xl md:text-6xl">🔊</span>
+                      <Volume2 size={64} className="text-white" />
                     </button>
                   </div>
 
@@ -375,7 +376,11 @@ export default function TopicStudyPage() {
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">{isAnswerCorrect ? "🎉" : "😢"}</span>
+                        {isAnswerCorrect ? (
+                          <Sparkles size={32} className="text-green-600 dark:text-green-400" />
+                        ) : (
+                          <X size={32} className="text-red-600 dark:text-red-400" />
+                        )}
                         <h3 className={`text-xl font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
                           {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
                         </h3>
@@ -383,7 +388,7 @@ export default function TopicStudyPage() {
                       <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
-                    <p className="text-center text-sm text-gray-400">⌨️ Nhấn Enter để kiểm tra</p>
+                    <p className="text-center text-sm text-gray-400"><Keyboard className="inline w-4 h-4 mr-2" />Nhấn Enter để kiểm tra</p>
                   )}
                 </div>
               </div>
@@ -393,7 +398,8 @@ export default function TopicStudyPage() {
               <div className="w-full max-w-3xl animate-fadeIn">
                 <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-3xl shadow-lg p-8 md:p-12 transition-all">
                   <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">
-                    📝 Điền từ vào chỗ trống
+                    <FileText className="inline w-8 h-8 mr-3" />
+                    Điền từ vào chỗ trống
                   </h2>
 
                   {/* Meaning Hint */}
@@ -470,7 +476,11 @@ export default function TopicStudyPage() {
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">{isAnswerCorrect ? "🎉" : "😢"}</span>
+                        {isAnswerCorrect ? (
+                          <Sparkles size={32} className="text-green-600 dark:text-green-400" />
+                        ) : (
+                          <X size={32} className="text-red-600 dark:text-red-400" />
+                        )}
                         <h3 className={`text-xl font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
                           {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
                         </h3>
@@ -479,7 +489,8 @@ export default function TopicStudyPage() {
                     </div>
                   ) : (
                     <div className="text-center h-12 flex items-center justify-center text-gray-400 animate-pulse">
-                      <span>⌨️ Gõ để điền từ</span>
+                      <Keyboard className="inline w-4 h-4 mr-2" />
+                      <span>Gõ để điền từ</span>
                     </div>
                   )}
                 </div>
@@ -499,9 +510,10 @@ export default function TopicStudyPage() {
                     : handlePreviousSubPhase
                 }
                 disabled={subPhase === "FLASHCARD" && currentWordIndex === 0}
-                className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700"
+                className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700 flex items-center justify-center gap-2"
               >
-                ← Quay lại
+                <ArrowLeft size={18} />
+                Quay lại
               </button>
               <button
                 onClick={() => {
@@ -544,9 +556,10 @@ export default function TopicStudyPage() {
                   setPhase("TEST");
                 }
               }}
-              className="w-full max-w-md mx-auto px-6 py-3 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
+              className="w-full max-w-md mx-auto px-6 py-3 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
-              ⏭️ Bỏ qua và đi kiểm tra
+              <SkipForward size={18} />
+              Bỏ qua và đi kiểm tra
             </button>
           </div>
         )}
@@ -567,16 +580,17 @@ export default function TopicStudyPage() {
               <CheckCircle size={48} />
             </div>
             <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-3">
-              Chúc mừng! 🎉
+              Chúc mừng! <Sparkles className="inline w-8 h-8" />
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
               Bạn đã hoàn thành chủ đề từ vựng này
             </p>
             <a
               href="/vocabulary"
-              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-all"
+              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2"
             >
-              ← Về trang Từ vựng
+              <ArrowLeft size={18} />
+              Về trang Từ vựng
             </a>
           </div>
         )}

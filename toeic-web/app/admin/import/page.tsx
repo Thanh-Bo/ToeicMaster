@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { adminService } from "@/app/services/adminService";
 import { useAuth } from "@/app/contexts/AuthContext";
-import { Upload, FileUp, Settings, ArrowLeft, Filter } from "lucide-react";
+import { Upload, FileUp, Settings, ArrowLeft, Filter, Check } from "lucide-react";
 import { AdminTest } from "@/app/types";
 
 export default function ImportManagementPage() {
@@ -82,7 +82,7 @@ export default function ImportManagementPage() {
       console.log("[Import] Success:", response);
       setUploadMessage({
         type: "success",
-        text: response.message || `✅ Import Part ${selectedPart} thành công!`,
+        text: response.message || `Import Part ${selectedPart} thành công!`,
       });
 
       setExcelFile(null);

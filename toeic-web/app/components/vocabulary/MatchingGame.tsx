@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { VocabWord } from '@/app/types';
 
 const BATCH_SIZE = 6;
@@ -274,7 +275,7 @@ export default function MatchingGame({ words, onComplete }: Props) {
 
           {/* Progress */}
           <div className="bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:to-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-700">
-            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-300 text-center">✅ Tiến độ</p>
+            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-300 text-center flex items-center justify-center gap-2"><Check size={18} /> Tiến độ</p>
             <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mt-1 text-center">{matchedCount}/{currentBatchSize}</p>
             <div className="w-full bg-emerald-200 dark:bg-emerald-700 rounded-full h-2 mt-3">
               <div 
@@ -372,8 +373,8 @@ export default function MatchingGame({ words, onComplete }: Props) {
           {/* Matched Cards Display */}
           {matchedCount > 0 && (
             <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-              <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">
-                ✅ Đã ghép xong: {matchedCount}/{currentBatchSize}
+              <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Check size={16} /> Đã ghép xong: {matchedCount}/{currentBatchSize}
               </p>
               <div className="flex flex-wrap gap-2">
                 {enCards

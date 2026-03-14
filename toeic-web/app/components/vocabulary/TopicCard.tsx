@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { 
   PlayCircle, Award, FileText, Megaphone, CheckCircle, BarChart3, 
-  Mic2, Plane, DollarSign, Building2, Users, Presentation, Book, Clock, Zap
+  Mic2, Plane, DollarSign, Building2, Users, Presentation, Book, Clock, Zap, X, Check
 } from 'lucide-react';
 
 interface Props {
@@ -134,11 +134,6 @@ export default function TopicCard({ topic }: Props) {
   
   // Calculate time remaining for countdown (PHASE 3: Enhanced with seconds)
   useEffect(() => {
-    console.log('⏰ Timer effect:', {
-    nextReviewAt: topic.nextReviewAt,
-    canReviewNow: topic.canReviewNow,
-    currentLevel: topic.currentLevel,
-  });
     // Chỉ hiển thị countdown khi đã làm bài (currentLevel >= 1)
     if (topic.currentLevel === 0 || !topic.nextReviewAt || topic.canReviewNow) {
       setTimeRemaining('');
@@ -399,7 +394,7 @@ export default function TopicCard({ topic }: Props) {
 
           {/* Title */}
           <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
-            ⏰ Chưa đến lịch ôn tập
+            Chưa đến lịch ôn tập
           </h2>
 
           {/* Message */}
@@ -420,18 +415,20 @@ export default function TopicCard({ topic }: Props) {
             <button
               onClick={() => setShowWarningModal(false)}
               
-              className="flex-1 py-3 px-4 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white transition-all"
+              className="flex-1 py-3 px-4 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white transition-all flex items-center justify-center gap-2"
             >
-              ❌ Hủy
+              <X size={20} />
+              Hủy
             </button>
             <button
               onClick={() => {
                 setShowWarningModal(false);
                 window.location.href = `/vocabulary/${topic.id}`;
               }}
-              className="flex-1 py-3 px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all"
+              className="flex-1 py-3 px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all flex items-center justify-center gap-2"
             >
-              ✅ Làm ngay
+              <Check size={20} />
+              Làm ngay
             </button>
           </div>
         </div>

@@ -30,9 +30,7 @@ export default function AudioPlayer({
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log(`[AudioPlayer] Loading audio for ${label}:`, src);
-  }, [src, label]);
+  
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
     const audio = e.currentTarget;
