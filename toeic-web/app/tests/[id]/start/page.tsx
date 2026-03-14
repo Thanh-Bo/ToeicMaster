@@ -97,6 +97,20 @@ const formatTime = (seconds: number) => {
         .then((res) => {
           const data = res.data.data;
           setTestData(data);
+          
+          // DEBUG: Log audio URLs for each part
+          console.log('[TestPage] Loaded test data:', data);
+          data.parts.forEach((part: any) => {
+            console.log(`[TestPage] Part ${part.name}:`, {
+              id: part.id,
+              groupCount: part.groups.length,
+              groups: part.groups.map((g: any) => ({
+                id: g.id,
+                audioUrl: g.audioUrl,
+                hasAudio: !!g.audioUrl,
+              }))
+            });
+          });
 
           // Load saved answers from localStorage
           const savedAnswers = localStorage.getItem(STORAGE_KEY);

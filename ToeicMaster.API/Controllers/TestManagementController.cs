@@ -18,11 +18,13 @@ namespace ToeicMaster.API.Controllers
     {
         private readonly AppDbContext _efContext;
         private readonly IMemoryCache _cache;
+        private readonly BlobService _blobService;
 
-        public TestManagementController(AppDbContext efContext, IMemoryCache cache)
+        public TestManagementController(AppDbContext efContext, IMemoryCache cache, BlobService blobService)
         {
             _efContext = efContext;
             _cache = cache;
+            _blobService = blobService;
         }
 
         // Helper method để xóa cache khi có thay đổi dữ liệu
@@ -245,14 +247,32 @@ namespace ToeicMaster.API.Controllers
                 var groups = await _efContext.QuestionGroups
                     .Where(qg => partIds.Contains(qg.PartId))
                     .ToListAsync();
-                _efContext.QuestionGroups.RemoveRange(groups);
+                // _efContext.QuestionGroups.RemoveRange(groups);
 
                 // Xóa Parts
                 var parts = await _efContext.Parts
                     .Where(p => p.TestId == testId)
                     .ToListAsync();
                 _efContext.Parts.RemoveRange(parts);
+                var mediaUrlsToDelete = new List<string>();
 
+                foreach (var group in groups)
+                {
+                    if (!string.IsNullOrEmpty(group.ImageUrl))
+                        mediaUrlsToDelete.Add(group.ImageUrl);
+
+                    if (!string.IsNullOrEmpty(group.AudioUrl))
+                        mediaUrlsToDelete.Add(group.AudioUrl);
+                }
+
+                // Ensure we don't try to delete the exact same file twice (Distinct)
+                foreach (var url in mediaUrlsToDelete.Distinct())
+                {
+                    await _blobService.DeleteFileAsync(url);
+                }
+                // ==========================================
+
+                _efContext.QuestionGroups.RemoveRange(groups);
                 // Xóa Test
                 _efContext.Tests.Remove(test);
 
@@ -358,10 +378,29 @@ namespace ToeicMaster.API.Controllers
                 var groups = await _efContext.QuestionGroups
                     .Where(qg => qg.PartId == part.Id)
                     .ToListAsync();
-                _efContext.QuestionGroups.RemoveRange(groups);
+                
+                var mediaUrlsToDelete = new List<string>();
 
+                foreach (var group in groups)
+                {
+                    if (!string.IsNullOrEmpty(group.ImageUrl))
+                        mediaUrlsToDelete.Add(group.ImageUrl);
+
+                    if (!string.IsNullOrEmpty(group.AudioUrl))
+                        mediaUrlsToDelete.Add(group.AudioUrl);
+                }
+
+                // Ensure we don't try to delete the exact same file twice (Distinct)
+                foreach (var url in mediaUrlsToDelete.Distinct())
+                {
+                    await _blobService.DeleteFileAsync(url);
+                }
+                // ==========================================
+
+                _efContext.QuestionGroups.RemoveRange(groups);
                 // Xóa Part
                 _efContext.Parts.Remove(part);
+
 
                 await _efContext.SaveChangesAsync();
                 InvalidateTestCache(testId);
@@ -395,7 +434,7 @@ namespace ToeicMaster.API.Controllers
             return Ok(new { message = "Cập nhật Part thành công!", data = part });
         }
 
-  
+
     }
 
     // DTO cho UpdateTest

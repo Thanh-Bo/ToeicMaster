@@ -49,7 +49,7 @@ public partial class User
 
     public virtual ICollection<UserVocabulary> UserVocabularies { get; set; } = new List<UserVocabulary>();
 
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    
 
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 

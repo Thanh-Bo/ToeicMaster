@@ -55,7 +55,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CommentLike> CommentLikes { get; set; }
 
-    public virtual DbSet<Payment> Payments { get; set; }
+  
 
 
 //     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -407,31 +407,7 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
-        // Payment configuration
-        modelBuilder.Entity<Payment>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.UserId);
-            entity.HasIndex(e => e.TransactionNo).IsUnique();
-
-            entity.Property(e => e.TransactionNo)
-                .IsRequired()
-                .HasMaxLength(100);
-
-            entity.Property(e => e.OrderInfo).HasMaxLength(500);
-            entity.Property(e => e.PackageType).HasMaxLength(50);
-            entity.Property(e => e.PaymentStatus).HasMaxLength(50);
-            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
-            entity.Property(e => e.ResponseCode).HasMaxLength(10);
-            entity.Property(e => e.ResponseMessage).HasMaxLength(500);
-
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.Payments)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        
 
         OnModelCreatingPartial(modelBuilder);
     }

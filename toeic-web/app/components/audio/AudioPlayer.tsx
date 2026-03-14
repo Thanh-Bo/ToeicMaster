@@ -28,13 +28,34 @@ export default function AudioPlayer({
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log(`[AudioPlayer] Loading audio for ${label}:`, src);
+  }, [src, label]);
+
+  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    const audio = e.currentTarget;
+    let errorMsg = "Unknown error";
+    switch (audio.error?.code) {
+      case 1: errorMsg = "MEDIA_ERR_ABORTED"; break;
+      case 2: errorMsg = "MEDIA_ERR_NETWORK"; break;
+      case 3: errorMsg = "MEDIA_ERR_DECODE"; break;
+      case 4: errorMsg = "MEDIA_ERR_SRC_NOT_SUPPORTED"; break;
+    }
+    console.error(`[AudioPlayer] Error loading audio for ${label} (${audio.error?.code}): ${errorMsg}`, src);
+    setError(`Failed to load audio: ${errorMsg}`);
+  };
 
   const handlePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(err => {
+          console.error(`[AudioPlayer] Play error for ${label}:`, err);
+          setError(`Failed to play audio: ${err.message}`);
+        });
       }
       setIsPlaying(!isPlaying);
     }
@@ -88,14 +109,21 @@ export default function AudioPlayer({
       .padStart(2, "0")}`;
   };
 
+  
   return (
     <div className="w-full  bg-[#f5f5f5] dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
+      {error && (
+        <div className="mb-3 p-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-100 rounded text-sm">
+          {error}
+        </div>
+      )}
       <audio
         ref={audioRef}
         src={src}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}
+        onError={handleAudioError}
       />
 
       {/* First Row: Play + Waveform + Time */}

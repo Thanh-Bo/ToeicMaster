@@ -20,11 +20,13 @@ namespace ToeicMaster.API.Controllers
 
         private readonly AppDbContext _efContext;
         private readonly IMemoryCache _cache;
+        private readonly BlobService _blobService;
 
-        public AdminController(AppDbContext efContext, IMemoryCache cache)
+        public AdminController(AppDbContext efContext, IMemoryCache cache, BlobService blobService)
         {
             _efContext = efContext;
             _cache = cache;
+            _blobService = blobService;
         }
 
         // Helper method để xóa cache khi có thay đổi dữ liệu
@@ -282,7 +284,7 @@ namespace ToeicMaster.API.Controllers
                     for (int row = 2; row <= rowCount; row++)
                     {
                         // --- ĐỌC DỮ LIỆU TỪ EXCEL ---
-                       var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");     // Cột A: Đoạn văn   // Cột A: Đoạn văn
+                        var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");     // Cột A: Đoạn văn   // Cột A: Đoạn văn
                         var qNoText = worksheet.Cells[row, 2].Text?.Trim();        // Cột B: Số thứ tự
                         var content = worksheet.Cells[row, 3].Text?.Trim();        // Cột C: Câu hỏi
 
@@ -377,6 +379,10 @@ namespace ToeicMaster.API.Controllers
             var test = await _efContext.Tests.FindAsync(testId);
             if (test == null) return NotFound("Không tìm thấy Test.");
 
+            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string audioFolderPath = $"audios/{testFolderName}/part1";
+            string imageFolderPath = $"images/{testFolderName}/part1";
+
             try
             {
                 // 1. Tạo Part 1 nếu chưa có
@@ -421,15 +427,7 @@ namespace ToeicMaster.API.Controllers
                             var imgFile = images?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(imgName, StringComparison.OrdinalIgnoreCase));
                             if (imgFile != null)
                             {
-                                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/images");
-                                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                                var fileName = Guid.NewGuid() + Path.GetExtension(imgFile.FileName);
-                                var path = Path.Combine(folderPath, fileName);
-                                using (var streamImg = new FileStream(path, FileMode.Create))
-                                {
-                                    await imgFile.CopyToAsync(streamImg);
-                                }
-                                finalImageUrl = "/uploads/images/" + fileName;
+                                finalImageUrl = await _blobService.UploadFileAsync(imgFile, imageFolderPath);
                                 savedImages[imgName] = finalImageUrl;
                             }
                         }
@@ -446,15 +444,7 @@ namespace ToeicMaster.API.Controllers
                             var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
                             if (audioFile != null)
                             {
-                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part1");
-                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
-                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
-                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
-                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
-                                {
-                                    await audioFile.CopyToAsync(streamAudio);
-                                }
-                                finalAudioUrl = "/uploads/audio/part1/" + audioFileName;
+                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -501,7 +491,7 @@ namespace ToeicMaster.API.Controllers
                 return Ok(new
                 {
                     message = $"Import Part 1 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
-                    
+
                 });
             }
             catch (Exception ex)
@@ -526,6 +516,9 @@ namespace ToeicMaster.API.Controllers
 
             var test = await _efContext.Tests.FindAsync(testId);
             if (test == null) return NotFound("Không tìm thấy Test.");
+
+            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string audioFolderPath = $"audios/{testFolderName}/part2";
 
             try
             {
@@ -567,15 +560,7 @@ namespace ToeicMaster.API.Controllers
                             var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
                             if (audioFile != null)
                             {
-                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part2");
-                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
-                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
-                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
-                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
-                                {
-                                    await audioFile.CopyToAsync(streamAudio);
-                                }
-                                finalAudioUrl = "/uploads/audio/part2/" + audioFileName;
+                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -647,6 +632,10 @@ namespace ToeicMaster.API.Controllers
             var test = await _efContext.Tests.FindAsync(testId);
             if (test == null) return NotFound("Không tìm thấy Test với ID này.");
 
+            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string audioFolderPath = $"audios/{testFolderName}/part3";
+            string imageFolderPath = $"images/{testFolderName}/part3";
+
             try
             {
                 var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 3);
@@ -679,6 +668,8 @@ namespace ToeicMaster.API.Controllers
                     var audioName = worksheet.Cells[row, 4].Text?.Trim();  // Col D (4) - Audio File (NEW)
 
                     string? finalImageUrl = null;
+
+                    // Process image if provided
                     if (!string.IsNullOrEmpty(imageName))
                     {
                         if (savedImages.ContainsKey(imageName))
@@ -690,14 +681,7 @@ namespace ToeicMaster.API.Controllers
 
                             if (imgFile != null)
                             {
-                                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/images");
-                                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                                var fileName = Path.GetFileName(imgFile.FileName);
-                                var path = Path.Combine(folderPath, fileName);
-                                using var streamImg = new FileStream(path, FileMode.Create);
-                                await imgFile.CopyToAsync(streamImg);
-
-                                finalImageUrl = "/uploads/images/" + fileName;
+                                finalImageUrl = await _blobService.UploadFileAsync(imgFile, imageFolderPath);
                                 savedImages[imageName] = finalImageUrl;
                             }
                         }
@@ -714,25 +698,18 @@ namespace ToeicMaster.API.Controllers
                             var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
                             if (audioFile != null)
                             {
-                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part3");
-                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
-                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
-                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
-                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
-                                {
-                                    await audioFile.CopyToAsync(streamAudio);
-                                }
-                                finalAudioUrl = "/uploads/audio/part3/" + audioFileName;
+                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
                     }
 
+                    // Create QuestionGroup regardless of image/audio
                     var group = new QuestionGroup
                     {
                         PartId = part.Id,
                         Transcript = transcript,
-                        AudioUrl = finalAudioUrl,  // AUDIO URL
+                        AudioUrl = finalAudioUrl,
                         ImageUrl = finalImageUrl,
                         TextContent = null
                     };
@@ -746,7 +723,7 @@ namespace ToeicMaster.API.Controllers
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
-                        
+
                         // Skip if no question number
                         if (string.IsNullOrEmpty(qNoText) || !int.TryParse(qNoText, out int qNo))
                         {
@@ -784,14 +761,11 @@ namespace ToeicMaster.API.Controllers
                         countQuestions++;
                         col += 7;
                     }
+
+                    await _efContext.SaveChangesAsync();
                 }
 
-                await _efContext.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Import dữ liệu thành công"
-                });
+                return Ok(new { message = "Import Part 3 thành công", countGroups, countQuestions });
             }
             catch (Exception ex)
             {
@@ -815,6 +789,10 @@ namespace ToeicMaster.API.Controllers
 
             var test = await _efContext.Tests.FindAsync(testId);
             if (test == null) return NotFound("Không tìm thấy Test với ID này.");
+
+            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string audioFolderPath = $"audios/{testFolderName}/part4";
+            string imageFolderPath = $"images/{testFolderName}/part4";
 
             try
             {
@@ -848,7 +826,7 @@ namespace ToeicMaster.API.Controllers
                     var imageName = worksheet.Cells[row, 2].Text?.Trim();    // Col B - Image
                     var transcript = worksheet.Cells[row, 3].Text?.Trim();   // Col C - Transcript
                     var audioName = worksheet.Cells[row, 4].Text?.Trim();    // Col D - Audio File (NEW)
-                    
+
                     // Câu hỏi bắt đầu từ Col E (5)
 
                     // Xử lý Image
@@ -864,14 +842,7 @@ namespace ToeicMaster.API.Controllers
 
                             if (imgFile != null)
                             {
-                                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/images");
-                                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                                var fileName = Path.GetFileName(imgFile.FileName);
-                                var path = Path.Combine(folderPath, fileName);
-                                using var streamImg = new FileStream(path, FileMode.Create);
-                                await imgFile.CopyToAsync(streamImg);
-
-                                finalImageUrl = "/uploads/images/" + fileName;
+                                finalImageUrl = await _blobService.UploadFileAsync(imgFile, imageFolderPath);
                                 savedImages[imageName] = finalImageUrl;
                             }
                         }
@@ -888,15 +859,7 @@ namespace ToeicMaster.API.Controllers
                             var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
                             if (audioFile != null)
                             {
-                                var audioFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/audio/part4");
-                                if (!Directory.Exists(audioFolderPath)) Directory.CreateDirectory(audioFolderPath);
-                                var audioFileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
-                                var audioPath = Path.Combine(audioFolderPath, audioFileName);
-                                using (var streamAudio = new FileStream(audioPath, FileMode.Create))
-                                {
-                                    await audioFile.CopyToAsync(streamAudio);
-                                }
-                                finalAudioUrl = "/uploads/audio/part4/" + audioFileName;
+                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -921,7 +884,7 @@ namespace ToeicMaster.API.Controllers
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
-                        
+
                         // Skip if no question number or invalid number
                         if (string.IsNullOrEmpty(qNoText) || !int.TryParse(qNoText, out int qNo))
                         {

@@ -94,10 +94,7 @@ export default function PageHeader({
            
             <ThemeToggle />
             {/* Notification Bell */}
-            <button className="relative text-gray-300 hover:text-blue-400 transition">
-              <Bell className="w-6 h-6" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            
 
             {/* User Profile */}
             <Link
@@ -118,9 +115,10 @@ export default function PageHeader({
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-shrink-0">
+            <ThemeToggle />
             <Link
               href="/login"
-              className="text-gray-300 hover:text-blue-400 transition font-medium text-sm px-3 py-2"
+              className="bg-zinc-900 dark:bg-white text-gray-200 dark:text-gray-800 rounded-lg hover:text-blue-400 transition font-medium text-sm px-3 py-2"
             >
               Đăng nhập
             </Link>
