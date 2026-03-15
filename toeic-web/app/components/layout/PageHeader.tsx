@@ -4,7 +4,20 @@ import Link from "next/link";
 
 import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
-import { BookOpen, Mic, Eye, FileText, MoreHorizontal, ShoppingBag, Bell, LogOut, GraduationCap, Crown } from "lucide-react";
+import {
+  BookOpen,
+  Mic,
+  Eye,
+  FileText,
+  MoreHorizontal,
+  ShoppingBag,
+  Bell,
+  LogOut,
+  GraduationCap,
+  Crown,
+} from "lucide-react";
+
+import { useRouter } from "next/navigation";
 
 // Load ThemeToggle dynamically with SSR disabled - to avoid ThemeProvider error on server
 const ThemeToggle = dynamic(
@@ -36,7 +49,6 @@ const defaultNavLinks: NavLink[] = [
   { href: "/listening", label: "Listening", icon: Mic },
   { href: "/reading", label: "Reading", icon: Eye },
   { href: "/practice", label: "Test", icon: FileText },
-  
 ];
 
 export default function PageHeader({
@@ -44,7 +56,12 @@ export default function PageHeader({
   navLinks,
   showDefaultLinks = true,
 }: Props) {
+  const router = useRouter();
   const { user, logout } = useAuth();
+
+  const handleUpgradeClick = () => {
+    router.push("/subscription");
+  };
 
   const links = navLinks || (showDefaultLinks ? defaultNavLinks : []);
 
@@ -58,15 +75,9 @@ export default function PageHeader({
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">
           <div className="size-15 flex items-center justify-center">
-            <img 
-              src="/logo.ico" 
-              alt="TOEIC Master Logo" 
-             
-            />
+            <img src="/logo.ico" alt="TOEIC Master Logo" />
           </div>
-          <span className="text-lg font-bold hidden sm:block">
-            {logoText}
-          </span>
+          <span className="text-lg font-bold hidden sm:block">{logoText}</span>
         </Link>
 
         {/* Middle: Navigation */}
@@ -82,19 +93,20 @@ export default function PageHeader({
               <span>{link.label}</span>
             </Link>
           ))}
-
-          
         </nav>
 
         {/* Right: Actions */}
         {user ? (
           <div className="flex items-center gap-4 flex-shrink-0">
-            
-
-           
+            <button
+              onClick={handleUpgradeClick}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg"
+            >
+              <Crown size={20} />
+              Nâng cấp PRO
+            </button>
             <ThemeToggle />
             {/* Notification Bell */}
-            
 
             {/* User Profile */}
             <Link

@@ -17,6 +17,8 @@ public partial class Transaction
 
     public string? PaymentGateway { get; set; }
 
+    public int? SubscriptionDurationMonths { get; set; } // 1, 3, 6, 12 months
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual User User { get; set; } = null!;
