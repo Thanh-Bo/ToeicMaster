@@ -10,12 +10,9 @@ interface AudioPlayerProps {
 
 // A static array of heights (percentages) to simulate a waveform visual
 const WAVEFORM_DATA = [
-  30, 40, 50, 70, 90, 100, 90, 70, 50, 40, 30, 
-  25, 45, 65, 85, 65, 45, 25, 
-  35, 55, 75, 95, 75, 55, 35, 
-  20, 40, 60, 80, 100, 80, 60, 40, 20, 
-  40, 60, 80, 90, 80, 60, 40, 
-  20, 30, 50, 70, 50, 30, 20
+  30, 40, 50, 70, 90, 100, 90, 70, 50, 40, 30, 25, 45, 65, 85, 65, 45, 25, 35,
+  55, 75, 95, 75, 55, 35, 20, 40, 60, 80, 100, 80, 60, 40, 20, 40, 60, 80, 90,
+  80, 60, 40, 20, 30, 50, 70, 50, 30, 20,
 ];
 
 export default function AudioPlayer({
@@ -29,20 +26,49 @@ export default function AudioPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   
+
+
+  const [preloadType, setPreloadType] = useState<"none" | "metadata">("none");
+
+  useEffect(() => {
+    // navigator is only available on the client side
+    if (typeof window !== "undefined") {
+      const isFirefox = navigator.userAgent.toLowerCase().includes("firefox");
+      // If Firefox, play it safe with "none". Otherwise, load the metadata!
+      setPreloadType(isFirefox ? "none" : "metadata");
+    }
+  }, []);
+
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
     const audio = e.currentTarget;
     let errorMsg = "Unknown error";
+    let detailedMsg = "";
+
     switch (audio.error?.code) {
-      case 1: errorMsg = "MEDIA_ERR_ABORTED"; break;
-      case 2: errorMsg = "MEDIA_ERR_NETWORK"; break;
-      case 3: errorMsg = "MEDIA_ERR_DECODE"; break;
-      case 4: errorMsg = "MEDIA_ERR_SRC_NOT_SUPPORTED"; break;
+      case 1:
+        errorMsg = "Audio loading was aborted";
+        break;
+      case 2:
+        errorMsg =
+          "Network error - Check if URL is accessible and CORS is enabled on Azure";
+        detailedMsg = " (CORS might not be configured)";
+        break;
+      case 3:
+        errorMsg = "Audio decode error - File might be corrupted";
+        break;
+      case 4:
+        errorMsg = "Unsupported format or CORS issue";
+        detailedMsg = " (Try checking Azure CORS settings)";
+        break;
     }
-    console.error(`[AudioPlayer] Error loading audio for ${label} (${audio.error?.code}): ${errorMsg}`, src);
-    setError(`Failed to load audio: ${errorMsg}`);
+
+    console.error(
+      `[AudioPlayer] Error loading audio for ${label} (${audio.error?.code}): ${errorMsg}`,
+      src,
+    );
+    setError(`❌ ${errorMsg}${detailedMsg}`);
   };
 
   const handlePlayPause = () => {
@@ -50,7 +76,7 @@ export default function AudioPlayer({
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch(err => {
+        audioRef.current.play().catch((err) => {
           console.error(`[AudioPlayer] Play error for ${label}:`, err);
           setError(`Failed to play audio: ${err.message}`);
         });
@@ -107,17 +133,22 @@ export default function AudioPlayer({
       .padStart(2, "0")}`;
   };
 
-  
   return (
     <div className="w-full  bg-[#f5f5f5] dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
       {error && (
-        <div className="mb-3 p-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-100 rounded text-sm">
-          {error}
+        <div className="mb-3 p-4 bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600 text-red-900 dark:text-red-100 rounded-lg text-sm font-medium break-words whitespace-normal">
+          <p className="font-bold mb-1">⚠️ Audio Error</p>
+          <p>{error}</p>
+          <p className="text-xs mt-2 opacity-80">
+            Check Azure CORS settings or verify the audio file exists.
+          </p>
         </div>
       )}
       <audio
+        preload={preloadType}
         ref={audioRef}
         src={src}
+        crossOrigin="anonymous"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}
@@ -180,7 +211,7 @@ export default function AudioPlayer({
 
       {/* Second Row: Skip buttons & Speed */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-200/60 dark:border-zinc-800">
-        <div className="flex items-center gap-6">   
+        <div className="flex items-center gap-6">
           <button
             onClick={() => handleSkip(-3)}
             className="text-sm text-slate-400 hover:text-slate-700 dark:text-gray-500 dark:hover:text-gray-300 flex items-center gap-1.5 transition-colors"

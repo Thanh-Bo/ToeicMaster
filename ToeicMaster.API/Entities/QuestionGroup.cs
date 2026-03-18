@@ -13,6 +13,8 @@ public partial class QuestionGroup
 
     public string? AudioUrl { get; set; }
 
+    public int? AudioDuration { get; set; } // Duration in seconds
+
     public string? ImageUrl { get; set; }
 
     public string? Transcript { get; set; }

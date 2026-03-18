@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Clock, Zap, ArrowUp } from "lucide-react";
 
 interface Props {
   parts: any[]; // Cấu trúc đề thi (để lấy tên Part và danh sách ID câu hỏi)
@@ -40,9 +41,9 @@ export default function ResultRightSidebar({
   // Calculate speed feedback (seconds per question)
   const timePerQuestion = totalQuestions > 0 ? timeTaken / totalQuestions : 0;
   const getSpeedFeedback = (timePerQ: number) => {
-    if (timePerQ < 2.5) return { text: "Rất nhanh!", icon: "⚡", color: "text-green-600 dark:text-green-400" };
-    if (timePerQ < 4) return { text: "Bình thường", icon: "⏱️", color: "text-amber-600 dark:text-amber-400" };
-    return { text: "Chậm", icon: "⏳", color: "text-orange-600 dark:text-orange-400" };
+    if (timePerQ < 2.5) return { text: "Rất nhanh!", icon: <Zap size={18} />, color: "text-green-600 dark:text-green-400" };
+    if (timePerQ < 4) return { text: "Bình thường", icon: <Clock size={18} />, color: "text-amber-600 dark:text-amber-400" };
+    return { text: "Chậm", icon: <Clock size={18} />, color: "text-orange-600 dark:text-orange-400" };
   };
 
   const speedFeedback = getSpeedFeedback(timePerQuestion);
@@ -108,8 +109,8 @@ export default function ResultRightSidebar({
 
         {/* TIMER CARD - Option 1 */}
         <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 mb-4 text-center">
-          <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-semibold uppercase tracking-widest">
-            ⏱️ Thời gian làm bài
+          <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-semibold uppercase tracking-widest flex items-center justify-center gap-2">
+            <Clock size={16} /> Thời gian làm bài
           </p>
           <div className="text-5xl font-black text-blue-600 dark:text-blue-400 font-mono mb-2">
             {formatTime(timeTaken)}
@@ -117,7 +118,7 @@ export default function ResultRightSidebar({
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
             Trung bình: {timePerQuestion.toFixed(1)} giây/câu
           </p>
-          <div className={`text-lg font-bold ${speedFeedback.color}`}>
+          <div className={`text-lg font-bold flex items-center justify-center gap-2 ${speedFeedback.color}`}>
             {speedFeedback.icon} {speedFeedback.text}
           </div>
         </div>
@@ -221,9 +222,9 @@ export default function ResultRightSidebar({
       <div className="mt-6 text-center space-y-2">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center justify-center gap-1"
         >
-          ↑ Về đầu trang
+          <ArrowUp size={14} /> Lên đầu trang
         </button>
       </div>
       </div>

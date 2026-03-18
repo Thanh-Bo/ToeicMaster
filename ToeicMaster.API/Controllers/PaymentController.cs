@@ -137,17 +137,106 @@ namespace ToeicMaster.API.Controllers
         }
 
         /// <summary>
-        /// Confirm payment (admin webhook or manual confirmation)
-        /// In real implementation, this would be called by bank webhook
+        /// Bank webhook endpoint - receives payment confirmation from bank
+        /// </summary>
+        [HttpPost("webhook")]
+        [AllowAnonymous]
+        public async Task<IActionResult> HandleBankWebhook([FromBody] BankWebhookRequest webhookData)
+        {
+            try
+            {
+                // Log webhook received
+                Console.WriteLine($"[WEBHOOK] Received payment webhook: TransactionRef={webhookData.TransactionReference}, Amount={webhookData.Amount}, Status={webhookData.Status}");
+
+                // Find transaction by reference
+                var transaction = await _dbContext.Transactions
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == webhookData.TransactionId);
+
+                if (transaction == null)
+                {
+                    Console.WriteLine($"[WEBHOOK] Transaction not found: {webhookData.TransactionId}");
+                    return NotFound(new { error = "Transaction not found" });
+                }
+
+                // Verify amount matches
+                if (Math.Abs(transaction.Amount - webhookData.Amount) > 0.01m)
+                {
+                    Console.WriteLine($"[WEBHOOK] Amount mismatch: Expected {transaction.Amount}, Got {webhookData.Amount}");
+                    return BadRequest(new { error = "Amount mismatch", expected = transaction.Amount, received = webhookData.Amount });
+                }
+
+                // Check if already processed
+                if (transaction.Status == "COMPLETED" || transaction.Status == "SUCCESS")
+                {
+                    Console.WriteLine($"[WEBHOOK] Transaction already completed: {webhookData.TransactionId}");
+                    return Ok(new { message = "Transaction already processed", transactionId = transaction.Id });
+                }
+
+                // Update transaction status
+                transaction.Status = "COMPLETED";
+                transaction.PaymentGateway = webhookData.PaymentGateway ?? "SacomBank";
+                _dbContext.Transactions.Update(transaction);
+
+                // Update user subscription/premium status
+                if (transaction.User != null && transaction.SubscriptionDurationMonths.HasValue)
+                {
+                    var durationMonths = transaction.SubscriptionDurationMonths.Value;
+                    
+                    transaction.User.IsPremium = true;
+                    
+                    // Calculate premium expiry date
+                    if (transaction.User.PremiumExpiredAt.HasValue && transaction.User.PremiumExpiredAt > DateTime.UtcNow)
+                    {
+                        // Extend existing subscription
+                        transaction.User.PremiumExpiredAt = transaction.User.PremiumExpiredAt.Value.AddMonths(durationMonths);
+                    }
+                    else
+                    {
+                        // New subscription
+                        transaction.User.PremiumExpiredAt = DateTime.UtcNow.AddMonths(durationMonths);
+                    }
+
+                    _dbContext.Users.Update(transaction.User);
+                    Console.WriteLine($"[WEBHOOK] Updated user {transaction.UserId} premium status. Expires: {transaction.User.PremiumExpiredAt}");
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                Console.WriteLine($"[WEBHOOK] Payment confirmed successfully. TransactionId={transaction.Id}, UserId={transaction.UserId}");
+
+                return Ok(new
+                {
+                    message = "Payment confirmed successfully",
+                    transactionId = transaction.Id,
+                    status = transaction.Status,
+                    userPremiumStatus = transaction.User?.IsPremium,
+                    premiumExpiredAt = transaction.User?.PremiumExpiredAt
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WEBHOOK] Error processing webhook: {ex.Message}");
+                Console.WriteLine($"[WEBHOOK] Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { error = "Webhook processing failed", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Manual payment confirmation (fallback for admin)
         /// </summary>
         [HttpPost("confirm/{transactionId}")]
-        [AllowAnonymous]
         public async Task<IActionResult> ConfirmPayment(int transactionId, [FromBody] ConfirmPaymentRequest request)
         {
             try
             {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (userId == 0)
+                    return Unauthorized("Invalid token");
+
                 var transaction = await _dbContext.Transactions
-                    .FirstOrDefaultAsync(t => t.Id == transactionId);
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId);
 
                 if (transaction == null)
                     return NotFound(new { error = "Transaction not found" });
@@ -159,10 +248,16 @@ namespace ToeicMaster.API.Controllers
                 // Update transaction status
                 transaction.Status = "COMPLETED";
                 _dbContext.Transactions.Update(transaction);
-                await _dbContext.SaveChangesAsync();
 
-                // TODO: Update user subscription/premium status here
-                // Handle the premium upgrade based on amount
+                // Update user subscription
+                if (transaction.User != null && transaction.SubscriptionDurationMonths.HasValue)
+                {
+                    transaction.User.IsPremium = true;
+                    transaction.User.PremiumExpiredAt = DateTime.UtcNow.AddMonths(transaction.SubscriptionDurationMonths.Value);
+                    _dbContext.Users.Update(transaction.User);
+                }
+
+                await _dbContext.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -207,5 +302,21 @@ namespace ToeicMaster.API.Controllers
     {
         public decimal Amount { get; set; }
         public string TransactionReference { get; set; }
+    }
+
+    /// <summary>
+    /// Bank webhook payload structure
+    /// </summary>
+    public class BankWebhookRequest
+    {
+        public int TransactionId { get; set; }
+        public string TransactionReference { get; set; }
+        public decimal Amount { get; set; }
+        public string Status { get; set; } // SUCCESS, FAILED, PENDING, etc.
+        public string PaymentGateway { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string SenderAccountNumber { get; set; }
+        public string SenderName { get; set; }
+        public string Description { get; set; }
     }
 }

@@ -75,8 +75,9 @@ public class PaymentService : IPaymentService
     }
 
     /// <summary>
-    /// VietinBank QR format: https://vietqr.io/
-    /// Format: https://img.vietqr.io/image/{bankCode}-{accountNumber}-compact2.png?amount={amount}&addInfo={description}
+    /// Generates VietQR static QR code URL for Sacombank
+    /// Scanned QR will show payment details with bank app options
+    /// Users can choose their bank app to complete payment
     /// </summary>
     private string BuildTransferData(
         string accountNumber,
@@ -86,8 +87,11 @@ public class PaymentService : IPaymentService
         string bankCode
     )
     {
-        var encodedDescription = Uri.EscapeDataString(description);
-        return $"https://img.vietqr.io/image/{bankCode}-{accountNumber}-compact2.png?amount={(long)amount}&addInfo={encodedDescription}";
+        // VietQR static image endpoint - simple and reliable
+        // This returns an image that shows payment details with bank logos
+        // When user scans, they can tap any bank logo to open the app
+        var encodedDesc = Uri.EscapeDataString(description ?? "Thanh toan TOEIC Master");
+        return $"https://img.vietqr.io/image/{bankCode}-{accountNumber}-compact2.png?amount={(long)amount}&addInfo={encodedDesc}";
     }
 
     /// <summary>

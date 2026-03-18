@@ -82,7 +82,7 @@ namespace ToeicMaster.API.Controllers
             var sql = @"
         SELECT t.Id AS TestId, t.Title, t.Duration,
                p.Id AS PartId, p.Name AS PartName, p.PartNumber,
-               qg.Id AS GroupId, qg.TextContent, qg.ImageUrl, qg.AudioUrl,
+               qg.Id AS GroupId, qg.TextContent, qg.ImageUrl, qg.AudioUrl, qg.AudioDuration,
                q.Id AS QuestionId, q.QuestionNo, q.Content AS QuestionContent,
                a.Label, a.Content AS AnswerContent
         FROM Tests t
@@ -124,6 +124,7 @@ namespace ToeicMaster.API.Controllers
                             TextContent = gGroup.First().TextContent,
                             ImageUrl = gGroup.First().ImageUrl,
                             AudioUrl = gGroup.First().AudioUrl,
+                            AudioDuration = gGroup.First().AudioDuration,
                             Questions = gGroup.GroupBy(r => r.QuestionId).Select(gQuestion => new QuestionDto
                             {
                                 Id = gQuestion.Key,

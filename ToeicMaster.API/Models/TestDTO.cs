@@ -31,6 +31,7 @@ namespace ToeicMaster.API.Models
         public string? TextContent { get; set; }
         public string? ImageUrl { get; set; }
         public string? AudioUrl { get; set; }
+        public int? AudioDuration { get; set; } // Duration in seconds
         public List<QuestionDto> Questions { get; set; } = new();
     }
 

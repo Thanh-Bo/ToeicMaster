@@ -335,6 +335,9 @@ namespace ToeicMaster.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AudioDuration")
+                        .HasColumnType("int");
+
                     b.Property<string>("AudioUrl")
                         .HasColumnType("nvarchar(max)");
 

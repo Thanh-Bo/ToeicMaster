@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, X } from "lucide-react";
+import { Check, X, BarChart3, Headphones, BookOpen, Circle } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
 import { ResultDetail } from "../../types";
@@ -11,6 +11,7 @@ import ResultRightSidebar from "@/app/components/results/ResultRightSidebar";
 import { CommentSection } from "@/app/components/comments/CommentSection";
 import ResultQuestionItem from "@/app/components/results/ResultQuestionItem";
 import BookmarkNoteModal from "@/app/components/boomarks/BookmarkNoteModal";
+import AudioPlayer from "@/app/components/audio/AudioPlayer";
 
 const BASE_URL = "http://localhost:5298";
 
@@ -36,17 +37,18 @@ export default function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [loadingExplainId, setLoadingExplainId] = useState<number | null>(null);
   const [currentQuestionId, setCurrentQuestionId] = useState<number | null>(
-    null
+    null,
   );
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
   const [bookmarkLoading, setBookmarkLoading] = useState<number | null>(null);
 
-
   const [bookmarkModalOpen, setBookmarkModalOpen] = useState(false);
-  const [pendingBookmarkId, setPendingBookmarkId] = useState<number | null>(null);
+  const [pendingBookmarkId, setPendingBookmarkId] = useState<number | null>(
+    null,
+  );
   const [smartDefaultNote, setSmartDefaultNote] = useState("");
 
   // Load kết quả và gom nhóm theo Part
@@ -95,7 +97,7 @@ export default function ResultPage() {
           });
 
           const sortedParts = Array.from(partsMap.values()).sort(
-            (a, b) => a.partNumber - b.partNumber
+            (a, b) => a.partNumber - b.partNumber,
           );
           setPartGroups(sortedParts);
         }
@@ -122,7 +124,7 @@ export default function ResultPage() {
   useEffect(() => {
     if (result?.questions) {
       const questionIds = result.questions.map(
-        (q: { questionId: number }) => q.questionId
+        (q: { questionId: number }) => q.questionId,
       );
       loadBookmarkStatus(questionIds);
     }
@@ -139,8 +141,8 @@ export default function ResultPage() {
   const handleClickBookmark = (q: any) => {
     // Nếu đã có trong bookmark -> Xóa ngay (như cũ)
     if (bookmarkedQuestions.has(q.questionId)) {
-       handleRemoveBookmark(q.questionId);
-       return;
+      handleRemoveBookmark(q.questionId);
+      return;
     }
 
     // Nếu chưa có -> Chuẩn bị dữ liệu và mở Modal
@@ -169,9 +171,9 @@ export default function ResultPage() {
   // 4. Hàm lưu bookmark (được gọi khi bấm Save trên Modal)
   const handleSaveBookmark = async (note: string) => {
     if (!pendingBookmarkId) return;
-    
+
     // Đóng modal ngay cho mượt
-    setBookmarkModalOpen(false); 
+    setBookmarkModalOpen(false);
     setBookmarkLoading(pendingBookmarkId);
 
     try {
@@ -204,8 +206,8 @@ export default function ResultPage() {
             groupIndex = gIdx;
             qIndex = qIdx;
           }
-        })
-      )
+        }),
+      ),
     );
 
     if (!questionData) return;
@@ -269,10 +271,10 @@ export default function ResultPage() {
         groups: part.groups.map((group) => ({
           ...group,
           questions: group.questions.map((q) =>
-            q.questionId === qId ? { ...q, isDetailOpen: !q.isDetailOpen } : q
+            q.questionId === qId ? { ...q, isDetailOpen: !q.isDetailOpen } : q,
           ),
         })),
-      }))
+      })),
     );
   };
 
@@ -318,7 +320,9 @@ export default function ResultPage() {
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900 bg-linear-to-br from-blue-50 dark:from-zinc-900 to-indigo-100 dark:to-zinc-800">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 dark:border-blue-500 mx-auto mb-4"></div>
-          <p className="text-blue-600 dark:text-blue-400 font-bold text-lg">Đang tải kết quả...</p>
+          <p className="text-blue-600 dark:text-blue-400 font-bold text-lg">
+            Đang tải kết quả...
+          </p>
         </div>
       </div>
     );
@@ -353,16 +357,16 @@ export default function ResultPage() {
   const readingQuestions =
     result.questions?.filter((q: any) => (q.partNumber || 5) >= 5) || [];
   const listeningCorrect = listeningQuestions.filter(
-    (q: any) => q.isCorrect
+    (q: any) => q.isCorrect,
   ).length;
   const readingCorrect = readingQuestions.filter(
-    (q: any) => q.isCorrect
+    (q: any) => q.isCorrect,
   ).length;
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 pb-24 lg:pb-10 font-sans">
       <header className="bg-white dark:bg-zinc-900 shadow-sm border-b border-gray-200 dark:border-zinc-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="max-full px-4  flex justify-between items-center">
           <Link
             href="/"
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
@@ -384,7 +388,8 @@ export default function ResultPage() {
           </Link>
 
           <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate max-w-50 md:max-w-md">
-            📊 {result.testTitle}
+            <BarChart3 className="inline mr-2" size={24} />
+            {result.testTitle}
           </h1>
 
           <Link
@@ -403,19 +408,23 @@ export default function ResultPage() {
             <span className="text-red-500 dark:text-red-400 font-bold flex items-center gap-1">
               <X size={18} /> {incorrectCount} sai
             </span>
-            <span className="text-gray-500 dark:text-gray-500">○ {skippedCount} bỏ qua</span>
+            <span className="text-gray-500 dark:text-gray-500 flex items-center gap-1">
+              <Circle size={14} /> {skippedCount} bỏ qua
+            </span>
             <div className="flex-1 h-2 bg-gray-300 dark:bg-zinc-900 rounded-full overflow-hidden">
               <div
                 className="h-full bg-linear-to-r from-green-500 to-emerald-500"
                 style={{ width: `${percentage}%` }}
               ></div>
             </div>
-            <span className="font-bold text-blue-600 dark:text-blue-400">{percentage}%</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400">
+              {percentage}%
+            </span>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 mt-6">
+      <div className="w-full mx-auto px-4 mt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-linear-to-br from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-lg">
             <p className="text-blue-100 text-xs uppercase tracking-wider mb-1">
@@ -427,8 +436,8 @@ export default function ResultPage() {
             </p>
           </div>
           <div className="bg-linear-to-br from-green-500 to-emerald-600 text-white p-5 rounded-2xl shadow-lg">
-            <p className="text-green-100 text-xs uppercase tracking-wider mb-1">
-              🎧 Listening
+            <p className="text-green-100 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+              <Headphones size={14} /> Listening
             </p>
             <p className="text-3xl font-extrabold">
               {listeningCorrect}
@@ -436,8 +445,8 @@ export default function ResultPage() {
             </p>
           </div>
           <div className="bg-linear-to-br from-purple-500 to-violet-600 text-white p-5 rounded-2xl shadow-lg">
-            <p className="text-purple-100 text-xs uppercase tracking-wider mb-1">
-              📖 Reading
+            <p className="text-purple-100 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+              <BookOpen size={14} /> Reading
             </p>
             <p className="text-3xl font-extrabold">
               {readingCorrect}
@@ -453,8 +462,8 @@ export default function ResultPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 mt-8 flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-3/4 space-y-10">
+      <div className=" px-4 mt-8 flex flex-col lg:flex-row gap-8">
+        <div className="w-full lg:w-5/6 space-y-10">
           {partGroups.map((part) => (
             <div key={part.partNumber} className="mb-10">
               <div className="flex items-center gap-4 mb-6">
@@ -463,12 +472,12 @@ export default function ResultPage() {
                 </h2>
                 <div className="h-1 flex-1 bg-gray-300 dark:bg-zinc-900 rounded-full"></div>
                 {part.partNumber <= 4 ? (
-                  <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs font-bold">
-                    🎧 Listening
+                  <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                    <Headphones size={14} /> Listening
                   </span>
                 ) : (
-                  <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-bold">
-                    📖 Reading
+                  <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                    <BookOpen size={14} /> Reading
                   </span>
                 )}
               </div>
@@ -481,22 +490,28 @@ export default function ResultPage() {
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border  border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
                       {group.audioUrl && (
-                        <div className=" bg-gray-900 dark:bg-zinc-900 text-white p-3 rounded-xl shadow-lg flex items-center gap-3 ">
-                          <audio
-                            controls
-                            src={`${BASE_URL}${group.audioUrl}`}
-                            className="w-full h-10"
-                            style={{ filter: "invert(1)" }}
+                        <div className="p-4">
+                          <AudioPlayer
+                            src={
+                              group.audioUrl.startsWith("http")
+                                ? group.audioUrl
+                                : `${BASE_URL}${group.audioUrl}`
+                            }
+                            label={`Conversation ${group.groupId}`}
                           />
                         </div>
                       )}
                       <div className="flex flex-col lg:flex-row">
                         {group.imageUrl && (
-                          <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
+                          <div className="md:w-1/2 bg-gray-100 dark:bg-zinc-900 flex items-center justify-center border-b lg:border-b-0  border-gray-200 dark:border-zinc-600 p-6">
                             <img
-                              src={`${BASE_URL}${group.imageUrl}`}
+                              src={
+                                group.imageUrl.startsWith("http")
+                                  ? group.imageUrl
+                                  : `${BASE_URL}${group.imageUrl}`
+                              }
                               alt="Part 1"
-                              className="w-full rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm"
+                              className="max-h-100 w-auto rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm"
                               loading="lazy"
                             />
                           </div>
@@ -515,7 +530,7 @@ export default function ResultPage() {
                                 q={q}
                                 currentQuestionId={currentQuestionId}
                                 isBookmarked={bookmarkedQuestions.has(
-                                  q.questionId
+                                  q.questionId,
                                 )}
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
@@ -523,7 +538,6 @@ export default function ResultPage() {
                                 isExplainLoading={
                                   loadingExplainId === q.questionId
                                 }
-                                canExplain={part.partNumber >= 5} 
                                 // Truyền các hàm xử lý xuống
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
@@ -540,19 +554,20 @@ export default function ResultPage() {
 
               {part.partNumber === 2 && (
                 <div className="space-y-4">
-                  {part.groups.map((group) => (
+                  {part.groups.map((group, idx) => (
                     <div
                       key={group.groupId}
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
                     >
                       {group.audioUrl && (
-                        <div className="mb-4">
-                          <audio
-                            controls
-                            src={`${BASE_URL}${group.audioUrl}`}
-                            className="w-full h-12 rounded-lg"
-                          />
-                        </div>
+                        <AudioPlayer
+                          src={
+                            group.audioUrl.startsWith("http")
+                              ? group.audioUrl
+                              : `${BASE_URL}${group.audioUrl}`
+                          }
+                          label={`Question ${idx + 1} Audio`}
+                        />
                       )}
                       {group.questions.map((q) => (
                         <div key={q.questionId} id={`question-${q.questionId}`}>
@@ -563,7 +578,6 @@ export default function ResultPage() {
                             isBookmarkLoading={bookmarkLoading === q.questionId}
                             isExplainLoading={loadingExplainId === q.questionId}
                             // Truyền các hàm xử lý xuống
-                            canExplain={part.partNumber >= 5} 
                             onToggleBookmark={() => handleClickBookmark(q)}
                             onViewExplanation={handleViewExplanation}
                             onToggleDetail={handleToggleDetail}
@@ -583,15 +597,18 @@ export default function ResultPage() {
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
                       <div className=" text-white p-4">
-                        <div className="flex items-center gap-4">
-                          
+                        <div className="">
                           {group.audioUrl && (
-                            <audio
-                              controls
-                              src={`${BASE_URL}${group.audioUrl}`}
-                              className="flex-1 h-10"
-                              style={{ filter: "invert(1)" }}
-                            />
+                            <div className="p-4">
+                              <AudioPlayer
+                                src={
+                                  group.audioUrl.startsWith("http")
+                                    ? group.audioUrl
+                                    : `${BASE_URL}${group.audioUrl}`
+                                }
+                                label={`Conversation ${group.groupId}`}
+                              />
+                            </div>
                           )}
                         </div>
                       </div>
@@ -601,12 +618,15 @@ export default function ResultPage() {
                           <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
                             <div className="lg:sticky lg:top-36 space-y-4">
                               {group.imageUrl && (
-                                <img
-                                  src={`${BASE_URL}${group.imageUrl}`}
-                                  alt="Visual"
-                                  className="w-full rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm"
-                                  loading="lazy"
-                                />
+                                 <img
+                                      src={
+                                        group.imageUrl.startsWith("http")
+                                          ? group.imageUrl
+                                          : `${BASE_URL}${group.imageUrl}`
+                                      }
+                                      alt="Part 3"
+                                      className="rounded-lg shadow-sm max-h-100 w-auto"
+                                    />
                               )}
                               {group.groupContent && (
                                 <div
@@ -634,10 +654,9 @@ export default function ResultPage() {
                             >
                               <ResultQuestionItem
                                 q={q}
-                                canExplain={part.partNumber >= 5}
                                 currentQuestionId={currentQuestionId}
                                 isBookmarked={bookmarkedQuestions.has(
-                                  q.questionId
+                                  q.questionId,
                                 )}
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
@@ -646,7 +665,7 @@ export default function ResultPage() {
                                   loadingExplainId === q.questionId
                                 }
                                 // Truyền các hàm xử lý xuống
-                                
+
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}
@@ -695,10 +714,10 @@ export default function ResultPage() {
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
                       <div className="flex flex-col lg:flex-row">
-                        <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
+                        <div className="lg:w-6/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
                           <div className="lg:sticky lg:top-24 max-h-[80vh] overflow-y-auto custom-scrollbar">
-                            <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest">
-                              📖 Reading Passage
+                            <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                              <BookOpen size={16} /> Reading Passage
                             </div>
                             {group.imageUrl && (
                               <img
@@ -719,7 +738,7 @@ export default function ResultPage() {
                           </div>
                         </div>
 
-                        <div className="lg:w-1/2 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600">
+                        <div className="lg:w-4/10 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600">
                           {group.questions.map((q) => (
                             <div
                               key={q.questionId}
@@ -729,7 +748,7 @@ export default function ResultPage() {
                                 q={q}
                                 currentQuestionId={currentQuestionId}
                                 isBookmarked={bookmarkedQuestions.has(
-                                  q.questionId
+                                  q.questionId,
                                 )}
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
@@ -760,7 +779,7 @@ export default function ResultPage() {
           )}
         </div>
 
-        <div className="hidden lg:block lg:w-1/4">
+        <div className="hidden lg:block lg:w-1/6">
           <ResultRightSidebar
             parts={partGroups}
             timeTaken={actualTimeTaken}
@@ -799,10 +818,12 @@ export default function ResultPage() {
 
           <div className="flex items-center gap-2">
             <span className="text-green-600 dark:text-green-400 font-bold text-sm flex items-center gap-1">
-              <Check size={18} />{correctCount}
+              <Check size={18} />
+              {correctCount}
             </span>
             <span className="text-red-500 dark:text-red-400 font-bold text-sm flex items-center gap-1">
-              <X size={18} />{incorrectCount}
+              <X size={18} />
+              {incorrectCount}
             </span>
           </div>
 
@@ -854,12 +875,12 @@ export default function ResultPage() {
         )}
       </div>
       {/* --- CHÈN MODAL VÀO CUỐI TRANG --- */}
-       <BookmarkNoteModal 
-         isOpen={bookmarkModalOpen}
-         onClose={() => setBookmarkModalOpen(false)}
-         onSave={handleSaveBookmark}
-         defaultNote={smartDefaultNote}
-       />
+      <BookmarkNoteModal
+        isOpen={bookmarkModalOpen}
+        onClose={() => setBookmarkModalOpen(false)}
+        onSave={handleSaveBookmark}
+        defaultNote={smartDefaultNote}
+      />
     </div>
   );
 }

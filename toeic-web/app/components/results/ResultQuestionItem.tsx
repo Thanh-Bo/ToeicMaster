@@ -1,12 +1,13 @@
 "use client";
 
+import { Loader2, Bookmark, Tag, X, Sparkles, Check, ChevronUp, ChevronDown } from "lucide-react";
 import { AnswerOptionResult } from "./AnswerOptionResult";
 
 const BASE_URL = "http://localhost:5298"; // Hoặc import từ file config
 
 interface Props {
   q: any;
-  canExplain?: boolean;
+  
   currentQuestionId: number | null;
   // Các dữ liệu cần thiết từ cha truyền xuống
   isBookmarked: boolean;
@@ -21,7 +22,7 @@ interface Props {
 
 export default function ResultQuestionItem({
   q,
-  canExplain = true , 
+  
   currentQuestionId,
   isBookmarked,
   isBookmarkLoading,
@@ -110,10 +111,14 @@ export default function ResultQuestionItem({
                 >
                   {label}
                   {isCorrect && (
-                    <span className="block text-xs mt-1">✔ Đúng</span>
+                    <span className="block text-xs mt-1 flex items-center justify-center gap-1">
+                      <Check size={12} /> Đúng
+                    </span>
                   )}
                   {isUserSelected && !isCorrect && (
-                    <span className="block text-xs mt-1">✖ Sai</span>
+                    <span className="block text-xs mt-1 flex items-center justify-center gap-1">
+                      <X size={12} /> Sai
+                    </span>
                   )}
                 </div>
               );
@@ -142,38 +147,24 @@ export default function ResultQuestionItem({
               }`}
         >
           {isBookmarkLoading ? (
-            <svg
-              className="animate-spin h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              ></path>
-            </svg>
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : isBookmarked ? (
-            <>🔖 Đã lưu</>
+            <>
+              <Bookmark size={16} /> Đã lưu
+            </>
           ) : (
-            <>🏷️ Đánh dấu</>
+            <>
+              <Tag size={16} /> Đánh dấu
+            </>
           )}
         </button>
 
         {/* Nút Xem Giải Thích: Gọi hàm từ Props */}
         <button
           onClick={() => onViewExplanation(q.questionId)}
-          disabled={!canExplain}
-          className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors
-              ${!canExplain ? "opacity-0 pointer-events-none" : "opacity-100"}
+          
+          className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors 
+              
               ${
                 q.isExplanationOpen
                   ? "bg-red-600 hover:bg-red-700 text-white"
@@ -182,31 +173,17 @@ export default function ResultQuestionItem({
         >
           {isExplainLoading ? (
             <>
-              <svg
-                className="animate-spin h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <Loader2 className="h-4 w-4 animate-spin" />
               Đang phân tích...
             </>
           ) : q.isExplanationOpen ? (
-            <>✖ Đóng giải thích</>
+            <>
+              <X size={16} /> Đóng giải thích
+            </>
           ) : (
-            <>✨ Xem giải thích</>
+            <>
+              <Sparkles size={16} /> Xem giải thích
+            </>
           )}
         </button>
       </div>
@@ -245,9 +222,13 @@ export default function ResultQuestionItem({
                 className="bg-white dark:bg-zinc-700 border border-zinc-400 dark:border-zinc-700 text-gray-900 dark:text-gray-100 text-xs font-bold px-4 py-1.5 rounded-full transition-all flex items-center gap-1 shadow-xs"
               >
                 {q.isDetailOpen ? (
-                  <>Thu gọn chi tiết ▲</>
+                  <>
+                    Thu gọn chi tiết <ChevronUp size={14} />
+                  </>
                 ) : (
-                  <>Xem giải thích chi tiết (Premium) ▼</>
+                  <>
+                    Xem giải thích chi tiết (Premium) <ChevronDown size={14} />
+                  </>
                 )}
               </button>
             </div>

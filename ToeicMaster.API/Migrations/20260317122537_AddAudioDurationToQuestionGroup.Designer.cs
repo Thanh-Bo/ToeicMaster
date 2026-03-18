@@ -12,8 +12,8 @@ using ToeicMaster.API.Data;
 namespace ToeicMaster.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260315082709_AddSubscriptionDurationMonthsToTransaction")]
-    partial class AddSubscriptionDurationMonthsToTransaction
+    [Migration("20260317122537_AddAudioDurationToQuestionGroup")]
+    partial class AddAudioDurationToQuestionGroup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -337,6 +337,9 @@ namespace ToeicMaster.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AudioDuration")
+                        .HasColumnType("int");
 
                     b.Property<string>("AudioUrl")
                         .HasColumnType("nvarchar(max)");

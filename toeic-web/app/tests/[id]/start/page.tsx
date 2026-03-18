@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
+
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
 
@@ -561,6 +561,8 @@ export default function ExamPage() {
                                       : `${BASE_URL}${group.audioUrl}`
                                   }
                                   label={`Conversation ${group.id}`}
+                                  
+                                  
                                 />
                               </div>
                             )}
@@ -577,13 +579,13 @@ export default function ExamPage() {
                                           ? group.imageUrl
                                           : `${BASE_URL}${group.imageUrl}`
                                       }
-                                      alt="Part 1"
+                                      alt="Part 3"
                                       className="rounded-lg shadow-sm max-h-100 w-auto"
                                     />
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-sm [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
+                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-lg [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
