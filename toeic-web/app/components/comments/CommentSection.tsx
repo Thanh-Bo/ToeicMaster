@@ -108,7 +108,7 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
   };
 
   return (
-    <div className="mt-8 rounded-2xl bg-white dark:bg-zinc-800/50 backdrop-blur-sm p-6 shadow-lg border border-gray-200 dark:border-zinc-700">
+    <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           💬 Thảo luận
@@ -117,8 +117,8 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
           </span>
         </h2>
       </div>
-      
-      <div className="mt-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
+
+      <div className="pb-6 border-b border-gray-200 dark:border-zinc-700">
         <CommentForm onSubmit={addComment} isSubmitting={isSubmitting} />
       </div>
 
@@ -128,8 +128,8 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
         ) : error ? (
           <AlertMessage type="error" message={error} />
         ) : (
-          <CommentList 
-            comments={comments} 
+          <CommentList
+            comments={comments}
             testId={testId}
             onCommentUpdated={updateCommentState}
             onCommentDeleted={deleteCommentState}
@@ -137,16 +137,16 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
           />
         )}
       </div>
-      
+
       {!isLoading && pagination.page < pagination.totalPages && (
         <div className="mt-8 text-center">
-            <button
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
-                className="rounded-lg px-6 py-2.5 font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {isLoadingMore ? "Đang tải..." : "Xem thêm bình luận"}
-            </button>
+          <button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="rounded-lg px-6 py-2.5 font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 border border-gray-200 dark:border-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingMore ? "Đang tải..." : "Xem thêm bình luận"}
+          </button>
         </div>
       )}
     </div>

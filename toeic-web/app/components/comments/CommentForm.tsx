@@ -97,11 +97,11 @@ export function CommentForm({
             onFocus={handleFocus}
             placeholder={placeholder}
             className={cn(
-              "w-full resize-none overflow-hidden rounded-xl border-2 bg-white dark:bg-zinc-700/50 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-600",
-              "focus:border-blue-500 dark:focus:border-blue-500 focus:ring-0 focus:bg-white dark:focus:bg-zinc-700 transition-all duration-200",
+              "w-full resize-none overflow-hidden rounded-xl border bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-700",
+              "focus:border-gray-400 dark:focus:border-zinc-500 focus:ring-0 focus:outline-none transition-all duration-200",
               "placeholder-gray-400 dark:placeholder-gray-500",
               !isFocused && "min-h-[44px]",
-              isFocused && "min-h-[100px]"
+              isFocused && "min-h-[100px] p-3"
             )}
             rows={isFocused ? 3 : 1}
           />

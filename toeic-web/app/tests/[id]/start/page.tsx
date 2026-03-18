@@ -394,41 +394,42 @@ export default function ExamPage() {
                         key={group.id}
                         className="rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                       >
-                        {/* Audio Player for each group */}
-                        {group.audioUrl && (
-                          <AudioPlayer
-                            src={
-                              group.audioUrl.startsWith("http")
-                                ? group.audioUrl
-                                : `${BASE_URL}${group.audioUrl}`
-                            }
-                            label={`Question ${idx + 1} Audio`}
-                          />
-                        )}
-
                         <div className="flex flex-col md:flex-row">
-                          <div className="md:w-1/2 bg-white dark:bg-zinc-900  p-4 flex items-center justify-center">
-                            {group.imageUrl && (
-                              <img
+                          {/* Left: audio flush + image */}
+                          <div className="md:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 dark:border-zinc-600">
+                            {group.audioUrl && (
+                              <AudioPlayer
                                 src={
-                                  group.imageUrl.startsWith("http")
-                                    ? group.imageUrl
-                                    : `${BASE_URL}${group.imageUrl}`
+                                  group.audioUrl.startsWith("http")
+                                    ? group.audioUrl
+                                    : `${BASE_URL}${group.audioUrl}`
                                 }
-                                alt="Part 1"
-                                className="rounded-lg shadow-sm max-h-100 w-auto"
+                                label={`Question ${idx + 1} Audio`}
+                                className="rounded-none border-0 shadow-none"
                               />
                             )}
+                            {group.imageUrl && (
+                              <div className="flex items-center justify-center px-4 pb-4 pt-3">
+                                <img
+                                  src={
+                                    group.imageUrl.startsWith("http")
+                                      ? group.imageUrl
+                                      : `${BASE_URL}${group.imageUrl}`
+                                  }
+                                  alt="Part 1"
+                                  className="rounded-lg shadow-sm max-h-100 w-auto"
+                                />
+                              </div>
+                            )}
                           </div>
+                          {/* Right: answers */}
                           <div className="md:w-1/2 bg-white dark:bg-zinc-900 p-6 space-y-6">
                             {group.questions.map((q) => (
                               <div
                                 key={q.id}
                                 id={`question-${q.id}`}
                                 onClick={() => setCurrentQuestionId(q.id)}
-                                className={`p-4 rounded-xl transition-all ${
-                                  currentQuestionId === q.id ? "" : ""
-                                }`}
+                                className="p-4 rounded-xl"
                               >
                                 <div className="flex items-center gap-3 mb-3">
                                   <span
@@ -444,16 +445,14 @@ export default function ExamPage() {
                                     Chọn đáp án đúng:
                                   </p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3 ml-11">
+                                <div className="flex flex-col gap-3 ml-11">
                                   {["A", "B", "C", "D"].map((label) => (
                                     <button
                                       key={label}
-                                      onClick={() =>
-                                        handleSelectAnswer(q.id, label)
-                                      }
-                                      className={`py-2 px-4 rounded-lg border font-bold transition-all ${
+                                      onClick={() => handleSelectAnswer(q.id, label)}
+                                      className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
-                                          ? "bg-blue-600 text-white "
+                                          ? "bg-blue-600 text-white border-blue-600"
                                           : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
                                       }`}
                                     >
@@ -472,66 +471,68 @@ export default function ExamPage() {
 
                 {/* === PART 2: Question-Response === */}
                 {partNum === 2 && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {part.groups.map((group, idx) => (
                       <div
                         key={group.id}
                         className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                       >
-                        {/* Audio Player for each group */}
-                        {group.audioUrl && (
-                          <AudioPlayer
-                            src={
-                              group.audioUrl.startsWith("http")
-                                ? group.audioUrl
-                                : `${BASE_URL}${group.audioUrl}`
-                            }
-                            label={`Question ${idx + 1} Audio`}
-                          />
-                        )}
-                        <div className="p-6">
-                          {group.questions.map((q) => (
-                            <div
-                              key={q.id}
-                              id={`question-${q.id}`}
-                              onClick={() => setCurrentQuestionId(q.id)}
-                              className={`p-4 rounded-lg ${
-                                currentQuestionId === q.id ? "" : ""
-                              }`}
-                            >
-                              <div className="flex gap-4 items-center mb-3">
-                                <span
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                    userAnswers[q.id]
-                                      ? "bg-blue-600 text-white"
-                                      : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
-                                  }`}
-                                >
-                                  {q.questionNo}
-                                </span>
-                                <span className="text-gray-600 dark:text-gray-400 italic text-sm">
-                                  Nghe và chọn đáp án
-                                </span>
-                              </div>
-                              <div className="flex gap-4 ml-12">
-                                {["A", "B", "C"].map((label) => (
-                                  <button
-                                    key={label}
-                                    onClick={() =>
-                                      handleSelectAnswer(q.id, label)
-                                    }
-                                    className={`flex-1 py-3 rounded-lg border font-bold ${
-                                      userAnswers[q.id] === label
-                                        ? "bg-blue-600 text-white border-zinc-700"
-                                        : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
+                        <div className="flex flex-col lg:flex-row">
+                          {/* Left: audio flush */}
+                          <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
+                            {group.audioUrl && (
+                              <AudioPlayer
+                                src={
+                                  group.audioUrl.startsWith("http")
+                                    ? group.audioUrl
+                                    : `${BASE_URL}${group.audioUrl}`
+                                }
+                                label={`Question ${idx + 1} Audio`}
+                                className="rounded-none border-0 shadow-none"
+                              />
+                            )}
+                          </div>
+                          {/* Right: questions column */}
+                          <div className="lg:w-1/2 p-6 space-y-4">
+                            {group.questions.map((q) => (
+                              <div
+                                key={q.id}
+                                id={`question-${q.id}`}
+                                onClick={() => setCurrentQuestionId(q.id)}
+                                className="p-4 rounded-lg"
+                              >
+                                <div className="flex gap-4 items-center mb-3">
+                                  <span
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                      userAnswers[q.id]
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                     }`}
                                   >
-                                    {label}
-                                  </button>
-                                ))}
+                                    {q.questionNo}
+                                  </span>
+                                  <span className="text-gray-600 dark:text-gray-400 italic text-sm">
+                                    Nghe và chọn đáp án
+                                  </span>
+                                </div>
+                                <div className="flex flex-col gap-3 ml-12">
+                                  {["A", "B", "C"].map((label) => (
+                                    <button
+                                      key={label}
+                                      onClick={() => handleSelectAnswer(q.id, label)}
+                                      className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
+                                        userAnswers[q.id] === label
+                                          ? "bg-blue-600 text-white border-blue-600"
+                                          : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
+                                      }`}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -543,17 +544,18 @@ export default function ExamPage() {
                   partNum === 4 ||
                   partNum === 6 ||
                   partNum === 7) && (
-                  <>
-                    <div className="space-y-8">
-                      {part.groups.map((group) => (
-                        <div
-                          key={group.id}
-                          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
-                        >
-                          {/* Audio Player (cho Part 3, 4) - 1 audio cho mỗi conversation */}
-                          {(partNum === 3 || partNum === 4) &&
-                            group.audioUrl && (
-                              <div className="p-4">
+                  <div className="space-y-8">
+                    {part.groups.map((group) => (
+                      <div
+                        key={group.id}
+                        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
+                      >
+                        <div className="flex flex-col lg:flex-row">
+                          {/* Left: audio flush + content/image */}
+                          {(group.audioUrl || group.imageUrl || group.textContent) && (
+                            <div className="lg:w-1/2 bg-gray-50 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
+                              {/* Audio flush at top for listening parts */}
+                              {(partNum === 3 || partNum === 4) && group.audioUrl && (
                                 <AudioPlayer
                                   src={
                                     group.audioUrl.startsWith("http")
@@ -561,17 +563,12 @@ export default function ExamPage() {
                                       : `${BASE_URL}${group.audioUrl}`
                                   }
                                   label={`Conversation ${group.id}`}
-                                  
-                                  
+                                  className="rounded-none border-0 shadow-none"
                                 />
-                              </div>
-                            )}
-
-                          {/* Group Context (Image/Text) */}
-                          <div className="flex flex-col lg:flex-row">
-                            {(group.imageUrl || group.textContent) && (
-                              <div className="lg:w-6/10 bg-gray-50 dark:bg-zinc-900 p-6 border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
-                                <div className="lg:sticky lg:top-36 max-h-[80vh] overflow-y-auto">
+                              )}
+                              {/* Sticky image/text below audio */}
+                              {(group.imageUrl || group.textContent) && (
+                                <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
                                   {group.imageUrl && (
                                     <img
                                       src={
@@ -579,76 +576,72 @@ export default function ExamPage() {
                                           ? group.imageUrl
                                           : `${BASE_URL}${group.imageUrl}`
                                       }
-                                      alt="Part 3"
+                                      alt="Part context"
                                       className="rounded-lg shadow-sm max-h-100 w-auto"
                                     />
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-lg [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
+                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
                                     />
                                   )}
                                 </div>
-                              </div>
-                            )}
-
-                            {/* Questions */}
-                            <div
-                              className={`${
-                                group.imageUrl || group.textContent
-                                  ? "lg:w-4/10"
-                                  : "w-full"
-                              } p-6 space-y-6`}
-                            >
-                              {group.questions.map((q) => (
-                                <div
-                                  key={q.id}
-                                  id={`question-${q.id}`}
-                                  onClick={() => setCurrentQuestionId(q.id)}
-                                  className={`p-4 rounded-xl transition-colors ${
-                                    currentQuestionId === q.id ? "" : ""
-                                  }`}
-                                >
-                                  <div className="flex gap-3 mb-3">
-                                    <span
-                                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                        userAnswers[q.id]
-                                          ? "bg-blue-600 text-white"
-                                          : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
-                                      }`}
-                                    >
-                                      {q.questionNo}
-                                    </span>
-                                    <p className="font-medium text-gray-900 dark:text-white pt-1">
-                                      {q.content}
-                                    </p>
-                                  </div>
-                                  <div className="space-y-2 ml-11">
-                                    {q.answers.map((ans) => (
-                                      <AnswerOption
-                                        key={ans.label}
-                                        q={q}
-                                        ans={ans}
-                                        isSelected={
-                                          userAnswers[q.id] === ans.label
-                                        }
-                                        onSelect={() =>
-                                          handleSelectAnswer(q.id, ans.label)
-                                        }
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
+                              )}
                             </div>
+                          )}
+
+                          {/* Right: questions with scrollbar */}
+                          <div
+                            className={`${
+                              group.audioUrl || group.imageUrl || group.textContent
+                                ? "lg:w-1/2"
+                                : "w-full"
+                            } p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar`}
+                          >
+                            {group.questions.map((q) => (
+                              <div
+                                key={q.id}
+                                id={`question-${q.id}`}
+                                onClick={() => setCurrentQuestionId(q.id)}
+                                className="p-4 rounded-xl transition-colors"
+                              >
+                                <div className="flex gap-3 mb-3">
+                                  <span
+                                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                      userAnswers[q.id]
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
+                                    }`}
+                                  >
+                                    {q.questionNo}
+                                  </span>
+                                  <p className="font-medium text-gray-900 dark:text-white pt-1">
+                                    {q.content}
+                                  </p>
+                                </div>
+                                <div className="space-y-2 ml-11">
+                                  {q.answers.map((ans) => (
+                                    <AnswerOption
+                                      key={ans.label}
+                                      q={q}
+                                      ans={ans}
+                                      isSelected={userAnswers[q.id] === ans.label}
+                                      onSelect={() =>
+                                        handleSelectAnswer(q.id, ans.label)
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* === PART 5: Incomplete Sentences === */}
@@ -708,20 +701,18 @@ export default function ExamPage() {
 
         {/* CỘT PHẢI: SIDEBAR (Desktop) */}
         <div className="hidden lg:block lg:w-1/6">
-          {testData && (
-            <div className="sticky top-24">
-              <ExamRightSidebar
-                parts={testData.parts}
-                userAnswers={userAnswers}
-                onScrollToQuestion={handleScrollToQuestion}
-                onSubmit={handleSubmit}
-                onClearAll={handleClearAllAnswers}
-                isSubmitting={submitting}
-                timeLeft={timeLeft}
-                currentQuestionId={currentQuestionId}
-                durationParam={durationParam}
-              />
-            </div>
+        {testData && (
+            <ExamRightSidebar
+              parts={testData.parts}
+              userAnswers={userAnswers}
+              onScrollToQuestion={handleScrollToQuestion}
+              onSubmit={handleSubmit}
+              onClearAll={handleClearAllAnswers}
+              isSubmitting={submitting}
+              timeLeft={timeLeft}
+              currentQuestionId={currentQuestionId}
+              durationParam={durationParam}
+            />
           )}
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, X, BarChart3, Headphones, BookOpen, Circle } from "lucide-react";
+import { Check, X, BarChart3, Headphones, BookOpen, Circle, Languages, Loader2 } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
 import { ResultDetail } from "../../types";
@@ -50,6 +50,10 @@ export default function ResultPage() {
     null,
   );
   const [smartDefaultNote, setSmartDefaultNote] = useState("");
+
+  // Passage translation state (keyed by groupId)
+  const [translations, setTranslations] = useState<Record<number, string>>({});
+  const [loadingTranslateId, setLoadingTranslateId] = useState<number | null>(null);
 
   // Load kết quả và gom nhóm theo Part
   useEffect(() => {
@@ -185,6 +189,37 @@ export default function ResultPage() {
     } finally {
       setBookmarkLoading(null);
       setPendingBookmarkId(null);
+    }
+  };
+
+  // --- LOGIC: Dịch đoạn văn Part 6/7 ---
+  const handleTranslatePassage = async (group: PartGroup["groups"][0]) => {
+    if (translations[group.groupId]) return; // Đã dịch rồi, không gọi lại
+    if (!group.groupContent) return;
+
+    setLoadingTranslateId(group.groupId);
+    try {
+      // 1. Strip HTML tags khỏi groupContent
+      let plainText = group.groupContent.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+      // 2. Thay thế mỗi blank "------- (N)" bằng đáp án đúng của câu hỏi N
+      group.questions.forEach((q: any) => {
+        const correctAnswer = q.answers?.find(
+          (a: any) => a.label === q.correctOption
+        )?.content ?? q.correctOption;
+        // Tìm pattern ------- (questionNo) và thay bằng đáp án
+        const regex = new RegExp(`-{3,}\\s*\\(${q.questionNo}\\)`, "g");
+        plainText = plainText.replace(regex, correctAnswer);
+      });
+
+      // 3. Gọi API dịch
+      const result = await testService.translatePassage(plainText);
+      setTranslations((prev) => ({ ...prev, [group.groupId]: result.translation }));
+    } catch (error) {
+      console.error("Lỗi dịch đoạn văn:", error);
+      alert("Không thể dịch đoạn văn lúc này.");
+    } finally {
+      setLoadingTranslateId(null);
     }
   };
 
@@ -487,58 +522,47 @@ export default function ResultPage() {
                   {part.groups.map((group) => (
                     <div
                       key={group.groupId}
-                      className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border  border-gray-200 dark:border-zinc-700 overflow-hidden"
+                      className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
-                      {group.audioUrl && (
-                        <div className="p-4">
-                          <AudioPlayer
-                            src={
-                              group.audioUrl.startsWith("http")
-                                ? group.audioUrl
-                                : `${BASE_URL}${group.audioUrl}`
-                            }
-                            label={`Conversation ${group.groupId}`}
-                          />
-                        </div>
-                      )}
                       <div className="flex flex-col lg:flex-row">
-                        {group.imageUrl && (
-                          <div className="md:w-1/2 bg-gray-100 dark:bg-zinc-900 flex items-center justify-center border-b lg:border-b-0  border-gray-200 dark:border-zinc-600 p-6">
-                            <img
+                        {/* Left column: audio + image */}
+                        <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
+                          {group.audioUrl && (
+                            <AudioPlayer
                               src={
-                                group.imageUrl.startsWith("http")
-                                  ? group.imageUrl
-                                  : `${BASE_URL}${group.imageUrl}`
+                                group.audioUrl.startsWith("http")
+                                  ? group.audioUrl
+                                  : `${BASE_URL}${group.audioUrl}`
                               }
-                              alt="Part 1"
-                              className="max-h-100 w-auto rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm"
-                              loading="lazy"
+                              label={`Conversation ${group.groupId}`}
+                              className="rounded-none border-0 shadow-none"
                             />
-                          </div>
-                        )}
-                        <div
-                          className={`${
-                            group.imageUrl ? "lg:w-1/2" : "w-full"
-                          } p-6 space-y-4`}
-                        >
+                          )}
+                          {group.imageUrl && (
+                            <div className="flex items-center justify-center px-4 pb-4 pt-3">
+                              <img
+                                src={
+                                  group.imageUrl.startsWith("http")
+                                    ? group.imageUrl
+                                    : `${BASE_URL}${group.imageUrl}`
+                                }
+                                alt="Part 1"
+                                className="max-h-100 w-auto rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm"
+                                loading="lazy"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        {/* Right column: questions */}
+                        <div className="lg:w-1/2 p-6 space-y-4">
                           {group.questions.map((q) => (
-                            <div
-                              key={q.questionId}
-                              id={`question-${q.questionId}`}
-                            >
+                            <div key={q.questionId} id={`question-${q.questionId}`}>
                               <ResultQuestionItem
                                 q={q}
                                 currentQuestionId={currentQuestionId}
-                                isBookmarked={bookmarkedQuestions.has(
-                                  q.questionId,
-                                )}
-                                isBookmarkLoading={
-                                  bookmarkLoading === q.questionId
-                                }
-                                isExplainLoading={
-                                  loadingExplainId === q.questionId
-                                }
-                                // Truyền các hàm xử lý xuống
+                                isBookmarked={bookmarkedQuestions.has(q.questionId)}
+                                isBookmarkLoading={bookmarkLoading === q.questionId}
+                                isExplainLoading={loadingExplainId === q.questionId}
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}
@@ -553,37 +577,45 @@ export default function ResultPage() {
               )}
 
               {part.partNumber === 2 && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {part.groups.map((group, idx) => (
                     <div
                       key={group.groupId}
-                      className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
+                      className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
-                      {group.audioUrl && (
-                        <AudioPlayer
-                          src={
-                            group.audioUrl.startsWith("http")
-                              ? group.audioUrl
-                              : `${BASE_URL}${group.audioUrl}`
-                          }
-                          label={`Question ${idx + 1} Audio`}
-                        />
-                      )}
-                      {group.questions.map((q) => (
-                        <div key={q.questionId} id={`question-${q.questionId}`}>
-                          <ResultQuestionItem
-                            q={q}
-                            currentQuestionId={currentQuestionId}
-                            isBookmarked={bookmarkedQuestions.has(q.questionId)}
-                            isBookmarkLoading={bookmarkLoading === q.questionId}
-                            isExplainLoading={loadingExplainId === q.questionId}
-                            // Truyền các hàm xử lý xuống
-                            onToggleBookmark={() => handleClickBookmark(q)}
-                            onViewExplanation={handleViewExplanation}
-                            onToggleDetail={handleToggleDetail}
-                          />
+                      <div className="flex flex-col lg:flex-row">
+                        {/* Left: audio player flush */}
+                        <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
+                          {group.audioUrl && (
+                            <AudioPlayer
+                              src={
+                                group.audioUrl.startsWith("http")
+                                  ? group.audioUrl
+                                  : `${BASE_URL}${group.audioUrl}`
+                              }
+                              label={`Question ${idx + 1} Audio`}
+                              className="rounded-none border-0 shadow-none"
+                            />
+                          )}
                         </div>
-                      ))}
+                        {/* Right: questions in a column */}
+                        <div className="lg:w-1/2 p-6 space-y-4">
+                          {group.questions.map((q) => (
+                            <div key={q.questionId} id={`question-${q.questionId}`}>
+                              <ResultQuestionItem
+                                q={q}
+                                currentQuestionId={currentQuestionId}
+                                isBookmarked={bookmarkedQuestions.has(q.questionId)}
+                                isBookmarkLoading={bookmarkLoading === q.questionId}
+                                isExplainLoading={loadingExplainId === q.questionId}
+                                onToggleBookmark={() => handleClickBookmark(q)}
+                                onViewExplanation={handleViewExplanation}
+                                onToggleDetail={handleToggleDetail}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -596,10 +628,10 @@ export default function ResultPage() {
                       key={group.groupId}
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
-                      <div className=" text-white p-4">
-                        <div className="">
-                          {group.audioUrl && (
-                            <div className="p-4">
+                      <div className="flex flex-col lg:flex-row">
+                        {(group.imageUrl || group.groupContent || group.audioUrl) && (
+                          <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 flex flex-col">
+                            {group.audioUrl && (
                               <AudioPlayer
                                 src={
                                   group.audioUrl.startsWith("http")
@@ -607,45 +639,41 @@ export default function ResultPage() {
                                     : `${BASE_URL}${group.audioUrl}`
                                 }
                                 label={`Conversation ${group.groupId}`}
+                                className="rounded-none border-0 shadow-none"
                               />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col lg:flex-row">
-                        {(group.imageUrl || group.groupContent) && (
-                          <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
-                            <div className="lg:sticky lg:top-36 space-y-4">
-                              {group.imageUrl && (
-                                 <img
-                                      src={
-                                        group.imageUrl.startsWith("http")
-                                          ? group.imageUrl
-                                          : `${BASE_URL}${group.imageUrl}`
-                                      }
-                                      alt="Part 3"
-                                      className="rounded-lg shadow-sm max-h-100 w-auto"
-                                    />
-                              )}
-                              {group.groupContent && (
-                                <div
-                                  className="prose prose-sm max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-4 rounded-lg border border-gray-200 dark:border-zinc-600"
-                                  dangerouslySetInnerHTML={{
-                                    __html: group.groupContent,
-                                  }}
-                                />
-                              )}
-                            </div>
+                            )}
+                            {(group.imageUrl || group.groupContent) && (
+                              <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4">
+                                {group.imageUrl && (
+                                  <img
+                                    src={
+                                      group.imageUrl.startsWith("http")
+                                        ? group.imageUrl
+                                        : `${BASE_URL}${group.imageUrl}`
+                                    }
+                                    alt="Part 3"
+                                    className="rounded-lg shadow-sm max-h-100 w-auto"
+                                  />
+                                )}
+                                {group.groupContent && (
+                                  <div
+                                    className="prose prose-sm max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-4 rounded-lg border border-gray-200 dark:border-zinc-600"
+                                    dangerouslySetInnerHTML={{
+                                      __html: group.groupContent,
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
 
                         <div
                           className={`${
-                            group.imageUrl || group.groupContent
+                            group.imageUrl || group.groupContent || group.audioUrl
                               ? "lg:w-1/2"
                               : "w-full"
-                          } p-6 space-y-6`}
+                          } p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar`}
                         >
                           {group.questions.map((q) => (
                             <div
@@ -715,7 +743,7 @@ export default function ResultPage() {
                     >
                       <div className="flex flex-col lg:flex-row">
                         <div className="lg:w-6/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
-                          <div className="lg:sticky lg:top-24 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                          <div className="lg:sticky lg:top-24 space-y-3">
                             <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                               <BookOpen size={16} /> Reading Passage
                             </div>
@@ -728,17 +756,43 @@ export default function ResultPage() {
                               />
                             )}
                             {group.groupContent && (
-                              <div
-                                className="max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm leading-7 whitespace-pre-line"
+                            <div
+                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm leading-7 whitespace-pre-line"
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}
                               />
                             )}
+
+                            {/* Nút Dịch đoạn văn */}
+                            {group.groupContent && (
+                              <div className="mt-3">
+                                {!translations[group.groupId] ? (
+                                  <button
+                                    onClick={() => handleTranslatePassage(group)}
+                                    disabled={loadingTranslateId === group.groupId}
+                                    className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                  >
+                                    {loadingTranslateId === group.groupId ? (
+                                      <><Loader2 size={13} className="animate-spin" /> Đang dịch...</>
+                                    ) : (
+                                      <><Languages size={13} /> Dịch đoạn văn</>
+                                    )}
+                                  </button>
+                                ) : (
+                                  <div className="max-h-[35vh] overflow-y-auto custom-scrollbar mt-2 p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-7 whitespace-pre-line">
+                                    <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">
+                                      <Languages size={13} /> Bản dịch tiếng Việt
+                                    </div>
+                                    {translations[group.groupId]}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        <div className="lg:w-4/10 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600">
+                        <div className="lg:w-4/10 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600 overflow-y-auto max-h-[80vh] custom-scrollbar">
                           {group.questions.map((q) => (
                             <div
                               key={q.questionId}
@@ -773,7 +827,7 @@ export default function ResultPage() {
           ))}
 
           {result?.testId && (
-            <div className="mt-12 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div className="mt-12 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700">
               <CommentSection testId={result.testId} />
             </div>
           )}

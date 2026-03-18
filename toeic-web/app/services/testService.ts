@@ -34,6 +34,12 @@ export const testService = {
     return response.data;
   },
 
+  // 5. Dịch đoạn văn (Part 6/7) sang tiếng Việt
+  translatePassage: async (passage: string): Promise<{ translation: string }> => {
+    const response = await axiosClient.post("/Tests/translate-passage", { passage });
+    return response.data;
+  },
+
   // 5. Lấy lịch sử làm bài
   getHistory: async (): Promise<{
     success: boolean;

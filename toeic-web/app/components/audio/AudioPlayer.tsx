@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, RotateCw, Gauge } from "lucide-react";
 interface AudioPlayerProps {
   src: string;
   label?: string;
+  className?: string;
 }
 
 // A static array of heights (percentages) to simulate a waveform visual
@@ -18,6 +19,7 @@ const WAVEFORM_DATA = [
 export default function AudioPlayer({
   src,
   label = "Audio",
+  className = "",
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -134,7 +136,7 @@ export default function AudioPlayer({
   };
 
   return (
-    <div className="w-full  bg-[#f5f5f5] dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
+    <div className={`w-full bg-[#f5f5f5] dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl p-4 shadow-sm ${className}`}>
       {error && (
         <div className="mb-3 p-4 bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600 text-red-900 dark:text-red-100 rounded-lg text-sm font-medium break-words whitespace-normal">
           <p className="font-bold mb-1">⚠️ Audio Error</p>

@@ -6,6 +6,7 @@ public class AiExplanationService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
+
     public AiExplanationService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
@@ -21,12 +22,18 @@ public class AiExplanationService
     /// <summary>
     /// Tạo prompt phù hợp cho từng Part TOEIC
     /// </summary>
-    private string BuildPromptByPart(int partNumber, Question question, List<Answer> answers, string? transcript = null)
+    private string BuildPromptByPart(
+        int partNumber,
+        Question question,
+        List<Answer> answers,
+        string? transcript = null
+    )
     {
         var answerText = string.Join("\n", answers.Select(a => $"{a.Label}. {a.Content}"));
 
         // Phần chung về định dạng output
-        var outputFormat = @"
+        var outputFormat =
+            @"
                     Trả về kết quả dưới dạng JSON thuần (KHÔNG có markdown ```json) gồm 2 trường:
                     1. ""Short"": Giải thích siêu ngắn gọn (dưới 20 từ tiếng Việt).
                     2. ""Full"": Giải thích chi tiết bằng tiếng Việt, định dạng HTML đơn giản (dùng <br>, <b>, <i>).";
@@ -41,12 +48,16 @@ Trong Part 1, thí sinh nghe 4 câu mô tả (A, B, C, D) về một bức tranh
 {(string.IsNullOrEmpty(transcript) ? "" : $"Nội dung audio (Transcript):\n{transcript}\n")}
 Đáp án đúng là: {question.CorrectOption}
 
-Hãy giải thích:
-- Tại sao đáp án {question.CorrectOption} mô tả đúng bức tranh
-- Các đáp án khác sai ở điểm nào (sai động từ, sai chủ ngữ, sai vị trí...)
-- Từ vựng quan trọng cần nhớ
+Hãy thực hiện các bước sau:
+1. Dịch nghĩa từng đáp án (A), (B), (C), (D) sang tiếng Việt.
+2. Liệt kê các từ vựng quan trọng trong câu hỏi cần học (danh từ, động từ, giới từ nổi bật).
 
-{outputFormat}",
+
+Trả về kết quả dưới dạng JSON thuần (KHÔNG có markdown ```json) gồm 4 trường:
+1. ""Short"": Giải thích siêu ngắn gọn (dưới 20 từ tiếng Việt).
+2. ""Full"": Giải thích chi tiết tại sao đáp án đúng / sai bằng tiếng Việt, định dạng HTML đơn giản (dùng <br>, <b>, <i>).
+3. ""Translations"": Chuỗi HTML liệt kê bản dịch tiếng Việt từng đáp án, mỗi đáp án một dòng. Ví dụ: ""(A) Người phụ nữ đang đứng.<br>(B) Người đàn ông đang ngồi."".
+4. ""Vocabulary"": Mảng JSON các từ vựng quan trọng, mỗi phần tử gồm 3 trường: ""Word"" (từ tiếng Anh), ""Type"" (loại từ viết tắt: n/v/adj/adv/prep), ""Meaning"" (nghĩa tiếng Việt). Ví dụ: [{{""Word"":""Stairs"",""Type"":""n"",""Meaning"":""Cầu thang""}}].",
 
             // ===== PART 2: Hỏi - Đáp =====
             2 => $@"
@@ -105,6 +116,7 @@ Hãy giải thích CHI TIẾT:
 Bạn là giáo viên TOEIC. Đây là câu hỏi PART 6 (Text Completion - Hoàn thành đoạn văn).
 Part 6 yêu cầu điền từ/cụm từ/câu vào đoạn văn, cần hiểu ngữ cảnh.
 
+{(string.IsNullOrEmpty(question.Group?.TextContent) ? "" : $"Nội dung đoạn văn:\n{question.Group.TextContent}\n")}
 Câu hỏi: {question.Content}
 Các đáp án:
 {answerText}
@@ -123,6 +135,7 @@ Hãy giải thích:
 Bạn là giáo viên TOEIC. Đây là câu hỏi PART 7 (Reading Comprehension - Đọc hiểu).
 Part 7 yêu cầu đọc văn bản (email, quảng cáo, bài báo...) và trả lời câu hỏi.
 
+{(string.IsNullOrEmpty(question.Group?.TextContent) ? "" : $"Nội dung bài đọc:\n{question.Group.TextContent}\n")}
 Câu hỏi: {question.Content}
 Các đáp án:
 {answerText}
@@ -136,22 +149,15 @@ Hãy giải thích:
 
 {outputFormat}",
 
-            // ===== DEFAULT =====
-            _ => $@"
-Bạn là giáo viên TOEIC. Hãy phân tích câu hỏi sau:
-
-Câu hỏi: {question.Content}
-Các đáp án:
-{answerText}
-Đáp án đúng là: {question.CorrectOption}
-
-Hãy giải thích tại sao đáp án {question.CorrectOption} đúng và các đáp án khác sai.
-
-{outputFormat}"
+            // TOEIC only has Parts 1-7; any other value is a bug
+            _ => throw new NotSupportedException($"Không hỗ trợ Part {partNumber}. TOEIC chỉ có Part 1-7.")
         };
     }
 
-    public async Task<(string? Short, string? Full)> GenerateExplanationAsync(Question question, List<Answer> answers)
+    public async Task<(string? Short, string? Full)> GenerateExplanationAsync(
+        Question question,
+        List<Answer> answers
+    )
     {
         // Lấy Part Number từ navigation property (cần Include khi query)
         int partNumber = question.Group?.Part?.PartNumber ?? 0;
@@ -165,16 +171,17 @@ Hãy giải thích tại sao đáp án {question.CorrectOption} đúng và các 
         // Cấu trúc Body gửi lên Google Gemini
         var requestBody = new
         {
-            contents = new[]
-{
-                new { parts = new[] { new { text = prompt } } }
-            }
+            contents = new[] { new { parts = new[] { new { text = prompt } } } },
         };
 
-        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        var jsonContent = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
 
-
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+        var url =
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
 
         var response = await _httpClient.PostAsync(url, jsonContent);
 
@@ -192,8 +199,8 @@ Hãy giải thích tại sao đáp án {question.CorrectOption} đúng và các 
         // Gemini trả về cấu trúc hơi sâu, cần trích xuất text ra
         try
         {
-            var textResult = doc.RootElement
-                .GetProperty("candidates")[0]
+            var textResult = doc
+                .RootElement.GetProperty("candidates")[0]
                 .GetProperty("content")
                 .GetProperty("parts")[0]
                 .GetProperty("text")
@@ -211,6 +218,42 @@ Hãy giải thích tại sao đáp án {question.CorrectOption} đúng và các 
             return ("Lỗi parse", "AI trả về format không đúng");
         }
     }
+
+    /// <summary>
+    /// Dịch đoạn văn (đã điền sẵn đáp án đúng) sang tiếng Việt
+    /// </summary>
+    public async Task<string?> TranslatePassageAsync(string passage)
+    {
+        var prompt = $@"
+Bạn là dịch giả chuyên nghiệp. Hãy dịch đoạn văn tiếng Anh sau sang tiếng Việt một cách tự nhiên, rõ ràng.
+Chỉ trả về bản dịch, không giải thích, không thêm gì khác.
+
+Đoạn văn:
+{passage}";
+
+        var requestBody = new
+        {
+            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+        };
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+
+        var response = await _httpClient.PostAsync(url, jsonContent);
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Gemini lỗi: {response.StatusCode}");
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(responseString);
+
+        return doc.RootElement
+            .GetProperty("candidates")[0]
+            .GetProperty("content")
+            .GetProperty("parts")[0]
+            .GetProperty("text")
+            .GetString()
+            ?.Trim();
+    }
 }
 
 // Class phụ để hứng dữ liệu
@@ -218,4 +261,15 @@ public class AiResponse
 {
     public string? Short { get; set; }
     public string? Full { get; set; }
+
+    // Part 1 specific fields
+    public string? Translations { get; set; }
+    public List<VocabularyItem>? Vocabulary { get; set; }
+}
+
+public class VocabularyItem
+{
+    public string? Word { get; set; }
+    public string? Type { get; set; }
+    public string? Meaning { get; set; }
 }

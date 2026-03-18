@@ -82,7 +82,7 @@ export default function ResultQuestionItem({
 
       <div
         className={`space-y-2 ml-12 mb-4 ${
-          partNum === 1 || partNum === 2 ? "flex gap-3 space-y-0" : ""
+          partNum === 1 || partNum === 2 ? "flex flex-col gap-2 space-y-0" : ""
         }`}
       >
         {partNum === 1 || partNum === 2

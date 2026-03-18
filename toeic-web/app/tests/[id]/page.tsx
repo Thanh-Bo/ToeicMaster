@@ -78,7 +78,7 @@ export default function TestOverviewPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 px-4 py-10">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl border border-gray-100 dark:border-zinc-700 overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-gray-100 dark:border-zinc-700 overflow-hidden">
         {/* Header */}
         <div className="bg-blue-600 p-8 text-white">
           <Link href="/" className="text-blue-100 hover:text-white mb-4 inline-block">
@@ -163,12 +163,12 @@ export default function TestOverviewPage() {
       </div>
 
       {/* Phần bình luận */}
-      {/* <div className="mt-10">
+      <div className="mt-10">
         <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Thảo luận về đề thi</h3>
-        <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-700 p-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-700 p-6">
           <CommentSection testId={testId} />
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }

@@ -37,7 +37,8 @@ export default function ExamRightSidebar({
   const isLowTime = !isUnlimited && timeLeft <= 300;
 
   return (
-    <div className=" dark:text-white text-zinc-600 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sticky top-24">
+    <div className="sticky top-20 dark:text-white text-zinc-600 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-y-auto max-h-[calc(100vh-5rem)] custom-scrollbar">
+      <div className="p-5">
       {/* 1. ĐỒNG HỒ & NỘP BÀI */}
       <div className="text-center mb-6">
         {isUnlimited ? "Thời gian làm bài:" : "Thời gian còn lại:"}
@@ -92,7 +93,7 @@ export default function ExamRightSidebar({
       </div>
 
       {/* 3. DANH SÁCH CÂU HỎI (PALETTE) */}
-      <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+      <div className="space-y-6 pr-2">
         {parts.map((part) => (
           <div key={part.id}>
             <h4 className="font-bold text-gray-700 dark:text-gray-300 text-sm mb-3">
@@ -124,6 +125,7 @@ export default function ExamRightSidebar({
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
