@@ -353,6 +353,9 @@ namespace ToeicMaster.API.Controllers
                             PartName = q.Group?.Part?.Name ?? "Part 5",
                             ImageUrl = q.Group?.ImageUrl,
                             AudioUrl = q.Group?.AudioUrl,
+                            Transcript = q.Group?.Transcript,
+                            GroupContentTranslation = q.Group?.TextContentTranslation,
+                            TranscriptTranslation = q.Group?.TranscriptTranslation,
 
                             Answers =
                                 q.Answers?.Select(a => new ResultAnswerDto
@@ -460,7 +463,7 @@ namespace ToeicMaster.API.Controllers
             }
         }
 
-        // Dịch đoạn văn (Part 6 / Part 7) sang tiếng Việt
+        // Dịch đoạn văn (Part 6 / Part 7) hoặc Transcript (Part 3/4) và lưu vào DB
         [HttpPost("translate-passage")]
         public async Task<IActionResult> TranslatePassage([FromBody] TranslatePassageRequest request)
         {
@@ -470,6 +473,22 @@ namespace ToeicMaster.API.Controllers
             try
             {
                 var translation = await _aiService.TranslatePassageAsync(request.Passage);
+
+                // Nếu client gửi groupId và type thì lưu ngay vào DB
+                if (request.GroupId.HasValue && !string.IsNullOrEmpty(request.Type))
+                {
+                    var group = await _efContext.QuestionGroups.FindAsync(request.GroupId.Value);
+                    if (group != null)
+                    {
+                        if (request.Type == "content")
+                            group.TextContentTranslation = translation;
+                        else if (request.Type == "transcript")
+                            group.TranscriptTranslation = translation;
+
+                        await _efContext.SaveChangesAsync();
+                    }
+                }
+
                 return Ok(new { translation });
             }
             catch (Exception ex)
@@ -677,4 +696,6 @@ public class HistoryItemDto
 public class TranslatePassageRequest
 {
     public string Passage { get; set; } = "";
+    public int? GroupId { get; set; }   // ID of the QuestionGroup to save the translation to
+    public string? Type { get; set; }   // "content" (Part 6/7) or "transcript" (Part 3/4)
 }

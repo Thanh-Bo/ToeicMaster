@@ -35,6 +35,9 @@ namespace ToeicMaster.API.Models.Exam
         public string? PartName { get; set; }
         public string? ImageUrl { get; set; }
         public string? AudioUrl { get; set; }
+        public string? Transcript { get; set; }
+        public string? GroupContentTranslation { get; set; } // Cached translation of TextContent
+        public string? TranscriptTranslation { get; set; }   // Cached translation of Transcript
     }
 
     public class ResultAnswerDto

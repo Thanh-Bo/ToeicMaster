@@ -1,4 +1,4 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -567,3 +567,12 @@ VALUES (N'20260207_MakePaymentResponseFieldsNullable', N'10.0.1');
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+ALTER TABLE [QuestionGroups] ADD [TextContentTranslation] nvarchar(max) NULL;
+ALTER TABLE [QuestionGroups] ADD [TranscriptTranslation] nvarchar(max) NULL;
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260320_AddTranslationColumns', N'10.0.1');
+
+COMMIT;
+GO

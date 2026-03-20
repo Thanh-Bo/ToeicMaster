@@ -42,37 +42,26 @@ public class AiExplanationService
         {
             // ===== PART 1: Mô tả tranh =====
             1 => $@"
-Bạn là giáo viên TOEIC. Đây là câu hỏi PART 1 (Photographs - Mô tả tranh).
-Trong Part 1, thí sinh nghe 4 câu mô tả (A, B, C, D) về một bức tranh và chọn câu mô tả đúng nhất.
+Bạn là giáo viên TOEIC giỏi tiếng Anh.
+Đây là câu hỏi PART 1 (Photographs). Thí sinh nghe 4 câu mô tả (A, B, C, D) và chọn câu đúng nhất.
 
-{(string.IsNullOrEmpty(transcript) ? "" : $"Nội dung audio (Transcript):\n{transcript}\n")}
-Đáp án đúng là: {question.CorrectOption}
+Đọc transcript này {transcript} và hiển các đáp án A B C D 
+Đáp án đúng: {question.CorrectOption}
 
-Hãy thực hiện các bước sau:
-1. Dịch nghĩa từng đáp án (A), (B), (C), (D) sang tiếng Việt.
-2. Liệt kê các từ vựng quan trọng trong câu hỏi cần học (danh từ, động từ, giới từ nổi bật).
-
-
-Trả về kết quả dưới dạng JSON thuần (KHÔNG có markdown ```json) gồm 4 trường:
-1. ""Short"": Giải thích siêu ngắn gọn (dưới 20 từ tiếng Việt).
-2. ""Full"": Giải thích chi tiết tại sao đáp án đúng / sai bằng tiếng Việt, định dạng HTML đơn giản (dùng <br>, <b>, <i>).
-3. ""Translations"": Chuỗi HTML liệt kê bản dịch tiếng Việt từng đáp án, mỗi đáp án một dòng. Ví dụ: ""(A) Người phụ nữ đang đứng.<br>(B) Người đàn ông đang ngồi."".
-4. ""Vocabulary"": Mảng JSON các từ vựng quan trọng, mỗi phần tử gồm 3 trường: ""Word"" (từ tiếng Anh), ""Type"" (loại từ viết tắt: n/v/adj/adv/prep), ""Meaning"" (nghĩa tiếng Việt). Ví dụ: [{{""Word"":""Stairs"",""Type"":""n"",""Meaning"":""Cầu thang""}}].",
+Hãy dịch từng đáp án (A), (B), (C), (D) sang tiếng Việt ngắn gọn, và viết 1 câu ngắn giải thích tại sao đáp án {question.CorrectOption} đúng.
+Trả về JSON thuần (KHÔNG có markdown backtick) với 2 trường:
+{{""Short"": ""(A) [transcript A]<br>(B) [transcript B]<br>(C)[transcript C]<br>(D) [transcript D]<br><br><b>"", ""Full"": ""(A) [bản dịch]<br>(B) [bản dịch]<br>(C) [bản dịch]<br>(D) [bản dịch]<br><br><b>Giải thích:</b> [Giải thích tại sao đáp án {question.CorrectOption} đúng]""}}",
 
             // ===== PART 2: Hỏi - Đáp =====
             2 => $@"
-Bạn là giáo viên TOEIC. Đây là câu hỏi PART 2 (Question-Response - Hỏi đáp).
-Trong Part 2, thí sinh nghe 1 câu hỏi và 3 câu trả lời (A, B, C), chọn câu trả lời phù hợp nhất.
+Bạn là giáo viên TOEIC giỏi tiếng Anh.
+Đây là câu hỏi PART 2 (Question-Response). Thí sinh nghe 1 câu hỏi và 3 câu trả lời (A, B, C), chọn câu phù hợp nhất.
 
-{(string.IsNullOrEmpty(transcript) ? "" : $"Nội dung audio:\n{transcript}\n")}
-Đáp án đúng là: {question.CorrectOption}
-
-Hãy giải thích:
-- Loại câu hỏi (Wh-question, Yes/No, Tag question, Statement, Choice question...)
-- Tại sao đáp án {question.CorrectOption} là câu trả lời logic
-- Các đáp án khác sai vì lý do gì (trả lời sai trọng tâm, lạc đề...)
-
-{outputFormat}",
+Đáp án đúng: {question.CorrectOption}
+Đọc transcript này {transcript} và hiển các đáp án A B C và câu hỏi
+Hãy dịch từng đáp án (A), (B), (C) sang tiếng Việt ngắn gọn.
+Trả về JSON thuần (KHÔNG có markdown backtick) với 2 trường:
+{{""Short"": ""(Question)[transcript câu hỏi]<br>(A) [transcript A]<br>(B) [transcript B]<br>(C)[transcript C]<br><b>"", ""Full"": ""(Câu hỏi)[transcript câu hỏi dịch]<br>(A) [bản dịch]<br>(B) [bản dịch]<br>(C) [bản dịch]<br><b>Giải thích:</b> [Giải thích tại sao đáp án {question.CorrectOption} đúng]""}}",
 
             // ===== PART 3 & 4: Hội thoại / Bài nói =====
             3 or 4 => $@"

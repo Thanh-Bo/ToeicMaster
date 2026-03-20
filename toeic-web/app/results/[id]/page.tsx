@@ -3,7 +3,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, X, BarChart3, Headphones, BookOpen, Circle, Languages, Loader2 } from "lucide-react";
+import {
+  Check,
+  X,
+  BarChart3,
+  Headphones,
+  BookOpen,
+  Circle,
+  Languages,
+  Loader2,
+  FileText,
+} from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
 import { ResultDetail } from "../../types";
@@ -23,6 +33,7 @@ interface PartGroup {
     groupContent?: string;
     imageUrl?: string;
     audioUrl?: string;
+    transcript?: string;
     questions: any[];
   }[];
 }
@@ -53,7 +64,45 @@ export default function ResultPage() {
 
   // Passage translation state (keyed by groupId)
   const [translations, setTranslations] = useState<Record<number, string>>({});
-  const [loadingTranslateId, setLoadingTranslateId] = useState<number | null>(null);
+  const [loadingTranslateId, setLoadingTranslateId] = useState<number | null>(
+    null,
+  );
+
+  // Transcript translation state (keyed by groupId, for Part 3/4)
+  const [transcriptTranslations, setTranscriptTranslations] = useState<
+    Record<number, string>
+  >({});
+  const [loadingTranscriptTranslateId, setLoadingTranscriptTranslateId] =
+    useState<number | null>(null);
+
+  // Visibility toggles (Set of groupIds where content is hidden)
+  const [hiddenTranscripts, setHiddenTranscripts] = useState<Set<number>>(
+    new Set(),
+  );
+  const [hiddenTranscriptTranslations, setHiddenTranscriptTranslations] =
+    useState<Set<number>>(new Set());
+  const [hiddenPassageTranslations, setHiddenPassageTranslations] = useState<
+    Set<number>
+  >(new Set());
+
+  const toggleTranscript = (id: number) =>
+    setHiddenTranscripts((prev) => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  const toggleTranscriptTranslation = (id: number) =>
+    setHiddenTranscriptTranslations((prev) => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  const togglePassageTranslation = (id: number) =>
+    setHiddenPassageTranslations((prev) => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
 
   // Load kết quả và gom nhóm theo Part
   useEffect(() => {
@@ -87,6 +136,7 @@ export default function ResultPage() {
                 groupContent: q.groupContent,
                 imageUrl: q.imageUrl,
                 audioUrl: q.audioUrl,
+                transcript: q.transcript,
                 questions: [],
               };
               part.groups.push(group);
@@ -104,6 +154,22 @@ export default function ResultPage() {
             (a, b) => a.partNumber - b.partNumber,
           );
           setPartGroups(sortedParts);
+
+          // Pre-populate cached translations from DB (avoid calling AI again)
+          const cachedContent: Record<number, string> = {};
+          const cachedTranscript: Record<number, string> = {};
+          response.data.questions.forEach((q: any) => {
+            if (q.groupId) {
+              if (q.groupContentTranslation)
+                cachedContent[q.groupId] = q.groupContentTranslation;
+              if (q.transcriptTranslation)
+                cachedTranscript[q.groupId] = q.transcriptTranslation;
+            }
+          });
+          if (Object.keys(cachedContent).length > 0)
+            setTranslations(cachedContent);
+          if (Object.keys(cachedTranscript).length > 0)
+            setTranscriptTranslations(cachedTranscript);
         }
       } catch (error) {
         console.error("Lỗi tải kết quả:", error);
@@ -200,26 +266,53 @@ export default function ResultPage() {
     setLoadingTranslateId(group.groupId);
     try {
       // 1. Strip HTML tags khỏi groupContent
-      let plainText = group.groupContent.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      let plainText = group.groupContent
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
       // 2. Thay thế mỗi blank "------- (N)" bằng đáp án đúng của câu hỏi N
       group.questions.forEach((q: any) => {
-        const correctAnswer = q.answers?.find(
-          (a: any) => a.label === q.correctOption
-        )?.content ?? q.correctOption;
+        const correctAnswer =
+          q.answers?.find((a: any) => a.label === q.correctOption)?.content ??
+          q.correctOption;
         // Tìm pattern ------- (questionNo) và thay bằng đáp án
         const regex = new RegExp(`-{3,}\\s*\\(${q.questionNo}\\)`, "g");
         plainText = plainText.replace(regex, correctAnswer);
       });
 
-      // 3. Gọi API dịch
-      const result = await testService.translatePassage(plainText);
-      setTranslations((prev) => ({ ...prev, [group.groupId]: result.translation }));
+      // 3. Gọi API dịch và lưu vào DB
+      const result = await testService.translatePassage(plainText, group.groupId, "content");
+      setTranslations((prev) => ({
+        ...prev,
+        [group.groupId]: result.translation,
+      }));
     } catch (error) {
       console.error("Lỗi dịch đoạn văn:", error);
       alert("Không thể dịch đoạn văn lúc này.");
     } finally {
       setLoadingTranslateId(null);
+    }
+  };
+
+  // --- LOGIC: Dịch transcript Part 3/4 ---
+  const handleTranslateTranscript = async (group: PartGroup["groups"][0]) => {
+    if (transcriptTranslations[group.groupId]) return;
+    if (!group.transcript) return;
+
+    setLoadingTranscriptTranslateId(group.groupId);
+    try {
+      // Gửi transcript thô và lưu vào DB
+      const result = await testService.translatePassage(group.transcript, group.groupId, "transcript");
+      setTranscriptTranslations((prev) => ({
+        ...prev,
+        [group.groupId]: result.translation,
+      }));
+    } catch (error) {
+      console.error("Lỗi dịch transcript:", error);
+      alert("Không thể dịch transcript lúc này.");
+    } finally {
+      setLoadingTranscriptTranslateId(null);
     }
   };
 
@@ -556,13 +649,22 @@ export default function ResultPage() {
                         {/* Right column: questions */}
                         <div className="lg:w-1/2 p-6 space-y-4">
                           {group.questions.map((q) => (
-                            <div key={q.questionId} id={`question-${q.questionId}`}>
+                            <div
+                              key={q.questionId}
+                              id={`question-${q.questionId}`}
+                            >
                               <ResultQuestionItem
                                 q={q}
                                 currentQuestionId={currentQuestionId}
-                                isBookmarked={bookmarkedQuestions.has(q.questionId)}
-                                isBookmarkLoading={bookmarkLoading === q.questionId}
-                                isExplainLoading={loadingExplainId === q.questionId}
+                                isBookmarked={bookmarkedQuestions.has(
+                                  q.questionId,
+                                )}
+                                isBookmarkLoading={
+                                  bookmarkLoading === q.questionId
+                                }
+                                isExplainLoading={
+                                  loadingExplainId === q.questionId
+                                }
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}
@@ -601,13 +703,22 @@ export default function ResultPage() {
                         {/* Right: questions in a column */}
                         <div className="lg:w-1/2 p-6 space-y-4">
                           {group.questions.map((q) => (
-                            <div key={q.questionId} id={`question-${q.questionId}`}>
+                            <div
+                              key={q.questionId}
+                              id={`question-${q.questionId}`}
+                            >
                               <ResultQuestionItem
                                 q={q}
                                 currentQuestionId={currentQuestionId}
-                                isBookmarked={bookmarkedQuestions.has(q.questionId)}
-                                isBookmarkLoading={bookmarkLoading === q.questionId}
-                                isExplainLoading={loadingExplainId === q.questionId}
+                                isBookmarked={bookmarkedQuestions.has(
+                                  q.questionId,
+                                )}
+                                isBookmarkLoading={
+                                  bookmarkLoading === q.questionId
+                                }
+                                isExplainLoading={
+                                  loadingExplainId === q.questionId
+                                }
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}
@@ -629,7 +740,10 @@ export default function ResultPage() {
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
                       <div className="flex flex-col lg:flex-row">
-                        {(group.imageUrl || group.groupContent || group.audioUrl) && (
+                        {(group.imageUrl ||
+                          group.groupContent ||
+                          group.audioUrl ||
+                          group.transcript) && (
                           <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 flex flex-col">
                             {group.audioUrl && (
                               <AudioPlayer
@@ -642,8 +756,10 @@ export default function ResultPage() {
                                 className="rounded-none border-0 shadow-none"
                               />
                             )}
-                            {(group.imageUrl || group.groupContent) && (
-                              <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4">
+                            {(group.imageUrl ||
+                              group.groupContent ||
+                              group.transcript) && (
+                              <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
                                 {group.imageUrl && (
                                   <img
                                     src={
@@ -663,6 +779,125 @@ export default function ResultPage() {
                                     }}
                                   />
                                 )}
+                                {group.transcript && (
+                                  <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                        <FileText className="w-4 h-4" />
+                                        Transcript
+                                      </span>
+                                      <button
+                                        onClick={() =>
+                                          toggleTranscript(group.groupId)
+                                        }
+                                        className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                                          hiddenTranscripts.has(group.groupId)
+                                            ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/60"
+                                            : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-600"
+                                        }`}
+                                      >
+                                        {hiddenTranscripts.has(group.groupId)
+                                          ? "Hiện"
+                                          : "Ẩn"}
+                                      </button>
+                                    </div>
+                                    {!hiddenTranscripts.has(group.groupId) && (
+                                      <div className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed space-y-2">
+                                        {group.transcript
+                                          .split(
+                                            /(?=(?:W\d?|M\d?|Man|Woman|Narrator)\s*:)/gi,
+                                          )
+                                          .filter((line: string) => line.trim())
+                                          .map((line: string, i: number) => {
+                                            const match = line.match(
+                                              /^((?:W\d?|M\d?|Man|Woman|Narrator)\s*:)([\s\S]*)/i,
+                                            );
+                                            if (match) {
+                                              return (
+                                                <p key={i}>
+                                                  <span className="font-bold text-gray-900 dark:text-white">
+                                                    {match[1]}
+                                                  </span>
+                                                  {match[2]}
+                                                </p>
+                                              );
+                                            }
+                                            return <p key={i}>{line.trim()}</p>;
+                                          })}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Separate card: Dịch transcript */}
+                                {group.transcript && (
+                                  <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                                        <Languages className="w-4 h-4" />
+                                        Bản dịch Transcript
+                                      </span>
+                                      {transcriptTranslations[group.groupId] && (
+                                        <button
+                                          onClick={() =>
+                                            toggleTranscriptTranslation(
+                                              group.groupId,
+                                            )
+                                          }
+                                          className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                                            hiddenTranscriptTranslations.has(
+                                              group.groupId,
+                                            )
+                                              ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/60"
+                                              : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-600"
+                                          }`}
+                                        >
+                                          {hiddenTranscriptTranslations.has(
+                                            group.groupId,
+                                          )
+                                            ? "Hiện"
+                                            : "Ẩn"}
+                                        </button>
+                                      )}
+                                    </div>
+                                    {!transcriptTranslations[group.groupId] ? (
+                                      <button
+                                        onClick={() =>
+                                          handleTranslateTranscript(group)
+                                        }
+                                        disabled={
+                                          loadingTranscriptTranslateId ===
+                                          group.groupId
+                                        }
+                                        className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                      >
+                                        {loadingTranscriptTranslateId ===
+                                        group.groupId ? (
+                                          <>
+                                            <Loader2
+                                              size={13}
+                                              className="animate-spin"
+                                            />{" "}
+                                            Đang dịch...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Languages size={13} /> Dịch
+                                            transcript
+                                          </>
+                                        )}
+                                      </button>
+                                    ) : (
+                                      !hiddenTranscriptTranslations.has(
+                                        group.groupId,
+                                      ) && (
+                                        <div className="max-h-[30vh] overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300 leading-7 whitespace-pre-line">
+                                          {transcriptTranslations[group.groupId]}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -670,7 +905,10 @@ export default function ResultPage() {
 
                         <div
                           className={`${
-                            group.imageUrl || group.groupContent || group.audioUrl
+                            group.imageUrl ||
+                            group.groupContent ||
+                            group.audioUrl ||
+                            group.transcript
                               ? "lg:w-1/2"
                               : "w-full"
                           } p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar`}
@@ -756,7 +994,7 @@ export default function ResultPage() {
                               />
                             )}
                             {group.groupContent && (
-                            <div
+                              <div
                                 className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm leading-7 whitespace-pre-line"
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
@@ -769,22 +1007,57 @@ export default function ResultPage() {
                               <div className="mt-3">
                                 {!translations[group.groupId] ? (
                                   <button
-                                    onClick={() => handleTranslatePassage(group)}
-                                    disabled={loadingTranslateId === group.groupId}
+                                    onClick={() =>
+                                      handleTranslatePassage(group)
+                                    }
+                                    disabled={
+                                      loadingTranslateId === group.groupId
+                                    }
                                     className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                   >
                                     {loadingTranslateId === group.groupId ? (
-                                      <><Loader2 size={13} className="animate-spin" /> Đang dịch...</>
+                                      <>
+                                        <Loader2
+                                          size={13}
+                                          className="animate-spin"
+                                        />{" "}
+                                        Đang dịch...
+                                      </>
                                     ) : (
-                                      <><Languages size={13} /> Dịch đoạn văn</>
+                                      <>
+                                        <Languages size={13} /> Dịch đoạn văn
+                                      </>
                                     )}
                                   </button>
                                 ) : (
-                                  <div className="max-h-[35vh] overflow-y-auto custom-scrollbar mt-2 p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-7 whitespace-pre-line">
-                                    <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">
-                                      <Languages size={13} /> Bản dịch tiếng Việt
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
+                                        <Languages size={13} /> Bản dịch tiếng
+                                        Việt
+                                      </span>
+                                      <button
+                                        onClick={() =>
+                                          togglePassageTranslation(
+                                            group.groupId,
+                                          )
+                                        }
+                                        className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                                      >
+                                        {hiddenPassageTranslations.has(
+                                          group.groupId,
+                                        )
+                                          ? "Hiện"
+                                          : "Ẩn"}
+                                      </button>
                                     </div>
-                                    {translations[group.groupId]}
+                                    {!hiddenPassageTranslations.has(
+                                      group.groupId,
+                                    ) && (
+                                      <div className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-7 whitespace-pre-line">
+                                        {translations[group.groupId]}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>

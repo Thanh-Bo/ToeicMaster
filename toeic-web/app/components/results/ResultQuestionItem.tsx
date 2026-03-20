@@ -1,19 +1,28 @@
 "use client";
 
-import { Loader2, Bookmark, Tag, X, Sparkles, Check, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Loader2,
+  Bookmark,
+  Tag,
+  X,
+  Sparkles,
+  Check,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { AnswerOptionResult } from "./AnswerOptionResult";
 
 const BASE_URL = "http://localhost:5298"; // Hoặc import từ file config
 
 interface Props {
   q: any;
-  
+
   currentQuestionId: number | null;
   // Các dữ liệu cần thiết từ cha truyền xuống
   isBookmarked: boolean;
   isBookmarkLoading: boolean;
   isExplainLoading: boolean;
-  
+
   // Các hành động (Callback) gửi ngược lên cha
   onToggleBookmark: (id: number) => void;
   onViewExplanation: (id: number) => void;
@@ -22,7 +31,7 @@ interface Props {
 
 export default function ResultQuestionItem({
   q,
-  
+
   currentQuestionId,
   isBookmarked,
   isBookmarkLoading,
@@ -45,9 +54,7 @@ export default function ResultQuestionItem({
   return (
     <div
       className={`p-4 rounded-xl transition-colors ${
-        currentQuestionId === q.questionId
-          ? ""
-          : ""
+        currentQuestionId === q.questionId ? "" : ""
       }`}
     >
       <div className="flex gap-3 mb-4">
@@ -82,7 +89,7 @@ export default function ResultQuestionItem({
 
       <div
         className={`space-y-2 ml-12 mb-4 ${
-          partNum === 1 || partNum === 2 ? "flex flex-col gap-2 space-y-0" : ""
+          partNum === 1 || partNum === 2 ? "space-y-2" : ""
         }`}
       >
         {partNum === 1 || partNum === 2
@@ -96,7 +103,8 @@ export default function ResultQuestionItem({
                 .toUpperCase();
               const isCorrect = correctOpt === label;
 
-              let btnClass = "border-gray-300 dark:border-zinc-600 bg-gray-200 dark:bg-zinc-900 text-gray-600 dark:text-gray-300";
+              let btnClass =
+                "border-gray-300 dark:border-zinc-600 bg-gray-200 dark:bg-zinc-900 text-gray-600 dark:text-gray-300";
               if (isCorrect)
                 btnClass =
                   "border-green-500 dark:border-green-700 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 ring-2 ring-green-300 dark:ring-green-700";
@@ -107,19 +115,25 @@ export default function ResultQuestionItem({
               return (
                 <div
                   key={label}
-                  className={`flex-1 p-4 rounded-xl border-1 font-bold text-lg text-center ${btnClass}`}
+                  className={`flex items-start gap-3 p-4 rounded-xl border font-medium text-sm ${btnClass}`}
                 >
-                  {label}
-                  {isCorrect && (
-                    <span className="block text-xs mt-1 flex items-center justify-center gap-1">
-                      <Check size={12} /> Đúng
-                    </span>
-                  )}
-                  {isUserSelected && !isCorrect && (
-                    <span className="block text-xs mt-1 flex items-center justify-center gap-1">
-                      <X size={12} /> Sai
-                    </span>
-                  )}
+                  <span className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-base border-2 border-current">
+                    {label}
+                  </span>
+                  <div className="flex-1 pt-1">
+                    <div className="mt-1">
+                      {isCorrect && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold">
+                          <Check size={12} /> Đúng
+                        </span>
+                      )}
+                      {isUserSelected && !isCorrect && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold">
+                          <X size={12} /> Sai
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })
@@ -162,7 +176,6 @@ export default function ResultQuestionItem({
         {/* Nút Xem Giải Thích: Gọi hàm từ Props */}
         <button
           onClick={() => onViewExplanation(q.questionId)}
-          
           className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors 
               
               ${
@@ -202,9 +215,10 @@ export default function ResultQuestionItem({
                   Giải thích ngắn
                 </h4>
               </div>
-              <p className="text-zinc-900 dark:text-zinc-200 font-medium leading-relaxed">
-                {q.shortExplanation}
-              </p>
+              <p
+                className="text-zinc-900 dark:text-zinc-200 font-medium leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: q.shortExplanation }}
+              ></p>
             </div>
           )}
 
@@ -237,7 +251,7 @@ export default function ResultQuestionItem({
           {/* GIẢI THÍCH CHI TIẾT */}
           {q.isDetailOpen && q.fullExplanation && (
             <div className="pt-2 animate-fadeIn">
-              <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-xs text-gray-900 dark:text-gray-100">
+              <div className="bg-white dark:bg-zinc-900 p-4  border-zinc-200 dark:border-zinc-700 shadow-xs text-gray-900 dark:text-gray-100">
                 <div
                   className=" max-w-none text-gray-700 dark:text-white leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: q.fullExplanation }}

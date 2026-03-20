@@ -1,11 +1,11 @@
+using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using OfficeOpenXml;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models.Admin;
-using OfficeOpenXml;
-using System.IO;
 
 namespace ToeicMaster.API.Controllers
 {
@@ -17,7 +17,6 @@ namespace ToeicMaster.API.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-
         private readonly AppDbContext _efContext;
         private readonly IMemoryCache _cache;
         private readonly BlobService _blobService;
@@ -43,19 +42,19 @@ namespace ToeicMaster.API.Controllers
         public async Task<IActionResult> ImportReadingExcel(IFormFile file, [FromQuery] int testId)
         {
             // 1. Kiểm tra file
-            if (file == null || file.Length == 0) return BadRequest("Chưa chọn file!");
-
-
+            if (file == null || file.Length == 0)
+                return BadRequest("Chưa chọn file!");
 
             try
             {
                 // 2. Tìm đề thi (Test) trong DB để gắn câu hỏi vào
-                var test = await _efContext.Tests
-                    .Include(t => t.Parts)
-                    .ThenInclude(p => p.QuestionGroups)
+                var test = await _efContext
+                    .Tests.Include(t => t.Parts)
+                        .ThenInclude(p => p.QuestionGroups)
                     .FirstOrDefaultAsync(t => t.Id == testId);
 
-                if (test == null) return NotFound("Không tìm thấy Test ID này. Hãy tạo Test trước!");
+                if (test == null)
+                    return NotFound("Không tìm thấy Test ID này. Hãy tạo Test trước!");
 
                 int countSuccess = 0;
 
@@ -72,7 +71,8 @@ namespace ToeicMaster.API.Controllers
                         {
                             // Đọc dữ liệu từ ô (Cẩn thận null)
                             string partStr = worksheet.Cells[row, 1].Value?.ToString();
-                            if (string.IsNullOrEmpty(partStr)) continue; // Bỏ qua dòng trống
+                            if (string.IsNullOrEmpty(partStr))
+                                continue; // Bỏ qua dòng trống
 
                             int partNum = int.Parse(partStr); // Cột 1: Part
                             int qNo = int.Parse(worksheet.Cells[row, 2].Value?.ToString() ?? "0"); // Cột 2: Số câu
@@ -84,7 +84,8 @@ namespace ToeicMaster.API.Controllers
                             string optC = worksheet.Cells[row, 6].Value?.ToString() ?? "";
                             string optD = worksheet.Cells[row, 7].Value?.ToString() ?? "";
 
-                            string correctParams = worksheet.Cells[row, 8].Value?.ToString()?.Trim().ToUpper() ?? "A"; // Cột 8: Đáp án đúng
+                            string correctParams =
+                                worksheet.Cells[row, 8].Value?.ToString()?.Trim().ToUpper() ?? "A"; // Cột 8: Đáp án đúng
                             string explain = worksheet.Cells[row, 9].Value?.ToString() ?? ""; // Cột 9: Giải thích
 
                             // --- LOGIC LƯU VÀO DB ---
@@ -93,7 +94,12 @@ namespace ToeicMaster.API.Controllers
                             var part = test.Parts.FirstOrDefault(p => p.PartNumber == partNum);
                             if (part == null)
                             {
-                                part = new Part { Name = $"Part {partNum}", PartNumber = partNum, TestId = test.Id };
+                                part = new Part
+                                {
+                                    Name = $"Part {partNum}",
+                                    PartNumber = partNum,
+                                    TestId = test.Id,
+                                };
                                 test.Parts.Add(part);
                                 await _efContext.SaveChangesAsync(); // Lưu để có ID Part
                             }
@@ -103,7 +109,11 @@ namespace ToeicMaster.API.Controllers
                             var group = part.QuestionGroups.FirstOrDefault();
                             if (group == null)
                             {
-                                group = new QuestionGroup { PartId = part.Id, TextContent = "Incomplete Sentences" };
+                                group = new QuestionGroup
+                                {
+                                    PartId = part.Id,
+                                    TextContent = "Incomplete Sentences",
+                                };
                                 _efContext.QuestionGroups.Add(group);
                                 await _efContext.SaveChangesAsync();
                             }
@@ -116,7 +126,7 @@ namespace ToeicMaster.API.Controllers
                                 Content = content,
                                 CorrectOption = correctParams, // "A", "B"...
                                 QuestionType = "MCQ",
-                                ScoreWeight = 5
+                                ScoreWeight = 5,
                             };
 
                             // Nếu có giải thích
@@ -158,10 +168,17 @@ namespace ToeicMaster.API.Controllers
                 return BadRequest("File không hợp lệ");
 
             // 1. Tìm hoặc tạo Part 6 (Text Completion)
-            var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 6);
+            var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                p.TestId == testId && p.PartNumber == 6
+            );
             if (part == null)
             {
-                part = new Part { TestId = testId, Name = "Part 6: Text Completion", PartNumber = 6 };
+                part = new Part
+                {
+                    TestId = testId,
+                    Name = "Part 6: Text Completion",
+                    PartNumber = 6,
+                };
                 _efContext.Parts.Add(part);
                 await _efContext.SaveChangesAsync();
             }
@@ -182,8 +199,12 @@ namespace ToeicMaster.API.Controllers
                     for (int row = 2; row <= rowCount; row++)
                     {
                         // Lấy nội dung đoạn văn ở Cột A
-                        var passageContent = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");
-                        if (string.IsNullOrEmpty(passageContent)) continue; // Bỏ qua dòng trống
+                        var passageContent = worksheet
+                            .Cells[row, 1]
+                            .Text?.Trim()
+                            .Replace("<br>", "\n");
+                        if (string.IsNullOrEmpty(passageContent))
+                            continue; // Bỏ qua dòng trống
 
                         // --- LOGIC GOM NHÓM ---
                         // Nếu đoạn văn này KHÁC đoạn văn của dòng trước -> Tạo Group mới
@@ -194,7 +215,7 @@ namespace ToeicMaster.API.Controllers
                                 PartId = part.Id,
                                 TextContent = passageContent, // Lưu đoạn văn vào Group
                                 ImageUrl = null,
-                                AudioUrl = null
+                                AudioUrl = null,
                             };
                             _efContext.QuestionGroups.Add(newGroup);
                             await _efContext.SaveChangesAsync(); // Lưu để lấy ID
@@ -214,10 +235,12 @@ namespace ToeicMaster.API.Controllers
                         {
                             GroupId = currentGroupId, // <--- GẮN VÀO GROUP VỪA TẠO
                             QuestionNo = questionNo,
-                            Content = string.IsNullOrEmpty(questionContent) ? $"Question {questionNo}" : questionContent,
+                            Content = string.IsNullOrEmpty(questionContent)
+                                ? $"Question {questionNo}"
+                                : questionContent,
                             CorrectOption = correctOpt,
                             ShortExplanation = null,
-                            FullExplanation = explanation
+                            FullExplanation = explanation,
                         };
                         _efContext.Questions.Add(question);
                         await _efContext.SaveChangesAsync();
@@ -225,10 +248,30 @@ namespace ToeicMaster.API.Controllers
                         // Lưu 4 đáp án
                         var answers = new List<Answer>
                         {
-                            new Answer { QuestionId = question.Id, Label = "A", Content = worksheet.Cells[row, 4].Text },
-                            new Answer { QuestionId = question.Id, Label = "B", Content = worksheet.Cells[row, 5].Text },
-                            new Answer { QuestionId = question.Id, Label = "C", Content = worksheet.Cells[row, 6].Text },
-                            new Answer { QuestionId = question.Id, Label = "D", Content = worksheet.Cells[row, 7].Text }
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "A",
+                                Content = worksheet.Cells[row, 4].Text,
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "B",
+                                Content = worksheet.Cells[row, 5].Text,
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "C",
+                                Content = worksheet.Cells[row, 6].Text,
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "D",
+                                Content = worksheet.Cells[row, 7].Text,
+                            },
                         };
                         _efContext.Answers.AddRange(answers);
                     }
@@ -242,8 +285,6 @@ namespace ToeicMaster.API.Controllers
             return Ok("Import Part 6 thành công!");
         }
 
-
-
         [HttpPost("import-part7")]
         public async Task<IActionResult> ImportPart7(IFormFile file, [FromQuery] int testId)
         {
@@ -252,14 +293,16 @@ namespace ToeicMaster.API.Controllers
                 return BadRequest("Vui lòng upload file Excel.");
 
             // 2. Tìm hoặc Tạo Part 7 trong Database
-            var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 7);
+            var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                p.TestId == testId && p.PartNumber == 7
+            );
             if (part == null)
             {
                 part = new Part
                 {
                     TestId = testId,
                     Name = "Part 7: Reading Comprehension",
-                    PartNumber = 7
+                    PartNumber = 7,
                 };
                 _efContext.Parts.Add(part);
                 await _efContext.SaveChangesAsync();
@@ -284,18 +327,20 @@ namespace ToeicMaster.API.Controllers
                     for (int row = 2; row <= rowCount; row++)
                     {
                         // --- ĐỌC DỮ LIỆU TỪ EXCEL ---
-                        var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");     // Cột A: Đoạn văn   // Cột A: Đoạn văn
-                        var qNoText = worksheet.Cells[row, 2].Text?.Trim();        // Cột B: Số thứ tự
-                        var content = worksheet.Cells[row, 3].Text?.Trim();        // Cột C: Câu hỏi
+                        var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n"); // Cột A: Đoạn văn   // Cột A: Đoạn văn
+                        var qNoText = worksheet.Cells[row, 2].Text?.Trim(); // Cột B: Số thứ tự
+                        var content = worksheet.Cells[row, 3].Text?.Trim(); // Cột C: Câu hỏi
 
                         // Nếu không có số câu hỏi thì bỏ qua dòng này (dòng trống)
-                        if (string.IsNullOrEmpty(qNoText)) continue;
+                        if (string.IsNullOrEmpty(qNoText))
+                            continue;
 
-                        var imageName = worksheet.Cells[row, 10].Text?.Trim();     // Cột J: Tên file ảnh (QUAN TRỌNG)
+                        var imageName = worksheet.Cells[row, 10].Text?.Trim(); // Cột J: Tên file ảnh (QUAN TRỌNG)
 
                         // --- XỬ LÝ LOGIC GOM NHÓM (GROUPING) ---
                         // Nhóm mới được tạo khi: Nội dung đoạn văn thay đổi HOẶC Tên ảnh thay đổi
-                        bool isNewGroup = (passageRaw != lastPassage) || (imageName != lastImageName);
+                        bool isNewGroup =
+                            (passageRaw != lastPassage) || (imageName != lastImageName);
 
                         if (isNewGroup)
                         {
@@ -312,7 +357,7 @@ namespace ToeicMaster.API.Controllers
                                 PartId = part.Id,
                                 TextContent = string.IsNullOrEmpty(passageRaw) ? null : passageRaw,
                                 ImageUrl = finalImageUrl, // Lưu đường dẫn ảnh vào DB
-                                AudioUrl = null
+                                AudioUrl = null,
                             };
 
                             _efContext.QuestionGroups.Add(newGroup);
@@ -327,16 +372,18 @@ namespace ToeicMaster.API.Controllers
 
                         // --- TẠO CÂU HỎI (QUESTION) ---
                         var correctOpt = worksheet.Cells[row, 8].Text?.Trim().ToUpper(); // Cột H
-                        var explain = worksheet.Cells[row, 9].Text?.Trim();              // Cột I
+                        var explain = worksheet.Cells[row, 9].Text?.Trim(); // Cột I
 
                         var question = new Question
                         {
                             GroupId = currentGroupId, // Gắn vào Group vừa tạo/tìm thấy
                             QuestionNo = int.Parse(qNoText),
-                            Content = string.IsNullOrEmpty(content) ? $"Question {qNoText}" : content,
+                            Content = string.IsNullOrEmpty(content)
+                                ? $"Question {qNoText}"
+                                : content,
                             CorrectOption = correctOpt,
                             ShortExplanation = null,
-                            FullExplanation = explain // Thường là NULL để AI tự tạo sau
+                            FullExplanation = explain, // Thường là NULL để AI tự tạo sau
                         };
 
                         _efContext.Questions.Add(question);
@@ -345,10 +392,30 @@ namespace ToeicMaster.API.Controllers
                         // --- TẠO 4 ĐÁP ÁN (ANSWERS) ---
                         var answers = new List<Answer>
                         {
-                            new Answer { QuestionId = question.Id, Label = "A", Content = worksheet.Cells[row, 4].Text }, // Cột D
-                            new Answer { QuestionId = question.Id, Label = "B", Content = worksheet.Cells[row, 5].Text }, // Cột E
-                            new Answer { QuestionId = question.Id, Label = "C", Content = worksheet.Cells[row, 6].Text }, // Cột F
-                            new Answer { QuestionId = question.Id, Label = "D", Content = worksheet.Cells[row, 7].Text }  // Cột G
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "A",
+                                Content = worksheet.Cells[row, 4].Text,
+                            }, // Cột D
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "B",
+                                Content = worksheet.Cells[row, 5].Text,
+                            }, // Cột E
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "C",
+                                Content = worksheet.Cells[row, 6].Text,
+                            }, // Cột F
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "D",
+                                Content = worksheet.Cells[row, 7].Text,
+                            }, // Cột G
                         };
                         _efContext.Answers.AddRange(answers);
                     }
@@ -364,20 +431,21 @@ namespace ToeicMaster.API.Controllers
             return Ok(new { message = "Import Part 7 thành công!", count = "Check DB" });
         }
 
-
         [HttpPost("import-part1-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart1DataOnly(
-    IFormFile excelFile,
-    List<IFormFile>? images,
-    List<IFormFile>? audios,
-    [FromQuery] int testId)
+            IFormFile excelFile,
+            List<IFormFile>? images,
+            List<IFormFile>? audios,
+            [FromQuery] int testId
+        )
         {
             if (excelFile == null || excelFile.Length == 0)
                 return BadRequest("Vui lòng upload file Excel.");
 
             var test = await _efContext.Tests.FindAsync(testId);
-            if (test == null) return NotFound("Không tìm thấy Test.");
+            if (test == null)
+                return NotFound("Không tìm thấy Test.");
 
             string testFolderName = test.Slug ?? $"test-{test.Id}";
             string audioFolderPath = $"audios/{testFolderName}/part1";
@@ -386,10 +454,17 @@ namespace ToeicMaster.API.Controllers
             try
             {
                 // 1. Tạo Part 1 nếu chưa có
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 1);
+                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                    p.TestId == testId && p.PartNumber == 1
+                );
                 if (part == null)
                 {
-                    part = new Part { Name = "Part 1: Photographs", PartNumber = 1, TestId = testId };
+                    part = new Part
+                    {
+                        Name = "Part 1: Photographs",
+                        PartNumber = 1,
+                        TestId = testId,
+                    };
                     _efContext.Parts.Add(part);
                     await _efContext.SaveChangesAsync();
                 }
@@ -407,13 +482,14 @@ namespace ToeicMaster.API.Controllers
 
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var qNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A
-                    if (string.IsNullOrEmpty(qNoText)) continue;
+                    var qNoText = worksheet.Cells[row, 1].Text?.Trim(); // Col A
+                    if (string.IsNullOrEmpty(qNoText))
+                        continue;
 
                     var qNo = int.Parse(qNoText);
-                    var imgName = worksheet.Cells[row, 2].Text?.Trim();  // Col B - Image
+                    var imgName = worksheet.Cells[row, 2].Text?.Trim(); // Col B - Image
                     var transcript = worksheet.Cells[row, 3].Text?.Trim(); // Col C - Transcript (4 options)
-                    var correctOpt = worksheet.Cells[row, 4].Text?.Trim().ToUpper();  // Col D - Answer
+                    var correctOpt = worksheet.Cells[row, 4].Text?.Trim().ToUpper(); // Col D - Answer
                     var audioName = worksheet.Cells[row, 5].Text?.Trim(); // Col E - Audio File
 
                     // --- XỬ LÝ ẢNH ---
@@ -424,11 +500,22 @@ namespace ToeicMaster.API.Controllers
                             finalImageUrl = savedImages[imgName];
                         else
                         {
-                            var imgFile = images?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(imgName, StringComparison.OrdinalIgnoreCase));
+                            var imgFile = images?.FirstOrDefault(f =>
+                                Path.GetFileName(f.FileName)
+                                    .Equals(imgName, StringComparison.OrdinalIgnoreCase)
+                            );
                             if (imgFile != null)
                             {
-                                finalImageUrl = await _blobService.UploadFileAsync(imgFile, imageFolderPath);
+                                finalImageUrl = await _blobService.UploadFileAsync(
+                                    imgFile,
+                                    imageFolderPath
+                                );
                                 savedImages[imgName] = finalImageUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu ảnh '{imgName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -441,10 +528,16 @@ namespace ToeicMaster.API.Controllers
                             finalAudioUrl = savedAudios[audioName];
                         else
                         {
-                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            var audioFile = audios?.FirstOrDefault(f =>
+                                Path.GetFileName(f.FileName)
+                                    .Equals(audioName, StringComparison.OrdinalIgnoreCase)
+                            );
                             if (audioFile != null)
                             {
-                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
+                                finalAudioUrl = await _blobService.UploadFileAsync(
+                                    audioFile,
+                                    audioFolderPath
+                                );
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -455,9 +548,9 @@ namespace ToeicMaster.API.Controllers
                     {
                         PartId = part.Id,
                         ImageUrl = finalImageUrl,
-                        AudioUrl = finalAudioUrl,  // AUDIO URL
+                        AudioUrl = finalAudioUrl, // AUDIO URL
                         Transcript = transcript,
-                        TextContent = null
+                        TextContent = null,
                     };
                     _efContext.QuestionGroups.Add(group);
                     await _efContext.SaveChangesAsync();
@@ -468,19 +561,39 @@ namespace ToeicMaster.API.Controllers
                         QuestionNo = qNo,
                         Content = "Look at the picture and listen to the statements.",
                         CorrectOption = correctOpt,
-                        QuestionType = "MCQ"
+                        QuestionType = "MCQ",
                     };
                     _efContext.Questions.Add(question);
                     await _efContext.SaveChangesAsync();
 
                     // Tạo 4 đáp án (Label A, B, C, D)
                     var answers = new List<Answer>
-            {
-                new Answer { QuestionId = question.Id, Label = "A", Content = "(A)" },
-                new Answer { QuestionId = question.Id, Label = "B", Content = "(B)" },
-                new Answer { QuestionId = question.Id, Label = "C", Content = "(C)" },
-                new Answer { QuestionId = question.Id, Label = "D", Content = "(D)" }
-            };
+                    {
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "A",
+                            Content = "(A)",
+                        },
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "B",
+                            Content = "(B)",
+                        },
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "C",
+                            Content = "(C)",
+                        },
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "D",
+                            Content = "(D)",
+                        },
+                    };
                     _efContext.Answers.AddRange(answers);
                     countSuccess++;
                 }
@@ -488,11 +601,12 @@ namespace ToeicMaster.API.Controllers
                 await _efContext.SaveChangesAsync();
                 InvalidateTestCache(testId);
 
-                return Ok(new
-                {
-                    message = $"Import Part 1 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
-
-                });
+                return Ok(
+                    new
+                    {
+                        message = $"Import Part 1 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
+                    }
+                );
             }
             catch (Exception ex)
             {
@@ -507,25 +621,34 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part2-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart2DataOnly(
-    IFormFile excelFile,
-    List<IFormFile>? audios,
-    [FromQuery] int testId)
+            IFormFile excelFile,
+            List<IFormFile>? audios,
+            [FromQuery] int testId
+        )
         {
             if (excelFile == null || excelFile.Length == 0)
                 return BadRequest("Vui lòng upload file Excel.");
 
             var test = await _efContext.Tests.FindAsync(testId);
-            if (test == null) return NotFound("Không tìm thấy Test.");
+            if (test == null)
+                return NotFound("Không tìm thấy Test.");
 
             string testFolderName = test.Slug ?? $"test-{test.Id}";
             string audioFolderPath = $"audios/{testFolderName}/part2";
 
             try
             {
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 2);
+                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                    p.TestId == testId && p.PartNumber == 2
+                );
                 if (part == null)
                 {
-                    part = new Part { Name = "Part 2: Question-Response", PartNumber = 2, TestId = testId };
+                    part = new Part
+                    {
+                        Name = "Part 2: Question-Response",
+                        PartNumber = 2,
+                        TestId = testId,
+                    };
                     _efContext.Parts.Add(part);
                     await _efContext.SaveChangesAsync();
                 }
@@ -541,13 +664,14 @@ namespace ToeicMaster.API.Controllers
 
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var qNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A
-                    if (string.IsNullOrEmpty(qNoText)) continue;
+                    var qNoText = worksheet.Cells[row, 1].Text?.Trim(); // Col A
+                    if (string.IsNullOrEmpty(qNoText))
+                        continue;
 
                     var qNo = int.Parse(qNoText);
-                    var transcript = worksheet.Cells[row, 2].Text?.Trim();  // Col B - Transcript
-                    var correctOpt = worksheet.Cells[row, 3].Text?.Trim().ToUpper();  // Col C - Answer
-                    var audioName = worksheet.Cells[row, 4].Text?.Trim();  // Col D - Audio File (NEW)
+                    var transcript = worksheet.Cells[row, 2].Text?.Trim(); // Col B - Transcript
+                    var correctOpt = worksheet.Cells[row, 3].Text?.Trim().ToUpper(); // Col C - Answer
+                    var audioName = worksheet.Cells[row, 4].Text?.Trim(); // Col D - Audio File (NEW)
 
                     // --- XỬ LÝ AUDIO ---
                     string? finalAudioUrl = null;
@@ -557,10 +681,16 @@ namespace ToeicMaster.API.Controllers
                             finalAudioUrl = savedAudios[audioName];
                         else
                         {
-                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            var audioFile = audios?.FirstOrDefault(f =>
+                                Path.GetFileName(f.FileName)
+                                    .Equals(audioName, StringComparison.OrdinalIgnoreCase)
+                            );
                             if (audioFile != null)
                             {
-                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
+                                finalAudioUrl = await _blobService.UploadFileAsync(
+                                    audioFile,
+                                    audioFolderPath
+                                );
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -570,10 +700,10 @@ namespace ToeicMaster.API.Controllers
                     var group = new QuestionGroup
                     {
                         PartId = part.Id,
-                        AudioUrl = finalAudioUrl,  // AUDIO URL
-                        Transcript = transcript,    // Lưu Question + Answers text
+                        AudioUrl = finalAudioUrl, // AUDIO URL
+                        Transcript = transcript, // Lưu Question + Answers text
                         ImageUrl = null,
-                        TextContent = null
+                        TextContent = null,
                     };
                     _efContext.QuestionGroups.Add(group);
                     await _efContext.SaveChangesAsync();
@@ -584,18 +714,33 @@ namespace ToeicMaster.API.Controllers
                         QuestionNo = qNo,
                         Content = "Listen to the question and choose the best response.",
                         CorrectOption = correctOpt,
-                        QuestionType = "MCQ"
+                        QuestionType = "MCQ",
                     };
                     _efContext.Questions.Add(question);
                     await _efContext.SaveChangesAsync();
 
                     // Part 2 chỉ có 3 đáp án A, B, C
                     var answers = new List<Answer>
-            {
-                new Answer { QuestionId = question.Id, Label = "A", Content = "(A)" },
-                new Answer { QuestionId = question.Id, Label = "B", Content = "(B)" },
-                new Answer { QuestionId = question.Id, Label = "C", Content = "(C)" }
-            };
+                    {
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "A",
+                            Content = "(A)",
+                        },
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "B",
+                            Content = "(B)",
+                        },
+                        new Answer
+                        {
+                            QuestionId = question.Id,
+                            Label = "C",
+                            Content = "(C)",
+                        },
+                    };
                     _efContext.Answers.AddRange(answers);
                     countSuccess++;
                 }
@@ -603,17 +748,20 @@ namespace ToeicMaster.API.Controllers
                 await _efContext.SaveChangesAsync();
                 InvalidateTestCache(testId);
 
-                return Ok(new
-                {
-                    message = $"Import Part 2 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
-                    nextStep = "Dữ liệu âm thanh đã được lưu thành công."
-                });
+                return Ok(
+                    new
+                    {
+                        message = $"Import Part 2 thành công! Đã nhập {countSuccess} câu hỏi với âm thanh.",
+                        nextStep = "Dữ liệu âm thanh đã được lưu thành công.",
+                    }
+                );
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
         // =============================================
         // IMPORT PART 3 - Conversations (39 câu: 32-70, 13 hội thoại × 3 câu)
         // Đặc điểm: 1 audio/nhóm, có thể có ảnh, 3 câu hỏi/nhóm, 4 đáp án/câu
@@ -621,16 +769,18 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part3-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart3DataOnly(
-    IFormFile excelFile,
-    List<IFormFile>? images,
-    List<IFormFile>? audios,
-    [FromQuery] int testId) 
+            IFormFile excelFile,
+            List<IFormFile>? images,
+            List<IFormFile>? audios,
+            [FromQuery] int testId
+        )
         {
             if (excelFile == null || excelFile.Length == 0)
                 return BadRequest("Vui lòng upload file Excel.");
 
             var test = await _efContext.Tests.FindAsync(testId);
-            if (test == null) return NotFound("Không tìm thấy Test với ID này.");
+            if (test == null)
+                return NotFound("Không tìm thấy Test với ID này.");
 
             string testFolderName = test.Slug ?? $"test-{test.Id}";
             string audioFolderPath = $"audios/{testFolderName}/part3";
@@ -638,10 +788,17 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 3);
+                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                    p.TestId == testId && p.PartNumber == 3
+                );
                 if (part == null)
                 {
-                    part = new Part { Name = "Part 3: Conversations", PartNumber = 3, TestId = testId };
+                    part = new Part
+                    {
+                        Name = "Part 3: Conversations",
+                        PartNumber = 3,
+                        TestId = testId,
+                    };
                     _efContext.Parts.Add(part);
                     await _efContext.SaveChangesAsync();
                 }
@@ -661,11 +818,12 @@ namespace ToeicMaster.API.Controllers
                 for (int row = 2; row <= rowCount; row++)
                 {
                     var groupNoText = worksheet.Cells[row, 1].Text?.Trim();
-                    if (string.IsNullOrEmpty(groupNoText)) continue;
+                    if (string.IsNullOrEmpty(groupNoText))
+                        continue;
 
-                    var imageName = worksheet.Cells[row, 2].Text?.Trim();  // Col B (2)
-                    var transcript = worksheet.Cells[row, 3].Text?.Trim();  // Col C (3)
-                    var audioName = worksheet.Cells[row, 4].Text?.Trim();  // Col D (4) - Audio File (NEW)
+                    var imageName = worksheet.Cells[row, 2].Text?.Trim(); // Col B (2)
+                    var transcript = worksheet.Cells[row, 3].Text?.Trim(); // Col C (3)
+                    var audioName = worksheet.Cells[row, 4].Text?.Trim(); // Col D (4) - Audio File (NEW)
 
                     string? finalImageUrl = null;
 
@@ -677,12 +835,22 @@ namespace ToeicMaster.API.Controllers
                         else
                         {
                             var imgFile = images?.FirstOrDefault(f =>
-                                Path.GetFileName(f.FileName).Equals(imageName, StringComparison.OrdinalIgnoreCase));
+                                Path.GetFileName(f.FileName)
+                                    .Equals(imageName, StringComparison.OrdinalIgnoreCase)
+                            );
 
                             if (imgFile != null)
                             {
-                                finalImageUrl = await _blobService.UploadFileAsync(imgFile, imageFolderPath);
+                                finalImageUrl = await _blobService.UploadFileAsync(
+                                    imgFile,
+                                    imageFolderPath
+                                );
                                 savedImages[imageName] = finalImageUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu ảnh $'{imageName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -695,10 +863,16 @@ namespace ToeicMaster.API.Controllers
                             finalAudioUrl = savedAudios[audioName];
                         else
                         {
-                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            var audioFile = audios?.FirstOrDefault(f =>
+                                Path.GetFileName(f.FileName)
+                                    .Equals(audioName, StringComparison.OrdinalIgnoreCase)
+                            );
                             if (audioFile != null)
                             {
-                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
+                                finalAudioUrl = await _blobService.UploadFileAsync(
+                                    audioFile,
+                                    audioFolderPath
+                                );
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -711,7 +885,7 @@ namespace ToeicMaster.API.Controllers
                         Transcript = transcript,
                         AudioUrl = finalAudioUrl,
                         ImageUrl = finalImageUrl,
-                        TextContent = null
+                        TextContent = null,
                     };
 
                     _efContext.QuestionGroups.Add(group);
@@ -719,7 +893,7 @@ namespace ToeicMaster.API.Controllers
                     countGroups++;
 
                     // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 5 (E)
-                    int col = 5;  // E = Q1 No (shifted because audio is now in Col D)
+                    int col = 5; // E = Q1 No (shifted because audio is now in Col D)
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
@@ -731,13 +905,15 @@ namespace ToeicMaster.API.Controllers
                             continue;
                         }
 
-                        var qContent = worksheet.Cells[row, col + 1].Text?.Trim();  // E
-                        var optA = worksheet.Cells[row, col + 2].Text?.Trim();      // F
-                        var optB = worksheet.Cells[row, col + 3].Text?.Trim();      // G
-                        var optC = worksheet.Cells[row, col + 4].Text?.Trim();      // H
-                        var optD = worksheet.Cells[row, col + 5].Text?.Trim();      // I
+                        var qContent = worksheet.Cells[row, col + 1].Text?.Trim(); // E
+                        var optA = worksheet.Cells[row, col + 2].Text?.Trim(); // F
+                        var optB = worksheet.Cells[row, col + 3].Text?.Trim(); // G
+                        var optC = worksheet.Cells[row, col + 4].Text?.Trim(); // H
+                        var optD = worksheet.Cells[row, col + 5].Text?.Trim(); // I
                         var correctOptText = worksheet.Cells[row, col + 6].Text?.Trim();
-                        var correctOpt = string.IsNullOrEmpty(correctOptText) ? "A" : correctOptText.ToUpperInvariant();
+                        var correctOpt = string.IsNullOrEmpty(correctOptText)
+                            ? "A"
+                            : correctOptText.ToUpperInvariant();
 
                         var question = new Question
                         {
@@ -745,17 +921,37 @@ namespace ToeicMaster.API.Controllers
                             QuestionNo = qNo,
                             Content = qContent ?? "",
                             CorrectOption = correctOpt,
-                            QuestionType = "MCQ"
+                            QuestionType = "MCQ",
                         };
                         _efContext.Questions.Add(question);
                         await _efContext.SaveChangesAsync();
 
                         var answers = new List<Answer>
                         {
-                            new Answer { QuestionId = question.Id, Label = "A", Content = optA ?? "(A)" },
-                            new Answer { QuestionId = question.Id, Label = "B", Content = optB ?? "(B)" },
-                            new Answer { QuestionId = question.Id, Label = "C", Content = optC ?? "(C)" },
-                            new Answer { QuestionId = question.Id, Label = "D", Content = optD ?? "(D)" }
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "A",
+                                Content = optA ?? "(A)",
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "B",
+                                Content = optB ?? "(B)",
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "C",
+                                Content = optC ?? "(C)",
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "D",
+                                Content = optD ?? "(D)",
+                            },
                         };
                         _efContext.Answers.AddRange(answers);
                         countQuestions++;
@@ -765,13 +961,21 @@ namespace ToeicMaster.API.Controllers
                     await _efContext.SaveChangesAsync();
                 }
 
-                return Ok(new { message = "Import Part 3 thành công", countGroups, countQuestions });
+                return Ok(
+                    new
+                    {
+                        message = "Import Part 3 thành công",
+                        countGroups,
+                        countQuestions,
+                    }
+                );
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
         // =============================================
         // IMPORT PART 4 - Talks (30 câu: 71-100, 10 bài nói × 3 câu)
         // Đặc điểm: Giống Part 3 nhưng là bài nói đơn (monologue)
@@ -779,16 +983,18 @@ namespace ToeicMaster.API.Controllers
         [HttpPost("import-part4-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart4DataOnly(
-   IFormFile excelFile,
-   List<IFormFile>? images,
-   List<IFormFile>? audios,
-   [FromQuery] int testId)
+            IFormFile excelFile,
+            List<IFormFile>? images,
+            List<IFormFile>? audios,
+            [FromQuery] int testId
+        )
         {
             if (excelFile == null || excelFile.Length == 0)
                 return BadRequest("Vui lòng upload file Excel.");
 
             var test = await _efContext.Tests.FindAsync(testId);
-            if (test == null) return NotFound("Không tìm thấy Test với ID này.");
+            if (test == null)
+                return NotFound("Không tìm thấy Test với ID này.");
 
             string testFolderName = test.Slug ?? $"test-{test.Id}";
             string audioFolderPath = $"audios/{testFolderName}/part4";
@@ -797,10 +1003,17 @@ namespace ToeicMaster.API.Controllers
             try
             {
                 // 1. Tạo hoặc lấy Part 4
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == 4);
+                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                    p.TestId == testId && p.PartNumber == 4
+                );
                 if (part == null)
                 {
-                    part = new Part { Name = "Part 4: Talks", PartNumber = 4, TestId = testId };
+                    part = new Part
+                    {
+                        Name = "Part 4: Talks",
+                        PartNumber = 4,
+                        TestId = testId,
+                    };
                     _efContext.Parts.Add(part);
                     await _efContext.SaveChangesAsync();
                 }
@@ -820,12 +1033,13 @@ namespace ToeicMaster.API.Controllers
                 // Loop qua Excel
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var groupNoText = worksheet.Cells[row, 1].Text?.Trim();  // Col A - GroupNo
-                    if (string.IsNullOrEmpty(groupNoText)) continue;
+                    var groupNoText = worksheet.Cells[row, 1].Text?.Trim(); // Col A - GroupNo
+                    if (string.IsNullOrEmpty(groupNoText))
+                        continue;
 
-                    var imageName = worksheet.Cells[row, 2].Text?.Trim();    // Col B - Image
-                    var transcript = worksheet.Cells[row, 3].Text?.Trim();   // Col C - Transcript
-                    var audioName = worksheet.Cells[row, 4].Text?.Trim();    // Col D - Audio File (NEW)
+                    var imageName = worksheet.Cells[row, 2].Text?.Trim(); // Col B - Image
+                    var transcript = worksheet.Cells[row, 3].Text?.Trim(); // Col C - Transcript
+                    var audioName = worksheet.Cells[row, 4].Text?.Trim(); // Col D - Audio File (NEW)
 
                     // Câu hỏi bắt đầu từ Col E (5)
 
@@ -838,12 +1052,22 @@ namespace ToeicMaster.API.Controllers
                         else
                         {
                             var imgFile = images?.FirstOrDefault(f =>
-                                Path.GetFileName(f.FileName).Equals(imageName, StringComparison.OrdinalIgnoreCase));
+                                Path.GetFileName(f.FileName)
+                                    .Equals(imageName, StringComparison.OrdinalIgnoreCase)
+                            );
 
                             if (imgFile != null)
                             {
-                                finalImageUrl = await _blobService.UploadFileAsync(imgFile, imageFolderPath);
+                                finalImageUrl = await _blobService.UploadFileAsync(
+                                    imgFile,
+                                    imageFolderPath
+                                );
                                 savedImages[imageName] = finalImageUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu ảnh  nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -856,10 +1080,16 @@ namespace ToeicMaster.API.Controllers
                             finalAudioUrl = savedAudios[audioName];
                         else
                         {
-                            var audioFile = audios?.FirstOrDefault(f => Path.GetFileName(f.FileName).Equals(audioName, StringComparison.OrdinalIgnoreCase));
+                            var audioFile = audios?.FirstOrDefault(f =>
+                                Path.GetFileName(f.FileName)
+                                    .Equals(audioName, StringComparison.OrdinalIgnoreCase)
+                            );
                             if (audioFile != null)
                             {
-                                finalAudioUrl = await _blobService.UploadFileAsync(audioFile, audioFolderPath);
+                                finalAudioUrl = await _blobService.UploadFileAsync(
+                                    audioFile,
+                                    audioFolderPath
+                                );
                                 savedAudios[audioName] = finalAudioUrl;
                             }
                         }
@@ -870,9 +1100,9 @@ namespace ToeicMaster.API.Controllers
                     {
                         PartId = part.Id,
                         Transcript = transcript,
-                        AudioUrl = finalAudioUrl,  // AUDIO URL
+                        AudioUrl = finalAudioUrl, // AUDIO URL
                         ImageUrl = finalImageUrl,
-                        TextContent = null
+                        TextContent = null,
                     };
 
                     _efContext.QuestionGroups.Add(group);
@@ -880,7 +1110,7 @@ namespace ToeicMaster.API.Controllers
                     countGroups++;
 
                     // Lưu 3 câu hỏi - CỘT BẮT ĐẦU TỪ 5 (E) - GIỐNG PART 3
-                    int col = 5;  // E = Q1 No (shifted because audio is now in Col D)
+                    int col = 5; // E = Q1 No (shifted because audio is now in Col D)
                     for (int q = 0; q < 3; q++)
                     {
                         var qNoText = worksheet.Cells[row, col].Text?.Trim();
@@ -898,7 +1128,9 @@ namespace ToeicMaster.API.Controllers
                         var optC = worksheet.Cells[row, col + 4].Text?.Trim();
                         var optD = worksheet.Cells[row, col + 5].Text?.Trim();
                         var correctOptText = worksheet.Cells[row, col + 6].Text?.Trim();
-                        var correctOpt = string.IsNullOrEmpty(correctOptText) ? "A" : correctOptText.ToUpperInvariant();
+                        var correctOpt = string.IsNullOrEmpty(correctOptText)
+                            ? "A"
+                            : correctOptText.ToUpperInvariant();
 
                         var question = new Question
                         {
@@ -906,18 +1138,38 @@ namespace ToeicMaster.API.Controllers
                             QuestionNo = qNo,
                             Content = qContent ?? "",
                             CorrectOption = correctOpt,
-                            QuestionType = "MCQ"
+                            QuestionType = "MCQ",
                         };
                         _efContext.Questions.Add(question);
                         await _efContext.SaveChangesAsync();
 
                         var answers = new List<Answer>
-                {
-                    new Answer { QuestionId = question.Id, Label = "A", Content = optA ?? "(A)" },
-                    new Answer { QuestionId = question.Id, Label = "B", Content = optB ?? "(B)" },
-                    new Answer { QuestionId = question.Id, Label = "C", Content = optC ?? "(C)" },
-                    new Answer { QuestionId = question.Id, Label = "D", Content = optD ?? "(D)" }
-                };
+                        {
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "A",
+                                Content = optA ?? "(A)",
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "B",
+                                Content = optB ?? "(B)",
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "C",
+                                Content = optC ?? "(C)",
+                            },
+                            new Answer
+                            {
+                                QuestionId = question.Id,
+                                Label = "D",
+                                Content = optD ?? "(D)",
+                            },
+                        };
                         _efContext.Answers.AddRange(answers);
                         countQuestions++;
                         col += 7;
@@ -927,19 +1179,12 @@ namespace ToeicMaster.API.Controllers
                 await _efContext.SaveChangesAsync();
 
                 // Return thông báo rõ ràng cho Frontend biết bước tiếp theo
-                return Ok(new
-                {
-                    message = "Import dữ liệu thành công!"
-                });
+                return Ok(new { message = "Import dữ liệu thành công!" });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = ex.Message });
             }
         }
-
-
-
-
     }
 }

@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using ToeicMaster.API.Controllers;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models.Admin;
 using ToeicMaster.API.Models.Exam;
-using ToeicMaster.API.Controllers;
+
 namespace ToeicMaster.API.Controllers
 {
     /// <summary>
@@ -20,7 +21,11 @@ namespace ToeicMaster.API.Controllers
         private readonly IMemoryCache _cache;
         private readonly BlobService _blobService;
 
-        public TestManagementController(AppDbContext efContext, IMemoryCache cache, BlobService blobService)
+        public TestManagementController(
+            AppDbContext efContext,
+            IMemoryCache cache,
+            BlobService blobService
+        )
         {
             _efContext = efContext;
             _cache = cache;
@@ -58,8 +63,8 @@ namespace ToeicMaster.API.Controllers
         [HttpGet("tests")]
         public async Task<IActionResult> GetAllTests()
         {
-            var tests = await _efContext.Tests
-                .Select(t => new
+            var tests = await _efContext
+                .Tests.Select(t => new
                 {
                     t.Id,
                     t.Title,
@@ -71,7 +76,14 @@ namespace ToeicMaster.API.Controllers
                     t.IsActive,
                     t.CreatedAt,
                     PartsCount = t.Parts.Count,
-                    Parts = t.Parts.Select(p => new { p.Id, p.Name, p.PartNumber }).OrderBy(p => p.PartNumber)
+                    Parts = t
+                        .Parts.Select(p => new
+                        {
+                            p.Id,
+                            p.Name,
+                            p.PartNumber,
+                        })
+                        .OrderBy(p => p.PartNumber),
                 })
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
@@ -85,8 +97,8 @@ namespace ToeicMaster.API.Controllers
         [HttpGet("tests/{testId}")]
         public async Task<IActionResult> GetTestById(int testId)
         {
-            var test = await _efContext.Tests
-                .Include(t => t.Parts)
+            var test = await _efContext
+                .Tests.Include(t => t.Parts)
                 .Where(t => t.Id == testId)
                 .Select(t => new
                 {
@@ -99,13 +111,15 @@ namespace ToeicMaster.API.Controllers
                     t.TotalParticipants,
                     t.IsActive,
                     t.CreatedAt,
-                    Parts = t.Parts.Select(p => new
-                    {
-                        p.Id,
-                        p.Name,
-                        p.PartNumber,
-                        QuestionsCount = p.QuestionGroups.SelectMany(g => g.Questions).Count()
-                    }).OrderBy(p => p.PartNumber)
+                    Parts = t
+                        .Parts.Select(p => new
+                        {
+                            p.Id,
+                            p.Name,
+                            p.PartNumber,
+                            QuestionsCount = p.QuestionGroups.SelectMany(g => g.Questions).Count(),
+                        })
+                        .OrderBy(p => p.PartNumber),
                 })
                 .FirstOrDefaultAsync();
 
@@ -132,20 +146,30 @@ namespace ToeicMaster.API.Controllers
                 Duration = request.Duration ?? 120,
                 TotalQuestions = request.TotalQuestions ?? 200,
                 IsActive = true,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
             };
 
             _efContext.Tests.Add(test);
             await _efContext.SaveChangesAsync();
 
-            return Ok(new { message = "Tạo đề thi thành công!", testId = test.Id, data = test });
+            return Ok(
+                new
+                {
+                    message = "Tạo đề thi thành công!",
+                    testId = test.Id,
+                    data = test,
+                }
+            );
         }
 
         /// <summary>
         /// Cập nhật thông tin Test
         /// </summary>
         [HttpPut("tests/{testId}")]
-        public async Task<IActionResult> UpdateTest(int testId, [FromBody] UpdateTestRequest request)
+        public async Task<IActionResult> UpdateTest(
+            int testId,
+            [FromBody] UpdateTestRequest request
+        )
         {
             var test = await _efContext.Tests.FindAsync(testId);
             if (test == null)
@@ -183,76 +207,74 @@ namespace ToeicMaster.API.Controllers
                     return NotFound(new { error = $"Không tìm thấy Test ID {testId}" });
 
                 // Lấy danh sách Part của Test
-                var partIds = await _efContext.Parts
-                    .Where(p => p.TestId == testId)
+                var partIds = await _efContext
+                    .Parts.Where(p => p.TestId == testId)
                     .Select(p => p.Id)
                     .ToListAsync();
 
                 // Lấy danh sách QuestionGroup
-                var groupIds = await _efContext.QuestionGroups
-                    .Where(qg => partIds.Contains(qg.PartId))
+                var groupIds = await _efContext
+                    .QuestionGroups.Where(qg => partIds.Contains(qg.PartId))
                     .Select(qg => qg.Id)
                     .ToListAsync();
 
                 // Lấy danh sách Question
-                var questionIds = await _efContext.Questions
-                    .Where(q => groupIds.Contains(q.GroupId))
+                var questionIds = await _efContext
+                    .Questions.Where(q => groupIds.Contains(q.GroupId))
                     .Select(q => q.Id)
                     .ToListAsync();
 
                 // Xóa theo thứ tự từ con đến cha
 
                 // Xóa TestAttempts và dữ liệu liên quan
-                var attemptIds = await _efContext.TestAttempts
-                    .Where(ta => ta.TestId == testId)
+                var attemptIds = await _efContext
+                    .TestAttempts.Where(ta => ta.TestId == testId)
                     .Select(ta => ta.Id)
                     .ToListAsync();
 
                 // Xóa ReviewFeedbacks
-                var userAnswerIds = await _efContext.UserAnswers
-                    .Where(ua => attemptIds.Contains(ua.AttemptId))
+                var userAnswerIds = await _efContext
+                    .UserAnswers.Where(ua => attemptIds.Contains(ua.AttemptId))
                     .Select(ua => ua.Id)
                     .ToListAsync();
 
-                var reviewFeedbacks = await _efContext.ReviewFeedbacks
-                    .Where(rf => userAnswerIds.Contains(rf.UserAnswerId))
+                var reviewFeedbacks = await _efContext
+                    .ReviewFeedbacks.Where(rf => userAnswerIds.Contains(rf.UserAnswerId))
                     .ToListAsync();
                 _efContext.ReviewFeedbacks.RemoveRange(reviewFeedbacks);
 
                 // Xóa UserAnswers
-                var userAnswers = await _efContext.UserAnswers
-                    .Where(ua => attemptIds.Contains(ua.AttemptId))
+                var userAnswers = await _efContext
+                    .UserAnswers.Where(ua => attemptIds.Contains(ua.AttemptId))
                     .ToListAsync();
                 _efContext.UserAnswers.RemoveRange(userAnswers);
 
                 // Xóa TestAttempts
-                var testAttempts = await _efContext.TestAttempts
-                    .Where(ta => ta.TestId == testId)
+                var testAttempts = await _efContext
+                    .TestAttempts.Where(ta => ta.TestId == testId)
                     .ToListAsync();
                 _efContext.TestAttempts.RemoveRange(testAttempts);
 
                 // Xóa Answers
-                var answers = await _efContext.Answers
-                    .Where(a => questionIds.Contains(a.QuestionId))
+                var answers = await _efContext
+                    .Answers.Where(a => questionIds.Contains(a.QuestionId))
                     .ToListAsync();
                 _efContext.Answers.RemoveRange(answers);
 
                 // Xóa Questions
-                var questions = await _efContext.Questions
-                    .Where(q => groupIds.Contains(q.GroupId))
+                var questions = await _efContext
+                    .Questions.Where(q => groupIds.Contains(q.GroupId))
                     .ToListAsync();
                 _efContext.Questions.RemoveRange(questions);
 
                 // Xóa QuestionGroups
-                var groups = await _efContext.QuestionGroups
-                    .Where(qg => partIds.Contains(qg.PartId))
+                var groups = await _efContext
+                    .QuestionGroups.Where(qg => partIds.Contains(qg.PartId))
                     .ToListAsync();
                 // _efContext.QuestionGroups.RemoveRange(groups);
 
                 // Xóa Parts
-                var parts = await _efContext.Parts
-                    .Where(p => p.TestId == testId)
-                    .ToListAsync();
+                var parts = await _efContext.Parts.Where(p => p.TestId == testId).ToListAsync();
                 _efContext.Parts.RemoveRange(parts);
                 var mediaUrlsToDelete = new List<string>();
 
@@ -279,11 +301,19 @@ namespace ToeicMaster.API.Controllers
                 await _efContext.SaveChangesAsync();
                 InvalidateTestCache(testId);
 
-                return Ok(new { message = $"Đã xóa thành công Test ID {testId} và toàn bộ dữ liệu liên quan" });
+                return Ok(
+                    new
+                    {
+                        message = $"Đã xóa thành công Test ID {testId} và toàn bộ dữ liệu liên quan",
+                    }
+                );
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+                return StatusCode(
+                    500,
+                    new { error = ex.Message, detail = ex.InnerException?.Message }
+                );
             }
         }
 
@@ -301,15 +331,15 @@ namespace ToeicMaster.API.Controllers
             if (test == null)
                 return NotFound(new { error = $"Không tìm thấy Test ID {testId}" });
 
-            var parts = await _efContext.Parts
-                .Where(p => p.TestId == testId)
+            var parts = await _efContext
+                .Parts.Where(p => p.TestId == testId)
                 .Select(p => new
                 {
                     p.Id,
                     p.Name,
                     p.PartNumber,
                     GroupsCount = p.QuestionGroups.Count,
-                    QuestionsCount = p.QuestionGroups.SelectMany(g => g.Questions).Count()
+                    QuestionsCount = p.QuestionGroups.SelectMany(g => g.Questions).Count(),
                 })
                 .OrderBy(p => p.PartNumber)
                 .ToListAsync();
@@ -325,60 +355,63 @@ namespace ToeicMaster.API.Controllers
         {
             try
             {
-                var part = await _efContext.Parts
-                    .FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == partNumber);
+                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                    p.TestId == testId && p.PartNumber == partNumber
+                );
 
                 if (part == null)
-                    return NotFound(new { error = $"Không tìm thấy Part {partNumber} của Test ID {testId}" });
+                    return NotFound(
+                        new { error = $"Không tìm thấy Part {partNumber} của Test ID {testId}" }
+                    );
 
                 // Lấy danh sách QuestionGroup của Part này
-                var groupIds = await _efContext.QuestionGroups
-                    .Where(qg => qg.PartId == part.Id)
+                var groupIds = await _efContext
+                    .QuestionGroups.Where(qg => qg.PartId == part.Id)
                     .Select(qg => qg.Id)
                     .ToListAsync();
 
                 // Lấy danh sách Question của các Group
-                var questionIds = await _efContext.Questions
-                    .Where(q => groupIds.Contains(q.GroupId))
+                var questionIds = await _efContext
+                    .Questions.Where(q => groupIds.Contains(q.GroupId))
                     .Select(q => q.Id)
                     .ToListAsync();
 
                 // Xóa theo thứ tự từ con đến cha
 
                 // Xóa ReviewFeedbacks (nếu có)
-                var userAnswerIds = await _efContext.UserAnswers
-                    .Where(ua => questionIds.Contains(ua.QuestionId))
+                var userAnswerIds = await _efContext
+                    .UserAnswers.Where(ua => questionIds.Contains(ua.QuestionId))
                     .Select(ua => ua.Id)
                     .ToListAsync();
 
-                var reviewFeedbacks = await _efContext.ReviewFeedbacks
-                    .Where(rf => userAnswerIds.Contains(rf.UserAnswerId))
+                var reviewFeedbacks = await _efContext
+                    .ReviewFeedbacks.Where(rf => userAnswerIds.Contains(rf.UserAnswerId))
                     .ToListAsync();
                 _efContext.ReviewFeedbacks.RemoveRange(reviewFeedbacks);
 
                 // Xóa UserAnswers
-                var userAnswers = await _efContext.UserAnswers
-                    .Where(ua => questionIds.Contains(ua.QuestionId))
+                var userAnswers = await _efContext
+                    .UserAnswers.Where(ua => questionIds.Contains(ua.QuestionId))
                     .ToListAsync();
                 _efContext.UserAnswers.RemoveRange(userAnswers);
 
                 // Xóa Answers
-                var answers = await _efContext.Answers
-                    .Where(a => questionIds.Contains(a.QuestionId))
+                var answers = await _efContext
+                    .Answers.Where(a => questionIds.Contains(a.QuestionId))
                     .ToListAsync();
                 _efContext.Answers.RemoveRange(answers);
 
                 // Xóa Questions
-                var questions = await _efContext.Questions
-                    .Where(q => groupIds.Contains(q.GroupId))
+                var questions = await _efContext
+                    .Questions.Where(q => groupIds.Contains(q.GroupId))
                     .ToListAsync();
                 _efContext.Questions.RemoveRange(questions);
 
                 // Xóa QuestionGroups
-                var groups = await _efContext.QuestionGroups
-                    .Where(qg => qg.PartId == part.Id)
+                var groups = await _efContext
+                    .QuestionGroups.Where(qg => qg.PartId == part.Id)
                     .ToListAsync();
-                
+
                 var mediaUrlsToDelete = new List<string>();
 
                 foreach (var group in groups)
@@ -401,15 +434,19 @@ namespace ToeicMaster.API.Controllers
                 // Xóa Part
                 _efContext.Parts.Remove(part);
 
-
                 await _efContext.SaveChangesAsync();
                 InvalidateTestCache(testId);
 
-                return Ok(new { message = $"Đã xóa thành công Part {partNumber} của Test ID {testId}" });
+                return Ok(
+                    new { message = $"Đã xóa thành công Part {partNumber} của Test ID {testId}" }
+                );
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+                return StatusCode(
+                    500,
+                    new { error = ex.Message, detail = ex.InnerException?.Message }
+                );
             }
         }
 
@@ -417,13 +454,20 @@ namespace ToeicMaster.API.Controllers
         /// Cập nhật thông tin Part
         /// </summary>
         [HttpPut("tests/{testId}/parts/{partNumber}")]
-        public async Task<IActionResult> UpdatePart(int testId, int partNumber, [FromBody] UpdatePartRequest request)
+        public async Task<IActionResult> UpdatePart(
+            int testId,
+            int partNumber,
+            [FromBody] UpdatePartRequest request
+        )
         {
-            var part = await _efContext.Parts
-                .FirstOrDefaultAsync(p => p.TestId == testId && p.PartNumber == partNumber);
+            var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                p.TestId == testId && p.PartNumber == partNumber
+            );
 
             if (part == null)
-                return NotFound(new { error = $"Không tìm thấy Part {partNumber} của Test ID {testId}" });
+                return NotFound(
+                    new { error = $"Không tìm thấy Part {partNumber} của Test ID {testId}" }
+                );
 
             if (!string.IsNullOrEmpty(request.Name))
                 part.Name = request.Name;
@@ -433,8 +477,6 @@ namespace ToeicMaster.API.Controllers
 
             return Ok(new { message = "Cập nhật Part thành công!", data = part });
         }
-
-
     }
 
     // DTO cho UpdateTest
