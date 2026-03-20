@@ -216,7 +216,7 @@ export default function ResultQuestionItem({
                 </h4>
               </div>
               <p
-                className="text-zinc-900 dark:text-zinc-200 font-medium leading-relaxed"
+                className="text-zinc-900 dark:text-zinc-200 text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: q.shortExplanation }}
               ></p>
             </div>
@@ -250,13 +250,11 @@ export default function ResultQuestionItem({
 
           {/* GIẢI THÍCH CHI TIẾT */}
           {q.isDetailOpen && q.fullExplanation && (
-            <div className="pt-2 animate-fadeIn">
-              <div className="bg-white dark:bg-zinc-900 p-4  border-zinc-200 dark:border-zinc-700 shadow-xs text-gray-900 dark:text-gray-100">
-                <div
-                  className=" max-w-none text-gray-700 dark:text-white leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: q.fullExplanation }}
-                />
-              </div>
+            <div className="animate-fadeIn">
+              <div
+                className="max-w-none text-gray-700 dark:text-white leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: q.fullExplanation }}
+              />
             </div>
           )}
         </div>

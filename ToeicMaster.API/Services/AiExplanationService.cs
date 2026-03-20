@@ -50,7 +50,7 @@ Bạn là giáo viên TOEIC giỏi tiếng Anh.
 
 Hãy dịch từng đáp án (A), (B), (C), (D) sang tiếng Việt ngắn gọn, và viết 1 câu ngắn giải thích tại sao đáp án {question.CorrectOption} đúng.
 Trả về JSON thuần (KHÔNG có markdown backtick) với 2 trường:
-{{""Short"": ""(A) [transcript A]<br>(B) [transcript B]<br>(C)[transcript C]<br>(D) [transcript D]<br><br><b>"", ""Full"": ""(A) [bản dịch]<br>(B) [bản dịch]<br>(C) [bản dịch]<br>(D) [bản dịch]<br><br><b>Giải thích:</b> [Giải thích tại sao đáp án {question.CorrectOption} đúng]""}}",
+{{""Short"": ""A : [transcript A]<br>B : [transcript B]<br>C : [transcript C]<br>D : [transcript D]<br><br><b>"", ""Full"": ""A : [bản dịch]<br>B : [bản dịch]<br>C : [bản dịch]<br>D : [bản dịch]<br><br><b>Giải thích:</b> [Giải thích tại sao đáp án {question.CorrectOption} đúng]""}}",
 
             // ===== PART 2: Hỏi - Đáp =====
             2 => $@"
@@ -61,7 +61,7 @@ Bạn là giáo viên TOEIC giỏi tiếng Anh.
 Đọc transcript này {transcript} và hiển các đáp án A B C và câu hỏi
 Hãy dịch từng đáp án (A), (B), (C) sang tiếng Việt ngắn gọn.
 Trả về JSON thuần (KHÔNG có markdown backtick) với 2 trường:
-{{""Short"": ""(Question)[transcript câu hỏi]<br>(A) [transcript A]<br>(B) [transcript B]<br>(C)[transcript C]<br><b>"", ""Full"": ""(Câu hỏi)[transcript câu hỏi dịch]<br>(A) [bản dịch]<br>(B) [bản dịch]<br>(C) [bản dịch]<br><b>Giải thích:</b> [Giải thích tại sao đáp án {question.CorrectOption} đúng]""}}",
+{{""Short"": ""Question : [transcript câu hỏi]<br>A: [transcript A]<br>B: [transcript B]<br>C: [transcript C]<br><b>"", ""Full"": ""Câu hỏi : [transcript câu hỏi dịch]<br>A: [bản dịch]<br>B: [bản dịch]<br>C: [bản dịch]<br><b>Giải thích:</b> [Giải thích tại sao đáp án {question.CorrectOption} đúng]""}}",
 
             // ===== PART 3 & 4: Hội thoại / Bài nói =====
             3 or 4 => $@"
@@ -139,7 +139,9 @@ Hãy giải thích:
 {outputFormat}",
 
             // TOEIC only has Parts 1-7; any other value is a bug
-            _ => throw new NotSupportedException($"Không hỗ trợ Part {partNumber}. TOEIC chỉ có Part 1-7.")
+            _ => throw new NotSupportedException(
+                $"Không hỗ trợ Part {partNumber}. TOEIC chỉ có Part 1-7."
+            ),
         };
     }
 
@@ -213,9 +215,19 @@ Hãy giải thích:
     /// </summary>
     public async Task<string?> TranslatePassageAsync(string passage)
     {
-        var prompt = $@"
-Bạn là dịch giả chuyên nghiệp. Hãy dịch đoạn văn tiếng Anh sau sang tiếng Việt một cách tự nhiên, rõ ràng.
-Chỉ trả về bản dịch, không giải thích, không thêm gì khác.
+        var prompt =
+            $@"Bạn là dịch giả chuyên nghiệp. Dịch đoạn văn tiếng Anh dưới đây sang tiếng Việt.
+
+YÊU CẦU ĐẦU RA:
+- Trả về văn bản thuần (plain text), giữ nguyên xuống dòng.
+- KHÔNG dùng Markdown (không dùng **, *, ##, v.v.).
+- CHỈ dùng thẻ <b>...</b> (và không thẻ HTML nào khác) cho các trường hợp SAU:
+  1. Nhãn email/memo: To, From, Date, Subject, Kính gửi, v.v. (ví dụ: <b>Đến:</b>)
+  2. Tiêu đề bài báo, tiêu đề đoạn văn.
+  3. Tiêu đề cột bảng / lịch trình.
+  4. Từ vựng được in nghiêng/đậm trong câu hỏi (ví dụ: từ <b>""contract""</b>).
+- Mọi nội dung khác: văn bản thuần, không thẻ.
+- Chỉ trả về bản dịch, không giải thích thêm.
 
 Đoạn văn:
 {passage}";
@@ -225,8 +237,13 @@ Chỉ trả về bản dịch, không giải thích, không thêm gì khác.
             contents = new[] { new { parts = new[] { new { text = prompt } } } },
         };
 
-        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+        var jsonContent = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
+        var url =
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
 
         var response = await _httpClient.PostAsync(url, jsonContent);
         if (!response.IsSuccessStatusCode)
@@ -235,8 +252,8 @@ Chỉ trả về bản dịch, không giải thích, không thêm gì khác.
         var responseString = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(responseString);
 
-        return doc.RootElement
-            .GetProperty("candidates")[0]
+        return doc
+            .RootElement.GetProperty("candidates")[0]
             .GetProperty("content")
             .GetProperty("parts")[0]
             .GetProperty("text")

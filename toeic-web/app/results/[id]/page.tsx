@@ -282,7 +282,11 @@ export default function ResultPage() {
       });
 
       // 3. Gọi API dịch và lưu vào DB
-      const result = await testService.translatePassage(plainText, group.groupId, "content");
+      const result = await testService.translatePassage(
+        plainText,
+        group.groupId,
+        "content",
+      );
       setTranslations((prev) => ({
         ...prev,
         [group.groupId]: result.translation,
@@ -303,7 +307,11 @@ export default function ResultPage() {
     setLoadingTranscriptTranslateId(group.groupId);
     try {
       // Gửi transcript thô và lưu vào DB
-      const result = await testService.translatePassage(group.transcript, group.groupId, "transcript");
+      const result = await testService.translatePassage(
+        group.transcript,
+        group.groupId,
+        "transcript",
+      );
       setTranscriptTranslations((prev) => ({
         ...prev,
         [group.groupId]: result.translation,
@@ -793,7 +801,7 @@ export default function ResultPage() {
                                         className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
                                           hiddenTranscripts.has(group.groupId)
                                             ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/60"
-                                            : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-600"
+                                            : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/60"
                                         }`}
                                       >
                                         {hiddenTranscripts.has(group.groupId)
@@ -837,7 +845,9 @@ export default function ResultPage() {
                                         <Languages className="w-4 h-4" />
                                         Bản dịch Transcript
                                       </span>
-                                      {transcriptTranslations[group.groupId] && (
+                                      {transcriptTranslations[
+                                        group.groupId
+                                      ] && (
                                         <button
                                           onClick={() =>
                                             toggleTranscriptTranslation(
@@ -849,7 +859,7 @@ export default function ResultPage() {
                                               group.groupId,
                                             )
                                               ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/60"
-                                              : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-600"
+                                              : "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/60"
                                           }`}
                                         >
                                           {hiddenTranscriptTranslations.has(
@@ -891,8 +901,15 @@ export default function ResultPage() {
                                       !hiddenTranscriptTranslations.has(
                                         group.groupId,
                                       ) && (
-                                        <div className="max-h-[30vh] overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300 leading-7 whitespace-pre-line">
-                                          {transcriptTranslations[group.groupId]}
+                                        <div className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300">
+                                          {transcriptTranslations[group.groupId]
+                                            .split("\n")
+                                            .filter((line: string) =>
+                                              line.trim(),
+                                            )
+                                            .map((line: string, i: number) => (
+                                              <p key={i}>{line}</p>
+                                            ))}
                                         </div>
                                       )
                                     )}
@@ -995,7 +1012,7 @@ export default function ResultPage() {
                             )}
                             {group.groupContent && (
                               <div
-                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm leading-7 whitespace-pre-line"
+                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line"
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}
@@ -1042,7 +1059,7 @@ export default function ResultPage() {
                                             group.groupId,
                                           )
                                         }
-                                        className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                                        className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                       >
                                         {hiddenPassageTranslations.has(
                                           group.groupId,
@@ -1054,9 +1071,12 @@ export default function ResultPage() {
                                     {!hiddenPassageTranslations.has(
                                       group.groupId,
                                     ) && (
-                                      <div className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-7 whitespace-pre-line">
-                                        {translations[group.groupId]}
-                                      </div>
+                                      <div
+                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-6 whitespace-pre-line [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
+                                        dangerouslySetInnerHTML={{
+                                          __html: translations[group.groupId],
+                                        }}
+                                      ></div>
                                     )}
                                   </div>
                                 )}

@@ -449,7 +449,9 @@ export default function ExamPage() {
                                   {["A", "B", "C", "D"].map((label) => (
                                     <button
                                       key={label}
-                                      onClick={() => handleSelectAnswer(q.id, label)}
+                                      onClick={() =>
+                                        handleSelectAnswer(q.id, label)
+                                      }
                                       className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
                                           ? "bg-blue-600 text-white border-blue-600"
@@ -519,7 +521,9 @@ export default function ExamPage() {
                                   {["A", "B", "C"].map((label) => (
                                     <button
                                       key={label}
-                                      onClick={() => handleSelectAnswer(q.id, label)}
+                                      onClick={() =>
+                                        handleSelectAnswer(q.id, label)
+                                      }
                                       className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
                                           ? "bg-blue-600 text-white border-blue-600"
@@ -552,20 +556,23 @@ export default function ExamPage() {
                       >
                         <div className="flex flex-col lg:flex-row">
                           {/* Left: audio flush + content/image */}
-                          {(group.audioUrl || group.imageUrl || group.textContent) && (
+                          {(group.audioUrl ||
+                            group.imageUrl ||
+                            group.textContent) && (
                             <div className="lg:w-1/2 bg-gray-50 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
                               {/* Audio flush at top for listening parts */}
-                              {(partNum === 3 || partNum === 4) && group.audioUrl && (
-                                <AudioPlayer
-                                  src={
-                                    group.audioUrl.startsWith("http")
-                                      ? group.audioUrl
-                                      : `${BASE_URL}${group.audioUrl}`
-                                  }
-                                  label={`Conversation ${group.id}`}
-                                  className="rounded-none border-0 shadow-none"
-                                />
-                              )}
+                              {(partNum === 3 || partNum === 4) &&
+                                group.audioUrl && (
+                                  <AudioPlayer
+                                    src={
+                                      group.audioUrl.startsWith("http")
+                                        ? group.audioUrl
+                                        : `${BASE_URL}${group.audioUrl}`
+                                    }
+                                    label={`Conversation ${group.id}`}
+                                    className="rounded-none border-0 shadow-none"
+                                  />
+                                )}
                               {/* Sticky image/text below audio */}
                               {(group.imageUrl || group.textContent) && (
                                 <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
@@ -582,7 +589,7 @@ export default function ExamPage() {
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
+                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300  leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
@@ -596,7 +603,9 @@ export default function ExamPage() {
                           {/* Right: questions with scrollbar */}
                           <div
                             className={`${
-                              group.audioUrl || group.imageUrl || group.textContent
+                              group.audioUrl ||
+                              group.imageUrl ||
+                              group.textContent
                                 ? "lg:w-1/2"
                                 : "w-full"
                             } p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar`}
@@ -628,7 +637,9 @@ export default function ExamPage() {
                                       key={ans.label}
                                       q={q}
                                       ans={ans}
-                                      isSelected={userAnswers[q.id] === ans.label}
+                                      isSelected={
+                                        userAnswers[q.id] === ans.label
+                                      }
                                       onSelect={() =>
                                         handleSelectAnswer(q.id, ans.label)
                                       }
@@ -701,7 +712,7 @@ export default function ExamPage() {
 
         {/* CỘT PHẢI: SIDEBAR (Desktop) */}
         <div className="hidden lg:block lg:w-1/6">
-        {testData && (
+          {testData && (
             <ExamRightSidebar
               parts={testData.parts}
               userAnswers={userAnswers}
