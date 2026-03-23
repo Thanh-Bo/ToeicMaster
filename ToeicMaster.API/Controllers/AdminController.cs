@@ -47,7 +47,7 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                // 2. Tìm đề thi (Test) trong DB để gắn câu hỏi vào
+                // Check if Test exists
                 var test = await _efContext
                     .Tests.Include(t => t.Parts)
                         .ThenInclude(p => p.QuestionGroups)
@@ -55,6 +55,13 @@ namespace ToeicMaster.API.Controllers
 
                 if (test == null)
                     return NotFound("Không tìm thấy Test ID này. Hãy tạo Test trước!");
+
+                // Check if Part 5 already exists - prevent reimporting
+                var existingPart5 = test.Parts.FirstOrDefault(p => p.PartNumber == 5);
+                if (existingPart5 != null)
+                {
+                    return BadRequest(new { error = $"Cannot import Part 5 to Test ID {testId} because it already has Part 5 data. Please delete the existing part first if you want to reimport." });
+                }
 
                 int countSuccess = 0;
 
@@ -167,21 +174,24 @@ namespace ToeicMaster.API.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("File không hợp lệ");
 
-            // 1. Tìm hoặc tạo Part 6 (Text Completion)
-            var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+            // Check if Part 6 already exists - prevent reimporting
+            var existingPart = await _efContext.Parts.FirstOrDefaultAsync(p =>
                 p.TestId == testId && p.PartNumber == 6
             );
-            if (part == null)
+            if (existingPart != null)
             {
-                part = new Part
-                {
-                    TestId = testId,
-                    Name = "Part 6: Text Completion",
-                    PartNumber = 6,
-                };
-                _efContext.Parts.Add(part);
-                await _efContext.SaveChangesAsync();
+                return BadRequest(new { error = $"Cannot import Part 6 to Test ID {testId} because it already has Part 6 data. Please delete the existing part first if you want to reimport." });
             }
+
+            // Create Part 6 (Text Completion)
+            var part = new Part
+            {
+                TestId = testId,
+                Name = "Part 6: Text Completion",
+                PartNumber = 6,
+            };
+            _efContext.Parts.Add(part);
+            await _efContext.SaveChangesAsync();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var stream = new MemoryStream())
@@ -286,19 +296,34 @@ namespace ToeicMaster.API.Controllers
         }
 
         [HttpPost("import-part7")]
-        public async Task<IActionResult> ImportPart7(IFormFile file, [FromQuery] int testId)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportPart7(
+     [FromForm] IFormFile excelFile,
+    [FromForm] List<IFormFile>? images,
+    [FromQuery] int testId)
         {
-            // 1. Kiểm tra file
-            if (file == null || file.Length == 0)
+            if (excelFile == null || excelFile.Length == 0)
                 return BadRequest("Vui lòng upload file Excel.");
 
-            // 2. Tìm hoặc Tạo Part 7 trong Database
-            var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
-                p.TestId == testId && p.PartNumber == 7
-            );
-            if (part == null)
+            var test = await _efContext.Tests.FindAsync(testId);
+            if (test == null)
+                return NotFound("Không tìm thấy Test.");
+
+            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string imageFolderPath = $"images/{testFolderName}/part7";
+
+            try
             {
-                part = new Part
+                // Check if Part 7 already exists - prevent reimporting
+                var existingPart = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                    p.TestId == testId && p.PartNumber == 7);
+                if (existingPart != null)
+                {
+                    return BadRequest(new { error = $"Cannot import Part 7 to Test ID {testId} because it already has Part 7 data. Please delete the existing part first if you want to reimport." });
+                }
+
+                // Create Part 7
+                var part = new Part
                 {
                     TestId = testId,
                     Name = "Part 7: Reading Comprehension",
@@ -306,131 +331,126 @@ namespace ToeicMaster.API.Controllers
                 };
                 _efContext.Parts.Add(part);
                 await _efContext.SaveChangesAsync();
-            }
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using var stream = new MemoryStream();
+                await excelFile.CopyToAsync(stream);
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets[0];
+                int rowCount = worksheet.Dimension.Rows;
 
-            using (var stream = new MemoryStream())
-            {
-                await file.CopyToAsync(stream);
-                using (var package = new ExcelPackage(stream))
+                // Cache để tránh upload cùng 1 ảnh nhiều lần
+                var savedImages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                string lastPassage = "##INIT##";
+                string lastImageName = "##INIT##";
+                int currentGroupId = 0;
+                int countSuccess = 0;
+
+                for (int row = 2; row <= rowCount; row++)
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    var rowCount = worksheet.Dimension.Rows;
+                    var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");
+                    var qNoText = worksheet.Cells[row, 2].Text?.Trim();
+                    var content = worksheet.Cells[row, 3].Text?.Trim();
 
-                    // Biến dùng để theo dõi Gom nhóm (Grouping)
-                    string lastPassage = "##INIT##";
-                    string lastImageName = "##INIT##";
-                    int currentGroupId = 0;
+                    if (string.IsNullOrEmpty(qNoText)) continue;
 
-                    // Duyệt từ dòng 2 (bỏ qua Header)
-                    for (int row = 2; row <= rowCount; row++)
+                    var imageName = worksheet.Cells[row, 10].Text?.Trim(); // Col J
+                    var correctOpt = worksheet.Cells[row, 8].Text?.Trim().ToUpper(); // Col H
+                    var explain = worksheet.Cells[row, 9].Text?.Trim(); // Col I
+
+                    // 2. Phát hiện nhóm mới
+                    bool isNewGroup = (passageRaw != lastPassage) || (imageName != lastImageName);
+
+                    if (isNewGroup)
                     {
-                        // --- ĐỌC DỮ LIỆU TỪ EXCEL ---
-                        var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n"); // Cột A: Đoạn văn   // Cột A: Đoạn văn
-                        var qNoText = worksheet.Cells[row, 2].Text?.Trim(); // Cột B: Số thứ tự
-                        var content = worksheet.Cells[row, 3].Text?.Trim(); // Cột C: Câu hỏi
-
-                        // Nếu không có số câu hỏi thì bỏ qua dòng này (dòng trống)
-                        if (string.IsNullOrEmpty(qNoText))
-                            continue;
-
-                        var imageName = worksheet.Cells[row, 10].Text?.Trim(); // Cột J: Tên file ảnh (QUAN TRỌNG)
-
-                        // --- XỬ LÝ LOGIC GOM NHÓM (GROUPING) ---
-                        // Nhóm mới được tạo khi: Nội dung đoạn văn thay đổi HOẶC Tên ảnh thay đổi
-                        bool isNewGroup =
-                            (passageRaw != lastPassage) || (imageName != lastImageName);
-
-                        if (isNewGroup)
+                        // 3. Xử lý upload ảnh lên Azure nếu có
+                        string? finalImageUrl = null;
+                        if (!string.IsNullOrEmpty(imageName))
                         {
-                            // Xử lý đường dẫn ảnh (Nếu có tên ảnh -> Tạo đường dẫn đầy đủ)
-                            string? finalImageUrl = null;
-                            if (!string.IsNullOrEmpty(imageName))
+                            if (savedImages.ContainsKey(imageName))
                             {
-                                // Quy ước: Ảnh upload vào thư mục public/images/tests/
-                                finalImageUrl = $"/images/tests/{imageName}";
+                                // Ảnh đã upload trước đó → dùng lại URL
+                                finalImageUrl = savedImages[imageName];
                             }
-
-                            var newGroup = new QuestionGroup
+                            else
                             {
-                                PartId = part.Id,
-                                TextContent = string.IsNullOrEmpty(passageRaw) ? null : passageRaw,
-                                ImageUrl = finalImageUrl, // Lưu đường dẫn ảnh vào DB
-                                AudioUrl = null,
-                            };
+                                // Tìm file trong danh sách upload
+                                var imgFile = images?.FirstOrDefault(f =>
+                                    Path.GetFileName(f.FileName)
+                                        .Equals(imageName, StringComparison.OrdinalIgnoreCase));
 
-                            _efContext.QuestionGroups.Add(newGroup);
-                            await _efContext.SaveChangesAsync(); // Lưu ngay để lấy ID
-
-                            currentGroupId = newGroup.Id;
-
-                            // Cập nhật trạng thái cũ để so sánh vòng sau
-                            lastPassage = passageRaw;
-                            lastImageName = imageName;
+                                if (imgFile != null)
+                                {
+                                    finalImageUrl = await _blobService.UploadFileAsync(
+                                        imgFile,
+                                        imageFolderPath);
+                                    savedImages[imageName] = finalImageUrl;
+                                }
+                                else
+                                {
+                                    // Excel khai báo ảnh nhưng không upload file → báo lỗi rõ ràng
+                                    return BadRequest(
+                                        $"Lỗi: Excel yêu cầu ảnh '{imageName}' " +
+                                        $"nhưng không tìm thấy file này trong danh sách upload.");
+                                }
+                            }
                         }
 
-                        // --- TẠO CÂU HỎI (QUESTION) ---
-                        var correctOpt = worksheet.Cells[row, 8].Text?.Trim().ToUpper(); // Cột H
-                        var explain = worksheet.Cells[row, 9].Text?.Trim(); // Cột I
-
-                        var question = new Question
+                        // 4. Tạo QuestionGroup mới
+                        var newGroup = new QuestionGroup
                         {
-                            GroupId = currentGroupId, // Gắn vào Group vừa tạo/tìm thấy
-                            QuestionNo = int.Parse(qNoText),
-                            Content = string.IsNullOrEmpty(content)
-                                ? $"Question {qNoText}"
-                                : content,
-                            CorrectOption = correctOpt,
-                            ShortExplanation = null,
-                            FullExplanation = explain, // Thường là NULL để AI tự tạo sau
+                            PartId = part.Id,
+                            TextContent = string.IsNullOrEmpty(passageRaw) ? null : passageRaw,
+                            ImageUrl = finalImageUrl,
+                            AudioUrl = null,
                         };
-
-                        _efContext.Questions.Add(question);
+                        _efContext.QuestionGroups.Add(newGroup);
                         await _efContext.SaveChangesAsync();
 
-                        // --- TẠO 4 ĐÁP ÁN (ANSWERS) ---
-                        var answers = new List<Answer>
-                        {
-                            new Answer
-                            {
-                                QuestionId = question.Id,
-                                Label = "A",
-                                Content = worksheet.Cells[row, 4].Text,
-                            }, // Cột D
-                            new Answer
-                            {
-                                QuestionId = question.Id,
-                                Label = "B",
-                                Content = worksheet.Cells[row, 5].Text,
-                            }, // Cột E
-                            new Answer
-                            {
-                                QuestionId = question.Id,
-                                Label = "C",
-                                Content = worksheet.Cells[row, 6].Text,
-                            }, // Cột F
-                            new Answer
-                            {
-                                QuestionId = question.Id,
-                                Label = "D",
-                                Content = worksheet.Cells[row, 7].Text,
-                            }, // Cột G
-                        };
-                        _efContext.Answers.AddRange(answers);
+                        currentGroupId = newGroup.Id;
+                        lastPassage = passageRaw;
+                        lastImageName = imageName;
                     }
 
-                    // Lưu tất cả đáp án 1 lần cho nhanh
+                    // 5. Tạo Question
+                    var question = new Question
+                    {
+                        GroupId = currentGroupId,
+                        QuestionNo = int.Parse(qNoText),
+                        Content = string.IsNullOrEmpty(content) ? $"Question {qNoText}" : content,
+                        CorrectOption = correctOpt,
+                        FullExplanation = explain,
+                        ShortExplanation = null,
+                    };
+                    _efContext.Questions.Add(question);
                     await _efContext.SaveChangesAsync();
+
+                    // 6. Tạo 4 đáp án
+                    _efContext.Answers.AddRange(new List<Answer>
+            {
+                new Answer { QuestionId = question.Id, Label = "A", Content = worksheet.Cells[row, 4].Text },
+                new Answer { QuestionId = question.Id, Label = "B", Content = worksheet.Cells[row, 5].Text },
+                new Answer { QuestionId = question.Id, Label = "C", Content = worksheet.Cells[row, 6].Text },
+                new Answer { QuestionId = question.Id, Label = "D", Content = worksheet.Cells[row, 7].Text },
+            });
+
+                    countSuccess++;
                 }
+
+                await _efContext.SaveChangesAsync();
+                InvalidateTestCache(testId);
+
+                return Ok(new
+                {
+                    message = $"Import Part 7 thành công! Đã nhập {countSuccess} câu hỏi.",
+                });
             }
-
-            // Xóa cache để frontend nhận dữ liệu mới
-            InvalidateTestCache(testId);
-
-            return Ok(new { message = "Import Part 7 thành công!", count = "Check DB" });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
-
         [HttpPost("import-part1-data-only")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportPart1DataOnly(
@@ -453,21 +473,24 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                // 1. Tạo Part 1 nếu chưa có
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                // 1. Check if Part 1 already exists - prevent reimporting
+                var existingPart = await _efContext.Parts.FirstOrDefaultAsync(p =>
                     p.TestId == testId && p.PartNumber == 1
                 );
-                if (part == null)
+                if (existingPart != null)
                 {
-                    part = new Part
-                    {
-                        Name = "Part 1: Photographs",
-                        PartNumber = 1,
-                        TestId = testId,
-                    };
-                    _efContext.Parts.Add(part);
-                    await _efContext.SaveChangesAsync();
+                    return BadRequest(new { error = $"Cannot import Part 1 to Test ID {testId} because it already has Part 1 data. Please delete the existing part first if you want to reimport." });
                 }
+
+                // Create Part 1
+                var part = new Part
+                {
+                    Name = "Part 1: Photographs",
+                    PartNumber = 1,
+                    TestId = testId,
+                };
+                _efContext.Parts.Add(part);
+                await _efContext.SaveChangesAsync();
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using var stream = new MemoryStream();
@@ -539,6 +562,11 @@ namespace ToeicMaster.API.Controllers
                                     audioFolderPath
                                 );
                                 savedAudios[audioName] = finalAudioUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu audio '{audioName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -638,20 +666,24 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                // Check if Part 2 already exists - prevent reimporting
+                var existingPart = await _efContext.Parts.FirstOrDefaultAsync(p =>
                     p.TestId == testId && p.PartNumber == 2
                 );
-                if (part == null)
+                if (existingPart != null)
                 {
-                    part = new Part
-                    {
-                        Name = "Part 2: Question-Response",
-                        PartNumber = 2,
-                        TestId = testId,
-                    };
-                    _efContext.Parts.Add(part);
-                    await _efContext.SaveChangesAsync();
+                    return BadRequest(new { error = $"Cannot import Part 2 to Test ID {testId} because it already has Part 2 data. Please delete the existing part first if you want to reimport." });
                 }
+
+                // Create Part 2
+                var part = new Part
+                {
+                    Name = "Part 2: Question-Response",
+                    PartNumber = 2,
+                    TestId = testId,
+                };
+                _efContext.Parts.Add(part);
+                await _efContext.SaveChangesAsync();
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using var stream = new MemoryStream();
@@ -673,7 +705,7 @@ namespace ToeicMaster.API.Controllers
                     var correctOpt = worksheet.Cells[row, 3].Text?.Trim().ToUpper(); // Col C - Answer
                     var audioName = worksheet.Cells[row, 4].Text?.Trim(); // Col D - Audio File (NEW)
 
-                    // --- XỬ LÝ AUDIO ---
+                    // --- XỰ LÝ AUDIO ---
                     string? finalAudioUrl = null;
                     if (!string.IsNullOrEmpty(audioName))
                     {
@@ -692,6 +724,11 @@ namespace ToeicMaster.API.Controllers
                                     audioFolderPath
                                 );
                                 savedAudios[audioName] = finalAudioUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu audio '{audioName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -788,20 +825,24 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                // Check if Part 3 already exists - prevent reimporting
+                var existingPart = await _efContext.Parts.FirstOrDefaultAsync(p =>
                     p.TestId == testId && p.PartNumber == 3
                 );
-                if (part == null)
+                if (existingPart != null)
                 {
-                    part = new Part
-                    {
-                        Name = "Part 3: Conversations",
-                        PartNumber = 3,
-                        TestId = testId,
-                    };
-                    _efContext.Parts.Add(part);
-                    await _efContext.SaveChangesAsync();
+                    return BadRequest(new { error = $"Cannot import Part 3 to Test ID {testId} because it already has Part 3 data. Please delete the existing part first if you want to reimport." });
                 }
+
+                // Create Part 3
+                var part = new Part
+                {
+                    Name = "Part 3: Conversations",
+                    PartNumber = 3,
+                    TestId = testId,
+                };
+                _efContext.Parts.Add(part);
+                await _efContext.SaveChangesAsync();
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using var stream = new MemoryStream();
@@ -850,7 +891,7 @@ namespace ToeicMaster.API.Controllers
                             else
                             {
                                 // 🚨 ADD THIS: Fails the request if the filename doesn't match
-                                return BadRequest($"Lỗi: Excel yêu cầu ảnh $'{imageName}' nhưng không tìm thấy file này trong danh sách upload.");
+                                return BadRequest($"Lỗi: Excel yêu cầu ảnh '{imageName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -874,6 +915,11 @@ namespace ToeicMaster.API.Controllers
                                     audioFolderPath
                                 );
                                 savedAudios[audioName] = finalAudioUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu audio '{audioName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -1002,21 +1048,24 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                // 1. Tạo hoặc lấy Part 4
-                var part = await _efContext.Parts.FirstOrDefaultAsync(p =>
+                // Check if Part 4 already exists - prevent reimporting
+                var existingPart = await _efContext.Parts.FirstOrDefaultAsync(p =>
                     p.TestId == testId && p.PartNumber == 4
                 );
-                if (part == null)
+                if (existingPart != null)
                 {
-                    part = new Part
-                    {
-                        Name = "Part 4: Talks",
-                        PartNumber = 4,
-                        TestId = testId,
-                    };
-                    _efContext.Parts.Add(part);
-                    await _efContext.SaveChangesAsync();
+                    return BadRequest(new { error = $"Cannot import Part 4 to Test ID {testId} because it already has Part 4 data. Please delete the existing part first if you want to reimport." });
                 }
+
+                // Create Part 4
+                var part = new Part
+                {
+                    Name = "Part 4: Talks",
+                    PartNumber = 4,
+                    TestId = testId,
+                };
+                _efContext.Parts.Add(part);
+                await _efContext.SaveChangesAsync();
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using var stream = new MemoryStream();
@@ -1067,7 +1116,7 @@ namespace ToeicMaster.API.Controllers
                             else
                             {
                                 // 🚨 ADD THIS: Fails the request if the filename doesn't match
-                                return BadRequest($"Lỗi: Excel yêu cầu ảnh  nhưng không tìm thấy file này trong danh sách upload.");
+                                return BadRequest($"Lỗi: Excel yêu cầu ảnh '{imageName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }
@@ -1091,6 +1140,11 @@ namespace ToeicMaster.API.Controllers
                                     audioFolderPath
                                 );
                                 savedAudios[audioName] = finalAudioUrl;
+                            }
+                            else
+                            {
+                                // 🚨 ADD THIS: Fails the request if the filename doesn't match
+                                return BadRequest($"Lỗi: Excel yêu cầu audio '{audioName}' nhưng không tìm thấy file này trong danh sách upload.");
                             }
                         }
                     }

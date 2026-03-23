@@ -46,8 +46,8 @@ interface Props {
 const defaultNavLinks: NavLink[] = [
   { href: "/grammar", label: "Grammar", icon: BookOpen },
   { href: "/vocabulary", label: "Vocab", icon: BookOpen },
-  { href: "/listening", label: "Listening", icon: Mic },
-  { href: "/reading", label: "Reading", icon: Eye },
+  // { href: "/listening", label: "Listening", icon: Mic },
+  // { href: "/reading", label: "Reading", icon: Eye },
   { href: "/practice", label: "Test", icon: FileText },
 ];
 

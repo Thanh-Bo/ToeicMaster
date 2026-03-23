@@ -46,7 +46,9 @@ export default function ResultPage() {
   const [result, setResult] = useState<ResultDetail | null>(null);
   const [partGroups, setPartGroups] = useState<PartGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingExplainId, setLoadingExplainId] = useState<number | null>(null);
+  const [loadingExplainIds, setLoadingExplainIds] = useState<Set<number>>(
+    new Set(),
+  );
   const [currentQuestionId, setCurrentQuestionId] = useState<number | null>(
     null,
   );
@@ -64,16 +66,16 @@ export default function ResultPage() {
 
   // Passage translation state (keyed by groupId)
   const [translations, setTranslations] = useState<Record<number, string>>({});
-  const [loadingTranslateId, setLoadingTranslateId] = useState<number | null>(
-    null,
-  );
+  const [loadingTranslateIds, setLoadingTranslateIds] = useState<
+    Record<number, boolean>
+  >({});
 
   // Transcript translation state (keyed by groupId, for Part 3/4)
   const [transcriptTranslations, setTranscriptTranslations] = useState<
     Record<number, string>
   >({});
-  const [loadingTranscriptTranslateId, setLoadingTranscriptTranslateId] =
-    useState<number | null>(null);
+  const [loadingTranscriptTranslateIds, setLoadingTranscriptTranslateIds] =
+    useState<Record<number, boolean>>({});
 
   // Visibility toggles (Set of groupIds where content is hidden)
   const [hiddenTranscripts, setHiddenTranscripts] = useState<Set<number>>(
@@ -263,7 +265,10 @@ export default function ResultPage() {
     if (translations[group.groupId]) return; // Đã dịch rồi, không gọi lại
     if (!group.groupContent) return;
 
-    setLoadingTranslateId(group.groupId);
+    setLoadingTranslateIds((prev) => ({
+      ...prev,
+      [group.groupId]: true,
+    }));
     try {
       // 1. Strip HTML tags khỏi groupContent
       let plainText = group.groupContent
@@ -295,7 +300,11 @@ export default function ResultPage() {
       console.error("Lỗi dịch đoạn văn:", error);
       alert("Không thể dịch đoạn văn lúc này.");
     } finally {
-      setLoadingTranslateId(null);
+      setLoadingTranslateIds((prev) => {
+        const next = { ...prev };
+        next[group.groupId] = false;
+        return next;
+      });
     }
   };
 
@@ -304,7 +313,10 @@ export default function ResultPage() {
     if (transcriptTranslations[group.groupId]) return;
     if (!group.transcript) return;
 
-    setLoadingTranscriptTranslateId(group.groupId);
+    setLoadingTranscriptTranslateIds((prev) => ({
+      ...prev,
+      [group.groupId]: true,
+    }));
     try {
       // Gửi transcript thô và lưu vào DB
       const result = await testService.translatePassage(
@@ -320,7 +332,11 @@ export default function ResultPage() {
       console.error("Lỗi dịch transcript:", error);
       alert("Không thể dịch transcript lúc này.");
     } finally {
-      setLoadingTranscriptTranslateId(null);
+      setLoadingTranscriptTranslateIds((prev) => {
+        const next = { ...prev };
+        next[group.groupId] = false;
+        return next;
+      });
     }
   };
 
@@ -377,7 +393,7 @@ export default function ResultPage() {
     }
 
     // 2b. Nếu chưa có dữ liệu -> Gọi API
-    setLoadingExplainId(qId);
+    setLoadingExplainIds((prev) => new Set(prev).add(qId));
     try {
       const data = await testService.getQuestionExplanation(qId);
       setPartGroups((prev) => {
@@ -395,7 +411,11 @@ export default function ResultPage() {
       console.error(error);
       alert("Không thể tải giải thích lúc này.");
     } finally {
-      setLoadingExplainId(null);
+      setLoadingExplainIds((prev) => {
+        const next = new Set(prev);
+        next.delete(qId);
+        return next;
+      });
     }
   };
 
@@ -670,9 +690,9 @@ export default function ResultPage() {
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
                                 }
-                                isExplainLoading={
-                                  loadingExplainId === q.questionId
-                                }
+                                isExplainLoading={loadingExplainIds.has(
+                                  q.questionId,
+                                )}
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}
@@ -724,9 +744,9 @@ export default function ResultPage() {
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
                                 }
-                                isExplainLoading={
-                                  loadingExplainId === q.questionId
-                                }
+                                isExplainLoading={loadingExplainIds.has(
+                                  q.questionId,
+                                )}
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}
                                 onToggleDetail={handleToggleDetail}
@@ -875,14 +895,14 @@ export default function ResultPage() {
                                         onClick={() =>
                                           handleTranslateTranscript(group)
                                         }
-                                        disabled={
-                                          loadingTranscriptTranslateId ===
+                                        disabled={!!loadingTranscriptTranslateIds[
                                           group.groupId
-                                        }
+                                        ]}
                                         className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                       >
-                                        {loadingTranscriptTranslateId ===
-                                        group.groupId ? (
+                                        {!!loadingTranscriptTranslateIds[
+                                          group.groupId
+                                        ] ? (
                                           <>
                                             <Loader2
                                               size={13}
@@ -901,16 +921,15 @@ export default function ResultPage() {
                                       !hiddenTranscriptTranslations.has(
                                         group.groupId,
                                       ) && (
-                                        <div className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300">
-                                          {transcriptTranslations[group.groupId]
-                                            .split("\n")
-                                            .filter((line: string) =>
-                                              line.trim(),
-                                            )
-                                            .map((line: string, i: number) => (
-                                              <p key={i}>{line}</p>
-                                            ))}
-                                        </div>
+                                        <div
+                                          className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300 leading-6  "
+                                          dangerouslySetInnerHTML={{
+                                            __html:
+                                              transcriptTranslations[
+                                                group.groupId
+                                              ]?.replace(/\n/g, "<br>") || "",
+                                          }}
+                                        ></div>
                                       )
                                     )}
                                   </div>
@@ -944,9 +963,9 @@ export default function ResultPage() {
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
                                 }
-                                isExplainLoading={
-                                  loadingExplainId === q.questionId
-                                }
+                                isExplainLoading={loadingExplainIds.has(
+                                  q.questionId,
+                                )}
                                 // Truyền các hàm xử lý xuống
 
                                 onToggleBookmark={() => handleClickBookmark(q)}
@@ -976,7 +995,9 @@ export default function ResultPage() {
                             currentQuestionId={currentQuestionId}
                             isBookmarked={bookmarkedQuestions.has(q.questionId)}
                             isBookmarkLoading={bookmarkLoading === q.questionId}
-                            isExplainLoading={loadingExplainId === q.questionId}
+                            isExplainLoading={loadingExplainIds.has(
+                              q.questionId,
+                            )}
                             // Truyền các hàm xử lý xuống
                             onToggleBookmark={() => handleClickBookmark(q)}
                             onViewExplanation={handleViewExplanation}
@@ -998,13 +1019,17 @@ export default function ResultPage() {
                     >
                       <div className="flex flex-col lg:flex-row">
                         <div className="lg:w-6/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
-                          <div className="lg:sticky lg:top-24 space-y-3">
+                          <div className="lg:sticky lg:top-4 space-y-3">
                             <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                               <BookOpen size={16} /> Reading Passage
                             </div>
                             {group.imageUrl && (
                               <img
-                                src={`${BASE_URL}${group.imageUrl}`}
+                                src={
+                                  group.imageUrl.startsWith("http")
+                                    ? group.imageUrl
+                                    : `${BASE_URL}${group.imageUrl}`
+                                }
                                 alt="Passage"
                                 className="w-full rounded-lg border border-gray-300 dark:border-zinc-800 shadow-sm mb-4"
                                 loading="lazy"
@@ -1012,7 +1037,7 @@ export default function ResultPage() {
                             )}
                             {group.groupContent && (
                               <div
-                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line"
+                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none  bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line"
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}
@@ -1027,12 +1052,12 @@ export default function ResultPage() {
                                     onClick={() =>
                                       handleTranslatePassage(group)
                                     }
-                                    disabled={
-                                      loadingTranslateId === group.groupId
-                                    }
+                                    disabled={!!loadingTranslateIds[
+                                      group.groupId
+                                    ]}
                                     className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                   >
-                                    {loadingTranslateId === group.groupId ? (
+                                    {!!loadingTranslateIds[group.groupId] ? (
                                       <>
                                         <Loader2
                                           size={13}
@@ -1072,9 +1097,12 @@ export default function ResultPage() {
                                       group.groupId,
                                     ) && (
                                       <div
-                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-6 whitespace-pre-line [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
+                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 whitespace-pre-line [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
                                         dangerouslySetInnerHTML={{
-                                          __html: translations[group.groupId],
+                                          __html:
+                                            translations[
+                                              group.groupId
+                                            ]?.replace(/\n/g, "<br>") || "",
                                         }}
                                       ></div>
                                     )}
@@ -1100,9 +1128,9 @@ export default function ResultPage() {
                                 isBookmarkLoading={
                                   bookmarkLoading === q.questionId
                                 }
-                                isExplainLoading={
-                                  loadingExplainId === q.questionId
-                                }
+                                isExplainLoading={loadingExplainIds.has(
+                                  q.questionId,
+                                )}
                                 // Truyền các hàm xử lý xuống
                                 onToggleBookmark={() => handleClickBookmark(q)}
                                 onViewExplanation={handleViewExplanation}

@@ -219,8 +219,9 @@ Hãy giải thích:
             $@"Bạn là dịch giả chuyên nghiệp. Dịch đoạn văn tiếng Anh dưới đây sang tiếng Việt.
 
 YÊU CẦU ĐẦU RA:
-- Trả về văn bản thuần (plain text), giữ nguyên xuống dòng.
-- KHÔNG dùng Markdown (không dùng **, *, ##, v.v.).
+
+-Trả về văn bản thuần (plain text), giữ nguyên xuống dòng.
+-KHÔNG dùng Markdown (không dùng **, *, ##, v.v.).
 - CHỈ dùng thẻ <b>...</b> (và không thẻ HTML nào khác) cho các trường hợp SAU:
   1. Nhãn email/memo: To, From, Date, Subject, Kính gửi, v.v. (ví dụ: <b>Đến:</b>)
   2. Tiêu đề bài báo, tiêu đề đoạn văn.

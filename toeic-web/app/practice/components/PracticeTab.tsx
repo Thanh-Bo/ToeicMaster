@@ -22,10 +22,10 @@ interface PracticeTabProps {
   error: string;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  filterYear: string;
-  onYearChange: (year: string) => void;
-  uniqueYears: number[];
-  getCountByYear: (year: number) => number;
+  filterPrefix: string;
+  onPrefixChange: (prefix: string) => void;
+  uniquePrefixes: string[];
+  getCountByPrefix: (prefix: string) => number;
   LoadingSpinner: React.ComponentType<any>;
   AlertMessage: React.ComponentType<any>;
   EmptyState: React.ComponentType<any>;
@@ -37,31 +37,30 @@ export default function PracticeTab({
   error,
   searchQuery,
   onSearchChange,
-  filterYear,
-  onYearChange,
-  uniqueYears,
-  getCountByYear,
+  filterPrefix,
+  onPrefixChange,
+  uniquePrefixes,
+  getCountByPrefix,
   LoadingSpinner,
   AlertMessage,
   EmptyState,
 }: PracticeTabProps) {
-  // Filter theo search query và year
+  // Filter theo search query và prefix
   let filteredTests = tests.filter(t => {
     const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const testYear = new Date(t.createdAt || "").getFullYear().toString();
-    const matchesYear = filterYear === "all" || testYear === filterYear;
-    return matchesSearch && matchesYear;
+    const matchesPrefix = filterPrefix === "all" || t.title.startsWith(filterPrefix);
+    return matchesSearch && matchesPrefix;
   });
 
   return (
     <>
-      {/* Year Tabs */}
+      {/* Test Prefix Tabs */}
       <div className="flex gap-8 mb-8 border-b border-gray-300 dark:border-gray-800 overflow-x-auto pb-3">
-        {/* All Years Tab */}
+        {/* All Tests Tab */}
         <button
-          onClick={() => onYearChange("all")}
+          onClick={() => onPrefixChange("all")}
           className={`px-4 py-2 font-semibold whitespace-nowrap border-b-2 transition ${
-            filterYear === "all"
+            filterPrefix === "all"
               ? "text-blue-600 dark:text-cyan-400 border-blue-600 dark:border-cyan-400"
               : "text-gray-700 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white"
           }`}
@@ -69,18 +68,18 @@ export default function PracticeTab({
           Tất cả ({tests.length})
         </button>
 
-        {/* Year Tabs */}
-        {uniqueYears.map(year => (
+        {/* Prefix Tabs */}
+        {uniquePrefixes.map(prefix => (
           <button
-            key={year}
-            onClick={() => onYearChange(year.toString())}
+            key={prefix}
+            onClick={() => onPrefixChange(prefix)}
             className={`px-4 py-2 font-semibold whitespace-nowrap border-b-2 transition ${
-              filterYear === year.toString()
+              filterPrefix === prefix
                 ? "text-blue-600 dark:text-cyan-400 border-blue-600 dark:border-cyan-400"
                 : "text-gray-700 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white"
             }`}
           >
-            ETS {year} ({getCountByYear(year)})
+            {prefix} ({getCountByPrefix(prefix)})
           </button>
         ))}
       </div>

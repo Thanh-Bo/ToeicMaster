@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { MessageSquare } from "lucide-react";
 import { Comment, CommentListResponse } from "@/app/types";
 import commentService from "@/app/services/commentService";
 import { CommentForm } from "./CommentForm";
@@ -110,9 +111,10 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          💬 Thảo luận
-          <span className="ml-2 inline-block px-3 py-1 text-base bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+          <MessageSquare className="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" />
+          Thảo luận
+          <span className="ml-3 inline-block px-3 py-1 text-base font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
             {pagination.total}
           </span>
         </h2>

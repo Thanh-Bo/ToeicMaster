@@ -35,7 +35,7 @@ export default function BookmarkNoteModal({ isOpen, onClose, onSave, defaultNote
           ref={inputRef}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="w-full border border-gray-300 dark:border-zinc-600 rounded-lg p-3 text-sm dark:bg-zinc-700 dark:text-white dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4 min-h-[80px]"
+          className="w-full border border-gray-300 dark:border-zinc-600 rounded-lg p-3 text-sm dark:bg-zinc-700  text-gray-500 dark:text-gray-300 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4 min-h-[80px]"
           placeholder="Nhập ghi chú của bạn..."
         />
 

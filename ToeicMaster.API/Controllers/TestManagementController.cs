@@ -451,6 +451,109 @@ namespace ToeicMaster.API.Controllers
         }
 
         /// <summary>
+        /// Xóa toàn bộ Parts của 1 Test
+        /// </summary>
+        [HttpDelete("tests/{testId}/parts")]
+        public async Task<IActionResult> DeleteAllParts(int testId)
+        {
+            try
+            {
+                var test = await _efContext.Tests.FindAsync(testId);
+                if (test == null)
+                    return NotFound(new { error = $"Không tìm thấy Test ID {testId}" });
+
+                // Lấy danh sách Part của Test
+                var parts = await _efContext.Parts.Where(p => p.TestId == testId).ToListAsync();
+                if (!parts.Any())
+                    return Ok(new { message = $"Test ID {testId} không có Part nào để xóa" });
+
+                var partIds = parts.Select(p => p.Id).ToList();
+
+                // Lấy danh sách QuestionGroup của các Part này
+                var groupIds = await _efContext
+                    .QuestionGroups.Where(qg => partIds.Contains(qg.PartId))
+                    .Select(qg => qg.Id)
+                    .ToListAsync();
+
+                // Lấy danh sách Question của các Group
+                var questionIds = await _efContext
+                    .Questions.Where(q => groupIds.Contains(q.GroupId))
+                    .Select(q => q.Id)
+                    .ToListAsync();
+
+                // Xóa theo thứ tự từ con đến cha
+
+                // Xóa ReviewFeedbacks (nếu có)
+                var userAnswerIds = await _efContext
+                    .UserAnswers.Where(ua => questionIds.Contains(ua.QuestionId))
+                    .Select(ua => ua.Id)
+                    .ToListAsync();
+
+                var reviewFeedbacks = await _efContext
+                    .ReviewFeedbacks.Where(rf => userAnswerIds.Contains(rf.UserAnswerId))
+                    .ToListAsync();
+                _efContext.ReviewFeedbacks.RemoveRange(reviewFeedbacks);
+
+                // Xóa UserAnswers
+                var userAnswers = await _efContext
+                    .UserAnswers.Where(ua => questionIds.Contains(ua.QuestionId))
+                    .ToListAsync();
+                _efContext.UserAnswers.RemoveRange(userAnswers);
+
+                // Xóa Answers
+                var answers = await _efContext
+                    .Answers.Where(a => questionIds.Contains(a.QuestionId))
+                    .ToListAsync();
+                _efContext.Answers.RemoveRange(answers);
+
+                // Xóa Questions
+                var questions = await _efContext
+                    .Questions.Where(q => groupIds.Contains(q.GroupId))
+                    .ToListAsync();
+                _efContext.Questions.RemoveRange(questions);
+
+                // Xóa QuestionGroups
+                var groups = await _efContext
+                    .QuestionGroups.Where(qg => partIds.Contains(qg.PartId))
+                    .ToListAsync();
+
+                var mediaUrlsToDelete = new List<string>();
+
+                foreach (var group in groups)
+                {
+                    if (!string.IsNullOrEmpty(group.ImageUrl))
+                        mediaUrlsToDelete.Add(group.ImageUrl);
+
+                    if (!string.IsNullOrEmpty(group.AudioUrl))
+                        mediaUrlsToDelete.Add(group.AudioUrl);
+                }
+
+                // Ensure we don't try to delete the exact same file twice (Distinct)
+                foreach (var url in mediaUrlsToDelete.Distinct())
+                {
+                    await _blobService.DeleteFileAsync(url);
+                }
+
+                _efContext.QuestionGroups.RemoveRange(groups);
+
+                // Xóa Parts
+                _efContext.Parts.RemoveRange(parts);
+
+                await _efContext.SaveChangesAsync();
+                InvalidateTestCache(testId);
+
+                return Ok(new { message = $"Đã xóa thành công toàn bộ Part của Test ID {testId}" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new { error = ex.Message, detail = ex.InnerException?.Message }
+                );
+            }
+        }
+
+        /// <summary>
         /// Cập nhật thông tin Part
         /// </summary>
         [HttpPut("tests/{testId}/parts/{partNumber}")]

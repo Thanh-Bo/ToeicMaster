@@ -6,6 +6,21 @@ import { adminService } from "../services/adminService";
 import { useAuth } from "../contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import type { DashboardStats, AdminUser, AdminTest, AdminQuestion } from "../types";
+import {
+  BarChart3,
+  Users,
+  FileText,
+  HelpCircle,
+  Lock,
+  CheckCircle,
+  Target,
+  TrendingUp,
+  ArrowLeft,
+  Edit2,
+  Trash2,
+  Eye,
+  Plus,
+} from "lucide-react";
 
 type Tab = "dashboard" | "users" | "tests" | "questions";
 
@@ -127,7 +142,9 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg text-center max-w-md border border-gray-200 dark:border-gray-700">
-          <div className="text-6xl mb-4">🔒</div>
+          <div className="text-5xl mb-4 flex justify-center">
+            <Lock className="w-16 h-16 text-red-600" />
+          </div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Truy cập bị từ chối</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">Bạn không có quyền truy cập trang quản trị</p>
           <p className="text-gray-500 dark:text-gray-500 text-sm mb-4">
@@ -159,34 +176,31 @@ export default function AdminPage() {
 
         <nav className="space-y-1">
           {[
-            { key: "dashboard", label: "Dashboard", icon: "📊" },
-            { key: "users", label: "Quản lý Users", icon: "👥" },
-            { key: "tests", label: "Quản lý Đề thi", icon: "📝" },
-            { key: "questions", label: "Quản lý Câu hỏi", icon: "❓" },
-          ].map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setActiveTab(item.key as Tab)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left ${
-                activeTab === item.key
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
-              }`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
+            { key: "dashboard", label: "Dashboard", icon: BarChart3 },
+            { key: "users", label: "Quản lý Users", icon: Users },
+            { key: "tests", label: "Quản lý Đề thi", icon: FileText },
+            { key: "questions", label: "Quản lý Câu hỏi", icon: HelpCircle },
+          ].map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveTab(item.key as Tab)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left ${
+                  activeTab === item.key
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                }`}
+              >
+                <IconComponent size={20} />
+                {item.label}
+              </button>
+            );
+          })}
           
-          <div className="border-t border-gray-700 my-2"></div>
           
-          <Link
-            href="/admin/import"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left text-gray-400 hover:bg-gray-800 hover:text-white"
-          >
-            <span>⚡</span>
-            Import & Audio
-          </Link>
+          
+          
         </nav>
 
         <div className="absolute bottom-4 left-4 right-4 space-y-3">
@@ -197,7 +211,8 @@ export default function AdminPage() {
             href="/"
             className="flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white transition w-full"
           >
-            ← Về trang chủ
+            <ArrowLeft size={18} />
+            Về trang chủ
           </Link>
         </div>
       </aside>
@@ -207,11 +222,31 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-              {activeTab === "dashboard" && "📊 Dashboard"}
-              {activeTab === "users" && "👥 Quản lý Users"}
-              {activeTab === "tests" && "📝 Quản lý Đề thi"}
-              {activeTab === "questions" && "❓ Quản lý Câu hỏi"}
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+              {activeTab === "dashboard" && (
+                <>
+                  <BarChart3 size={28} />
+                  Dashboard
+                </>
+              )}
+              {activeTab === "users" && (
+                <>
+                  <Users size={28} />
+                  Quản lý Users
+                </>
+              )}
+              {activeTab === "tests" && (
+                <>
+                  <FileText size={28} />
+                  Quản lý Đề thi
+                </>
+              )}
+              {activeTab === "questions" && (
+                <>
+                  <HelpCircle size={28} />
+                  Quản lý Câu hỏi
+                </>
+              )}
             </h2>
             <p className="text-gray-500 dark:text-gray-400">Xin chào, {user.fullName}</p>
           </div>
@@ -243,8 +278,8 @@ export default function AdminPage() {
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalUsers}</p>
                       <p className="text-green-600 dark:text-green-400 text-sm mt-1">+{stats.newUsersToday} hôm nay</p>
                     </div>
-                    <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-2xl">
-                      👥
+                    <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                      <Users className="w-7 h-7 text-blue-600" />
                     </div>
                   </div>
                 </div>
@@ -256,8 +291,8 @@ export default function AdminPage() {
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.activeUsers}</p>
                       <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{Math.round((stats.activeUsers / stats.totalUsers) * 100)}% tổng</p>
                     </div>
-                    <div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center text-2xl">
-                      ✅
+                    <div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+                      <CheckCircle className="w-7 h-7 text-green-600" />
                     </div>
                   </div>
                 </div>
@@ -268,8 +303,8 @@ export default function AdminPage() {
                       <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng Đề thi</p>
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalTests}</p>
                     </div>
-                    <div className="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center text-2xl">
-                      📝
+                    <div className="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center">
+                      <FileText className="w-7 h-7 text-purple-600" />
                     </div>
                   </div>
                 </div>
@@ -280,8 +315,8 @@ export default function AdminPage() {
                       <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng Câu hỏi</p>
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalQuestions}</p>
                     </div>
-                    <div className="w-14 h-14 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center text-2xl">
-                      ❓
+                    <div className="w-14 h-14 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center">
+                      <HelpCircle className="w-7 h-7 text-orange-600" />
                     </div>
                   </div>
                 </div>
@@ -292,8 +327,8 @@ export default function AdminPage() {
                       <p className="text-gray-500 dark:text-gray-400 text-sm">Tổng lượt thi</p>
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{stats.totalAttempts}</p>
                     </div>
-                    <div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-2xl">
-                      🎯
+                    <div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
+                      <Target className="w-7 h-7 text-indigo-600" />
                     </div>
                   </div>
                 </div>
@@ -304,7 +339,9 @@ export default function AdminPage() {
                       <p className="text-blue-100 text-sm">Trung bình</p>
                       <p className="text-3xl font-bold">{Math.round(stats.totalAttempts / stats.totalUsers)} bài/user</p>
                     </div>
-                    <div className="text-4xl">📈</div>
+                    <div className="w-12 h-12 flex items-center justify-center">
+                      <TrendingUp className="w-8 h-8 text-white" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -369,8 +406,8 @@ export default function AdminPage() {
             {activeTab === "tests" && (
               <div className="space-y-4">
                 <div className="flex justify-end">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">
-                    + Thêm đề thi mới
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium flex items-center gap-2">
+                    <Plus size={18} /> Thêm đề thi mới
                   </button>
                 </div>
 
@@ -414,15 +451,15 @@ export default function AdminPage() {
                                 setSelectedTestId(t.id);
                                 setActiveTab("questions");
                               }}
-                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
+                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition flex items-center gap-1"
                             >
-                              Xem câu hỏi
+                              <Eye size={16} /> Xem câu hỏi
                             </button>
                             <button
                               onClick={() => handleDeleteTest(t.id)}
-                              className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition"
-                            >
-                              Xóa
+                                className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center gap-1"
+                              >
+                                <Trash2 size={16} /> Xóa
                             </button>
                           </td>
                         </tr>
@@ -438,7 +475,9 @@ export default function AdminPage() {
               <div className="space-y-4">
                 {!selectedTestId ? (
                   <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-                    <div className="text-5xl mb-4">📝</div>
+                    <div className="text-5xl mb-4 flex justify-center">
+                      <FileText className="w-16 h-16 text-blue-600" />
+                    </div>
                     <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Chọn đề thi</h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-6">Vui lòng chọn một đề thi để xem câu hỏi</p>
                     <div className="flex flex-wrap gap-2 justify-center">
@@ -458,12 +497,12 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => setSelectedTestId(null)}
-                        className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-2"
                       >
-                        ← Quay lại
+                        <ArrowLeft size={20} /> Quay lại
                       </button>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">
-                        + Thêm câu hỏi
+                      <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium flex items-center gap-2">
+                        <Plus size={18} /> Thêm câu hỏi
                       </button>
                     </div>
 
@@ -496,11 +535,11 @@ export default function AdminPage() {
                                 </span>
                               </td>
                               <td className="px-6 py-4 flex gap-2">
-                                <button className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition">
-                                  Sửa
+                                <button className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition flex items-center gap-1">
+                                  <Edit2 size={16} /> Sửa
                                 </button>
-                                <button className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition">
-                                  Xóa
+                                <button className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center gap-1">
+                                  <Trash2 size={16} /> Xóa
                                 </button>
                               </td>
                             </tr>

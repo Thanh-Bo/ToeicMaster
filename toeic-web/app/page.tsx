@@ -17,13 +17,13 @@ const quickFeatures = [
     href: "/grammar",
     iconBgColor: "bg-gray-100",
   },
-  {
-    icon: <Mic className="w-8 h-8" />,
-    title: "Luyện nghe",
-    description: "Luyện nghe 3 chế độ: Nghe Check, Nghe Chép, Nghe Full",
-    href: "/listening",
-    iconBgColor: "bg-gray-100",
-  },
+  // {
+  //   icon: <Mic className="w-8 h-8" />,
+  //   title: "Luyện nghe",
+  //   description: "Luyện nghe 3 chế độ: Nghe Check, Nghe Chép, Nghe Full",
+  //   href: "/listening",
+  //   iconBgColor: "bg-gray-100",
+  // },
   {
     icon: <Eye className="w-8 h-8" />,
     title: "Từ vựng",
@@ -45,13 +45,13 @@ const quickFeatures = [
   //   href: "/blog",
   //   iconBgColor: "bg-gray-100",
   // },
-  {
-    icon: <Eye className="w-8 h-8" />,
-    title: "Luyện đọc",
-    description: "Luyện đọc TOEIC Part 7 song ngữ Anh-Việt",
-    href: "/reading",
-    iconBgColor: "bg-gray-100",
-  },
+  // {
+  //   icon: <Eye className="w-8 h-8" />,
+  //   title: "Luyện đọc",
+  //   description: "Luyện đọc TOEIC Part 7 song ngữ Anh-Việt",
+  //   href: "/reading",
+  //   iconBgColor: "bg-gray-100",
+  // },
   
 ];
 
@@ -155,7 +155,7 @@ export default function HomePage() {
 
       {/* QUICK ACCESS FEATURES - GRID LAYOUT */}
       <section className="max-w-7xl mx-auto px-4 py-12 -mt-8 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="flex items-center justify-center gap-6">
           {quickFeatures.map((feature) => (
             <FeatureCard key={feature.href} {...feature} />
           ))}

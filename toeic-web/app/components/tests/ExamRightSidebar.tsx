@@ -61,7 +61,7 @@ export default function ExamRightSidebar({
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className={`w-full py-2.5 rounded-lg font-bold transition-all uppercase text-sm border border-gray-200 dark:border-zinc-700
+          className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border border-gray-200 dark:border-zinc-700
             ${
               isLowTime
                 ? "bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-800"
@@ -78,7 +78,7 @@ export default function ExamRightSidebar({
             onClearAll();
           }
         }}
-        className="w-full py-2 rounded-lg font-bold transition-all text-sm mb-4 uppercase
+        className="w-full py-2 rounded-lg font-bold transition-all duration-200 text-sm mb-4 uppercase
           bg-transparent  border border-gray-200 dark:border-zinc-700  dark:hover:bg-white hover:bg-zinc-900 dark:hover:text-gray-800  hover:text-gray-200"
       >
         Xóa tất cả

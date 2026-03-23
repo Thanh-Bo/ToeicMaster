@@ -28,7 +28,7 @@ export default function PracticePage() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "completed" | "not-completed">("all");
-  const [filterYear, setFilterYear] = useState<string>("all");
+  const [filterPrefix, setFilterPrefix] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"practice" | "progress" | "bookmarks">("practice");
 
   useEffect(() => {
@@ -45,14 +45,22 @@ export default function PracticePage() {
       });
   }, []);
 
-  // Get unique years from tests (sorted descending)
-  const uniqueYears = Array.from(
-    new Set(tests.map((t) => new Date(t.createdAt || "").getFullYear()).filter(year => year > 1970))
-  ).sort((a, b) => b - a);
+  // Extract unique test prefixes from titles
+  // Examples: "ETS 2026 Test 3" → "ETS 2026"
+  const extractPrefix = (title: string): string => {
+    // Match pattern like "ETS 2026" or "Test 2024" etc
+    const match = title.match(/^(.+?)\s+(?:Test|test)\s+\d+/i);
+    return match ? match[1].trim() : title;
+  };
 
-  // Get count of tests per year
-  const getCountByYear = (year: number) => {
-    return tests.filter(t => new Date(t.createdAt || "").getFullYear() === year).length;
+  // Get unique prefixes from tests (sorted)
+  const uniquePrefixes = Array.from(
+    new Set(tests.map((t) => extractPrefix(t.title)))
+  ).sort();
+
+  // Get count of tests per prefix
+  const getCountByPrefix = (prefix: string) => {
+    return tests.filter(t => extractPrefix(t.title) === prefix).length;
   };
 
 
@@ -102,7 +110,7 @@ export default function PracticePage() {
         {activeTab === "practice" && (
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Chính phục <span className="text-cyan-500 dark:text-cyan-400">TOEIC Full Test</span>
+              Chinh phục <span className="text-cyan-500 dark:text-cyan-400">TOEIC Full Test</span>
             </h1>
             <p className="text-gray-600 dark:text-gray-400">Luyện đề TOEIC với đề thi thật và chấm điểm tự động</p>
           </div>
@@ -116,10 +124,10 @@ export default function PracticePage() {
             error={error}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            filterYear={filterYear}
-            onYearChange={setFilterYear}
-            uniqueYears={uniqueYears}
-            getCountByYear={getCountByYear}
+            filterPrefix={filterPrefix}
+            onPrefixChange={setFilterPrefix}
+            uniquePrefixes={uniquePrefixes}
+            getCountByPrefix={getCountByPrefix}
             LoadingSpinner={LoadingSpinner}
             AlertMessage={AlertMessage}
             EmptyState={EmptyState}
