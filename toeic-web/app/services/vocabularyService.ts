@@ -4,7 +4,7 @@ import type {
   VocabStats,
   VocabularyTopic,
   Flashcard,
-  Part5ApiResponse,
+  QuestionVocabResponse,
 } from "../types";
 
 // Re-export types để các component có thể import từ service
@@ -32,12 +32,12 @@ export const vocabularyService = {
     return response.data;
   },
 
-  // Lấy Part 5 questions của Topic
-  getPart5Questions: async (topicId: number): Promise<Part5ApiResponse> => {
-    const response = await axiosClient.get(`/import/topics/${topicId}/part5`);
+  // Lấy Vocabulary questions của Topic
+  getQuestionVocab: async (topicId: number): Promise<QuestionVocabResponse> => {
+    const response = await axiosClient.get(`/import/topics/${topicId}/question-vocab`);
     return response.data;
   },
-  
+
 
   submitTestResults: async (topicId: number, testData: any) => {
     const response = await axiosClient.post(
@@ -110,6 +110,36 @@ export const vocabularyService = {
     return response.data;
   },
 
+  // Generate AI explanation for a QuestionVocab
+  generateQuestionVocabExplanation: async (questionVocabId: number) => {
+    const response = await axiosClient.post(
+      `/questionvocab/${questionVocabId}/generate-explanation`
+    );
+    return response.data;
+  },
+
+  // Get QuestionVocab by ID
+  getQuestionVocabById: async (questionVocabId: number) => {
+    const response = await axiosClient.get(
+      `/question-vocab/${questionVocabId}`
+    );
+    return response.data;
+  },
+
+  // Get QuestionVocab list by Topic
+  getQuestionVocabByTopic: async (
+    topicId: number,
+    page: number = 1,
+    pageSize: number = 20
+  ) => {
+    const response = await axiosClient.get(
+      `/question-vocab/topic/${topicId}`,
+      { params: { page, pageSize } }
+    );
+    return response.data;
+  },
+
+  
   // Import hàng loạt
   importVocabularies: async (vocabularies: Partial<VocabularyItem>[]) => {
     const response = await axiosClient.post("/vocabulary/import", vocabularies);

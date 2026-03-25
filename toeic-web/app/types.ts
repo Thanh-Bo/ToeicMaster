@@ -332,21 +332,22 @@ export interface VocabularyTopic {
 
 
 
-export interface Part5Question {
+export interface QuestionVocab {
   id: number;
   questionNo: number;
   content: string;
   options: { label: string; content: string }[];
   correctOption: string; // Backend phải trả về cái này để chấm điểm
-  explanation: string;
+  shortExplanation?: string; // 1-sentence explanation from AI
+  longExplanation?: string; // Detailed explanation with HTML formatting
 }
 
 // 2. Cấu trúc Response từ API
-export interface Part5ApiResponse {
+export interface QuestionVocabResponse {
   topicId: number;
   topicName: string;
   totalQuestions: number;
-  questions: Part5Question[];
+  questions: QuestionVocab[];
 }
 
 // 3. Cấu trúc lưu kết quả làm bài của User (FIX LỖI CHÍNH Ở ĐÂY)

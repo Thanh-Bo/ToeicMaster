@@ -20,6 +20,38 @@ public class AiExplanationService
     }
 
     /// <summary>
+    /// Tạo prompt cho câu hỏi vocabulary (QuestionVocab)
+    /// </summary>
+    private string BuildPromptForVocabulary(
+        string content,
+        List<string> options,
+        string correctOption
+    )
+    {
+        var optionsText = string.Join("\n", options.Select((o, i) => $"{(char)('A' + i)}. {o}"));
+
+        return $@"
+Bạn là giáo viên TOEIC giỏi tiếng Anh.
+Đây là câu hỏi VOCABULARY (Từ vựng). Thí sinh chọn từ phù hợp để điền vào chỗ trống.
+
+Câu hỏi: {content}
+Các đáp án:
+{optionsText}
+Đáp án đúng: {correctOption}
+
+Hãy giải thích đơn giản:
+1. Dịch nghĩa câu hoàn chỉnh
+2. Giải thích từ đúng: ý nghĩa, cách sử dụng
+3. Tại sao các đáp án khác sai
+4. Ví dụ minh họa
+
+Trả về kết quả dưới dạng JSON thuần (KHÔNG có markdown ```json) gồm 2 trường:
+1. ""Short"": Giải thích siêu ngắn gọn (1-2 câu, dưới 20 từ tiếng Việt).
+2. ""Full"": Giải thích đơn giản bằng tiếng Việt, định dạng HTML (dùng <br>, <b>).
+";
+    }
+
+    /// <summary>
     /// Tạo prompt phù hợp cho từng Part TOEIC
     /// </summary>
     private string BuildPromptByPart(
@@ -201,6 +233,64 @@ Hãy giải thích:
             textResult = textResult?.Replace("```json", "").Replace("```", "").Trim();
 
             // Parse JSON từ text của AI để lấy 2 trường Short/Full
+            var resultObj = JsonSerializer.Deserialize<AiResponse>(textResult ?? "{}");
+            return (resultObj?.Short, resultObj?.Full);
+        }
+        catch
+        {
+            return ("Lỗi parse", "AI trả về format không đúng");
+        }
+    }
+
+    /// <summary>
+    /// Generate explanation for vocabulary questions (QuestionVocab)
+    /// </summary>
+    public async Task<(string? Short, string? Full)> GenerateVocabularyExplanationAsync(
+        string content,
+        List<string> options,
+        string correctOption
+    )
+    {
+        // Build prompt for vocabulary
+        var prompt = BuildPromptForVocabulary(content, options, correctOption);
+
+        // Send to Gemini
+        var requestBody = new
+        {
+            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+        };
+
+        var jsonContent = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        var url =
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+
+        var response = await _httpClient.PostAsync(url, jsonContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            return ($"Lỗi: {response.StatusCode}", $"Chi tiết: {errorContent}");
+        }
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(responseString);
+
+        try
+        {
+            var textResult = doc
+                .RootElement.GetProperty("candidates")[0]
+                .GetProperty("content")
+                .GetProperty("parts")[0]
+                .GetProperty("text")
+                .GetString();
+
+            textResult = textResult?.Replace("```json", "").Replace("```", "").Trim();
+
             var resultObj = JsonSerializer.Deserialize<AiResponse>(textResult ?? "{}");
             return (resultObj?.Short, resultObj?.Full);
         }

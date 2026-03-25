@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models;
-
+using OfficeOpenXml;
 namespace ToeicMaster.API.Controllers;
 
 [ApiController]
@@ -21,113 +21,135 @@ public class ImportController : ControllerBase
     }
 
 
-    /// </summary>
-    [HttpPost("topics/{topicId}/part5")]
-    public async Task<IActionResult> ImportPart5QuestionsForTopic(int topicId, [FromBody] Part5ImportTopicDto importData)
+    /// <summary>
+        /// <summary>
+        /// Import Vocabulary Questions from Excel file for a Topic
+        /// Excel columns: QuestionNo, Content, OptionA, OptionB, OptionC, OptionD, CorrectOption, ShortExplanation, LongExplanation
+        /// </summary>
+[HttpPost("topics/{topicId}/import-vocab")]
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> ImportQuestionVocabFromExcel(int topicId, IFormFile file)
+{
+    if (file == null || file.Length == 0)
+        return BadRequest("No file provided");
+
+    // Verify topic exists
+    var topic = await _context.Topics.FindAsync(topicId);
+    if (topic == null)
+        return BadRequest("Topic not found");
+
+    try
     {
-        if (importData?.Questions == null || importData.Questions.Count == 0)
-            return BadRequest("No questions provided");
+        int importedCount = 0;
 
-        // Verify topic exists
-        var topic = await _context.Topics.FindAsync(topicId);
-        if (topic == null)
-            return BadRequest("Topic not found");
-
-        try
+        // Read Excel file
+        using (var stream = new MemoryStream())
         {
-            int importedCount = 0;
-
-            // Tạo hoặc lấy QuestionGroup cho Topic Part 5
-            var questionGroup = await _context.QuestionGroups
-                .FirstOrDefaultAsync(qg => qg.TextContent == $"Topic_{topicId}_Part5");
-
-            if (questionGroup == null)
+            await file.CopyToAsync(stream);
+            using (var package = new ExcelPackage(stream))
             {
-                // Sử dụng Part đầu tiên để satisfy FK constraint
-                var firstPart = await _context.Parts.FirstOrDefaultAsync();
-                if (firstPart == null)
-                    return BadRequest("No Part found in database. Please create a test first.");
+                var worksheet = package.Workbook.Worksheets[0];
+                int rowCount = worksheet.Dimension?.Rows ?? 0;
 
-                questionGroup = new QuestionGroup
+                if (rowCount < 2)
+                    return BadRequest("Excel file is empty");
+
+                // Start from row 2 (skip header)
+                for (int row = 2; row <= rowCount; row++)
                 {
-                    PartId = firstPart.Id,
-                    TextContent = $"Topic_{topicId}_Part5"
-                };
-                _context.QuestionGroups.Add(questionGroup);
-                await _context.SaveChangesAsync();
-            }
+                    var questionNo = worksheet.Cells[row, 1].Value?.ToString();
+                    var content = worksheet.Cells[row, 2].Value?.ToString();
+                    var optionA = worksheet.Cells[row, 3].Value?.ToString();
+                    var optionB = worksheet.Cells[row, 4].Value?.ToString();
+                    var optionC = worksheet.Cells[row, 5].Value?.ToString();
+                    var optionD = worksheet.Cells[row, 6].Value?.ToString();
+                    var correctOption = worksheet.Cells[row, 7].Value?.ToString();
+                    var shortExplanation = worksheet.Cells[row, 8].Value?.ToString();
+                    var longExplanation = worksheet.Cells[row, 9].Value?.ToString();
 
-            // Import questions
-            foreach (var q in importData.Questions)
-            {
-                // Check if question already exists
-                var existingQuestion = await _context.Questions
-                    .FirstOrDefaultAsync(qst => qst.TopicId == topicId && qst.QuestionNo == q.QuestionNo);
+                    if (string.IsNullOrWhiteSpace(content))
+                        continue;
 
-                if (existingQuestion != null)
-                    continue; // Skip if exists
+                    // Check if question already exists
+                    var qNo = int.TryParse(questionNo, out var parsed) ? parsed : row - 1;
+                    var existingQuestion = await _context.Questions
+                        .FirstOrDefaultAsync(qst => qst.TopicId == topicId && qst.QuestionNo == qNo);
 
-                var question = new Question
-                {
-                    GroupId = questionGroup.Id,
-                    TopicId = topicId, // Link to Topic
-                    QuestionNo = q.QuestionNo,
-                    Content = q.Content,
-                    QuestionType = "Part5",
-                    CorrectOption = q.CorrectOption,
-                    FullExplanation = q.Explanation
-                };
+                    if (existingQuestion != null)
+                        continue;
 
-                _context.Questions.Add(question);
-                await _context.SaveChangesAsync();
-
-                // Add answer options (A, B, C, D)
-                var labels = new[] { "A", "B", "C", "D" };
-                for (int i = 0; i < q.Options.Count && i < 4; i++)
-                {
-                    bool isCorrect = labels[i].Equals(q.CorrectOption, StringComparison.OrdinalIgnoreCase);
-                    var answer = new Answer
+                    // Create question
+                    var question = new QuestionVocab
                     {
-                        QuestionId = question.Id,
-                        Label = labels[i],
-                        Content = q.Options[i],
-                        IsCorrect = isCorrect
+                        TopicId = topicId,
+                        QuestionNo = qNo,
+                        Content = content,
+                        CorrectOption = correctOption?.ToUpper() ?? "A",
+                        ShortExplanation = shortExplanation,
+                        LongExplanation = longExplanation
                     };
-                    _context.Answers.Add(answer);
+
+                    _context.QuestionVocab.Add(question);
+                    await _context.SaveChangesAsync();
+
+                    // Add answer options
+                    var options = new[] 
+                    { 
+                        ("A", optionA), 
+                        ("B", optionB), 
+                        ("C", optionC), 
+                        ("D", optionD) 
+                    };
+
+                    foreach (var (label, content_answer) in options)
+                    {
+                        if (!string.IsNullOrWhiteSpace(content_answer))
+                        {
+                            var answer = new QuestionVocabAnswer
+                            {
+                                QuestionVocabId = question.Id,
+                                Label = label,
+                                Content = content_answer,
+                                IsCorrect = label.Equals(correctOption, StringComparison.OrdinalIgnoreCase)
+                            };
+                            _context.QuestionVocabAnswer.Add(answer);
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    importedCount++;
                 }
-
-                await _context.SaveChangesAsync();
-                importedCount++;
             }
+        }
 
-            return Ok(new
-            {
-                message = $"Imported {importedCount} Part 5 questions for Topic {topicId}",
-                totalImported = importedCount,
-                topicId,
-                topicName = topic.Title
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            return BadRequest(new { error = ex.Message });
-        }
+            message = $"Imported {importedCount} vocabulary questions for Topic {topicId}",
+            totalImported = importedCount,
+            topicId,
+            topicName = topic.Title
+        });
     }
+    catch (Exception ex)
+    {
+        return BadRequest(new { error = ex.Message });
+    }
+}
 
     /// <summary>
-    /// Get Part 5 Questions cho Topic
+    /// Get Questions cho Topic
     /// </summary>
-    [HttpGet("topics/{topicId}/part5")]
+    [HttpGet("topics/{topicId}/question-vocab")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetPart5QuestionsForTopic(int topicId)
+    public async Task<IActionResult> GetQuestionVocabForTopic(int topicId)
     {
         // Verify topic exists
         var topic = await _context.Topics.FindAsync(topicId);
         if (topic == null)
             return NotFound("Topic not found");
 
-        var questions = await _context.Questions
-            .Where(q => q.TopicId == topicId && q.QuestionType == "Part5")
+        var questions = await _context.QuestionVocab
+            .Where(q => q.TopicId == topicId)
             .Include(q => q.Answers)
             .Select(q => new
             {
@@ -140,14 +162,14 @@ public class ImportController : ControllerBase
                     content = a.Content
                 }).ToList(),
                 correctOption = q.Answers.Where(a => a.IsCorrect == true).Select(a => a.Label).FirstOrDefault() ?? "A",
-                explanation = q.FullExplanation,
-
+                shortExplanation = q.ShortExplanation,
+                longExplanation = q.LongExplanation
             })
             .OrderBy(q => q.questionNo)
             .ToListAsync();
 
         if (questions.Count == 0)
-            return NotFound("No Part 5 questions found for this topic");
+            return NotFound("No vocabulary questions found for this topic");
 
         return Ok(new
         {
@@ -240,7 +262,7 @@ public class ImportController : ControllerBase
             if (!topicExists) return NotFound("Topic not found");
 
             // 2. Tìm danh sách ID câu hỏi thuộc Topic này
-            // (Lấy cả Part5 hoặc bất kỳ loại nào gắn với TopicId này)
+            // (Lấy cả QuestionVocab hoặc bất kỳ loại nào gắn với TopicId này)
             var questionIds = await _context.Questions
                 .Where(q => q.TopicId == topicId)
                 .Select(q => q.Id)
@@ -262,9 +284,9 @@ public class ImportController : ControllerBase
                 .ExecuteDeleteAsync();
 
             // 5. (Tùy chọn) Xóa luôn QuestionGroup rác nếu nó được tạo tự động cho Topic này
-            // Logic dựa trên naming convention lúc Import: $"Topic_{topicId}_Part5"
+            // Logic dựa trên naming convention lúc Import: $"Topic_{topicId}_QuestionVocab"
             await _context.QuestionGroups
-                .Where(g => g.TextContent == $"Topic_{topicId}_Part5")
+                .Where(g => g.TextContent == $"Topic_{topicId}_QuestionVocab")
                 .ExecuteDeleteAsync();
 
             return Ok(new
@@ -280,18 +302,19 @@ public class ImportController : ControllerBase
 }
 
 /// <summary>
-/// DTO để import Part 5 Questions cho Topic
+/// DTO để import Vocabulary Questions cho Topic
 /// </summary>
-public class Part5ImportTopicDto
+public class QuestionVocabImportDto
 {
-    public List<Part5QuestionDto> Questions { get; set; } = new();
+    public List<QuestionVocabDto> Questions { get; set; } = new();
 }
 
-public class Part5QuestionDto
+public class QuestionVocabDto
 {
     public int QuestionNo { get; set; }
     public string Content { get; set; } = string.Empty;
     public string CorrectOption { get; set; } = string.Empty; // "A", "B", "C", "D"
     public List<string> Options { get; set; } = new(); // [A, B, C, D]
-    public string? Explanation { get; set; }
+    public string? ShortExplanation { get; set; }
+    public string? LongExplanation { get; set; }
 }

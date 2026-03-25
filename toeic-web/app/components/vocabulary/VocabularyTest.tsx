@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { vocabularyService } from "@/app/services/vocabularyService";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle, Check, X } from "lucide-react";
-import { Part5Question, Question, UserTestResult } from "@/app/types";
+import { QuestionVocab, Question, UserTestResult } from "@/app/types";
 
 interface VocabularyTestProps {
   topicId: number;
@@ -16,7 +16,7 @@ export default function VocabularyTest({
   topicTitle,
   onComplete,
 }: VocabularyTestProps) {
-  const [questions, setQuestions] = useState<Part5Question[]>([]);
+  const [questions, setQuestions] = useState<QuestionVocab[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, string>
@@ -28,6 +28,9 @@ export default function VocabularyTest({
   const [results, setResults] = useState<UserTestResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedExplanations, setExpandedExplanations] = useState<Record<number, boolean>>({});
+  const [generatingExplanation, setGeneratingExplanation] = useState<Record<number, boolean>>({});
+  const [generatedExplanations, setGeneratedExplanations] = useState<Record<number, { short: string; long: string }>>({});
 
   const [newLevel, setNewLevel] = useState<number | null>(null);
 
@@ -36,7 +39,7 @@ export default function VocabularyTest({
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const response = await vocabularyService.getPart5Questions(topicId);
+        const response = await vocabularyService.getQuestionVocab(topicId);
         setQuestions(response.questions);
       } catch (err) {
         setError("Failed to load questions");
@@ -80,6 +83,64 @@ export default function VocabularyTest({
   const handlePrevious = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleGenerateExplanation = async (question: QuestionVocab) => {
+    // If already generated, just toggle
+    if (generatedExplanations[question.id]) {
+      setExpandedExplanations({
+        ...expandedExplanations,
+        [question.id]: !expandedExplanations[question.id],
+      });
+      return;
+    }
+
+    // Otherwise, generate it using the new QuestionVocab endpoint
+    try {
+      setGeneratingExplanation({
+        ...generatingExplanation,
+        [question.id]: true,
+      });
+
+      const result = await vocabularyService.generateQuestionVocabExplanation(
+        question.id
+      );
+
+      // Cache the generated explanation
+      setGeneratedExplanations({
+        ...generatedExplanations,
+        [question.id]: {
+          short: result.shortExplanation,
+          long: result.fullExplanation,
+        },
+      });
+
+      // Update the question with new explanations
+      setQuestions(
+        questions.map((q) =>
+          q.id === question.id
+            ? {
+                ...q,
+                shortExplanation: result.shortExplanation,
+                longExplanation: result.fullExplanation,
+              }
+            : q
+        )
+      );
+
+      // Expand the explanation
+      setExpandedExplanations({
+        ...expandedExplanations,
+        [question.id]: true,
+      });
+    } catch (err) {
+      console.error("Failed to generate explanation:", err);
+    } finally {
+      setGeneratingExplanation({
+        ...generatingExplanation,
+        [question.id]: false,
+      });
     }
   };
 
@@ -228,15 +289,72 @@ export default function VocabularyTest({
               </div>
             </div>
 
-            {/* Explanation */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded">
-              <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
-                Explanation:
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                {reviewQuestion.explanation}
-              </p>
+            {/* Explanation Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => handleGenerateExplanation(reviewQuestion)}
+                disabled={generatingExplanation[reviewQuestion.id]}
+                className={`w-full px-4 py-3 rounded-lg font-semibold flex items-center justify-between transition-colors ${
+                  expandedExplanations[reviewQuestion.id]
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-600 hover:bg-gray-700 text-white disabled:bg-gray-500"
+                }`}
+              >
+                <span>
+                  {generatingExplanation[reviewQuestion.id]
+                    ? "Đang tạo giải thích..."
+                    : "Giải thích"}
+                </span>
+                {generatingExplanation[reviewQuestion.id] ? (
+                  <div className="animate-spin">⟳</div>
+                ) : (
+                  <ChevronRight
+                    size={20}
+                    className={`transform transition-transform ${
+                      expandedExplanations[reviewQuestion.id] ? "rotate-90" : ""
+                    }`}
+                  />
+                )}
+              </button>
             </div>
+
+            {/* Explanation Section - Collapsible */}
+            {expandedExplanations[reviewQuestion.id] && generatedExplanations[reviewQuestion.id] && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded mb-6">
+                <div className="space-y-4">
+                  {/* Short Explanation */}
+                  {generatedExplanations[reviewQuestion.id]?.short && (
+                    <div>
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
+                        💡 Quick Notes:
+                      </p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {generatedExplanations[reviewQuestion.id].short}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  {generatedExplanations[reviewQuestion.id]?.short &&
+                    generatedExplanations[reviewQuestion.id]?.long && (
+                      <div className="border-t border-blue-200 dark:border-blue-800"></div>
+                    )}
+                  
+                  {/* Long Explanation */}
+                  {generatedExplanations[reviewQuestion.id]?.long && (
+                    <div>
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
+                        📚 Detailed Explanation:
+                      </p>
+                      <div 
+                        className="text-gray-700 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{ __html: generatedExplanations[reviewQuestion.id].long }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}

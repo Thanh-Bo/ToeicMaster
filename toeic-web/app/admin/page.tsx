@@ -20,9 +20,11 @@ import {
   Trash2,
   Eye,
   Plus,
+  BookOpen,
 } from "lucide-react";
+import VocabularyManagement from "../components/admin/VocabularyManagement";
 
-type Tab = "dashboard" | "users" | "tests" | "questions";
+type Tab = "dashboard" | "users" | "tests" | "questions" | "vocabulary";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -180,6 +182,7 @@ export default function AdminPage() {
             { key: "users", label: "Quản lý Users", icon: Users },
             { key: "tests", label: "Quản lý Đề thi", icon: FileText },
             { key: "questions", label: "Quản lý Câu hỏi", icon: HelpCircle },
+            { key: "vocabulary", label: "Quản lý Vocabulary", icon: BookOpen },
           ].map((item) => {
             const IconComponent = item.icon;
             return (
@@ -245,6 +248,12 @@ export default function AdminPage() {
                 <>
                   <HelpCircle size={28} />
                   Quản lý Câu hỏi
+                </>
+              )}
+              {activeTab === "vocabulary" && (
+                <>
+                  <BookOpen size={28} />
+                  Quản lý Vocabulary
                 </>
               )}
             </h2>
@@ -549,6 +558,13 @@ export default function AdminPage() {
                     </div>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Vocabulary Tab */}
+            {activeTab === "vocabulary" && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <VocabularyManagement />
               </div>
             )}
           </>

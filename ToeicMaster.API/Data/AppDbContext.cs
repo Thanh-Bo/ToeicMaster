@@ -55,6 +55,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CommentLike> CommentLikes { get; set; }
 
+    public virtual DbSet<QuestionVocab> QuestionVocab { get; set; }
+
+    public virtual DbSet<QuestionVocabAnswer> QuestionVocabAnswer { get; set; }
+
   
 
 
@@ -405,6 +409,38 @@ public partial class AppDbContext : DbContext
                 .WithMany(u => u.CommentLikes)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        // QuestionVocab configuration
+        modelBuilder.Entity<QuestionVocab>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TopicId, "IX_QuestionVocab_TopicId");
+
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.ShortExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.LongExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.CorrectOption).HasMaxLength(5);
+
+            entity.HasOne(e => e.Topic)
+                .WithMany()
+                .HasForeignKey(e => e.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // QuestionVocabAnswer configuration
+        modelBuilder.Entity<QuestionVocabAnswer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuestionVocabId, "IX_QuestionVocabAnswer_QuestionVocabId");
+
+            entity.Property(e => e.Label).HasMaxLength(5);
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)");
+
+            entity.HasOne(e => e.QuestionVocab)
+                .WithMany(q => q.Answers)
+                .HasForeignKey(e => e.QuestionVocabId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         

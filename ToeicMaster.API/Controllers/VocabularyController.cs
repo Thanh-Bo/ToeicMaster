@@ -363,46 +363,49 @@ public class VocabularyController : ControllerBase
         });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddVocabulary([FromBody] AddVocabularyRequest request)
+    /// <summary>
+    /// Lấy chi tiết từ vựng theo ID
+    /// </summary>
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetVocabularyById(int id)
     {
-        if (string.IsNullOrEmpty(request.Word) || string.IsNullOrEmpty(request.Meaning))
-            return BadRequest(new { error = "Word và Meaning là bắt buộc" });
+        var vocabulary = await _context.Vocabularies
+            .Include(v => v.WordFamilies)
+            .Include(v => v.Topic)
+            .FirstOrDefaultAsync(v => v.Id == id);
 
-        var vocab = new Vocabulary
+        if (vocabulary == null)
+            return NotFound(new { error = "Từ vựng không tồn tại" });
+
+        var dto = new VocabularyDto
         {
-            Word = request.Word.Trim(),
-            Meaning = request.Meaning.Trim(),
-            Pronunciation = request.Pronunciation,
-            PartOfSpeech = request.PartOfSpeech,
-            Example = request.Example,
-            ExampleTranslation = request.ExampleTranslation,
-            AudioUrl = request.AudioUrl,
-            ImageUrl = request.ImageUrl,
-            TopicId = request.TopicId,
-            Difficulty = request.Difficulty ?? 1,
-            Icon = request.Icon
+            Id = vocabulary.Id,
+            Word = vocabulary.Word,
+            Pronunciation = vocabulary.Pronunciation,
+            PartOfSpeech = vocabulary.PartOfSpeech,
+            Meaning = vocabulary.Meaning,
+            Example = vocabulary.Example,
+            ExampleTranslation = vocabulary.ExampleTranslation,
+            AudioUrl = vocabulary.AudioUrl,
+            ImageUrl = vocabulary.ImageUrl,
+            TopicId = vocabulary.TopicId,
+            Tocpic = vocabulary.Topic?.Title,
+            Difficulty = vocabulary.Difficulty,
+            Icon = vocabulary.Icon,
+            WordFamilies = vocabulary.WordFamilies.Select(wf => new WordFamilyDto
+            {
+                Word = wf.Word,
+                PartOfSpeech = wf.PartOfSpeech,
+                Meaning = wf.Meaning
+            }).ToList()
         };
 
-        // Thêm WordFamily nếu có
-        if (request.WordFamilies != null)
-        {
-            foreach (var wf in request.WordFamilies)
-            {
-                vocab.WordFamilies.Add(new WordFamily 
-                { 
-                    Word = wf.Word, 
-                    PartOfSpeech = wf.PartOfSpeech, 
-                    Meaning = wf.Meaning 
-                });
-            }
-        }
-
-        _context.Vocabularies.Add(vocab);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Đã thêm từ vựng", vocabId = vocab.Id });
+        return Ok(dto);
     }
+
+   
+ 
 
     [HttpPost("import")]
     public async Task<IActionResult> ImportVocabulary([FromBody] List<AddVocabularyRequest> vocabularies)
