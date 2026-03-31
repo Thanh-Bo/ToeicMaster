@@ -203,27 +203,24 @@ namespace ToeicMaster.API.Controllers
                     var rowCount = worksheet.Dimension.Rows;
 
                     // Biến để theo dõi Group hiện tại
-                    string lastPassageContent = "";
                     int currentGroupId = 0;
 
                     for (int row = 2; row <= rowCount; row++)
                     {
-                        // Lấy nội dung đoạn văn ở Cột A
-                        var passageContent = worksheet
-                            .Cells[row, 1]
-                            .Text?.Trim()
-                            .Replace("<br>", "\n");
-                        if (string.IsNullOrEmpty(passageContent))
-                            continue; // Bỏ qua dòng trống
+                        var qNoText = worksheet.Cells[row, 2].Text?.Trim();
+                        if (string.IsNullOrEmpty(qNoText)) continue; // Bỏ qua dòng trống
+
+                        // NEW RULE: Non-empty Col A = start of a new group.
+                        // Empty Col A = same group as previous row (no need to repeat passage).
+                        var passageContent = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
 
                         // --- LOGIC GOM NHÓM ---
-                        // Nếu đoạn văn này KHÁC đoạn văn của dòng trước -> Tạo Group mới
-                        if (passageContent != lastPassageContent)
+                        if (!string.IsNullOrEmpty(passageContent) || currentGroupId == 0)
                         {
                             var newGroup = new QuestionGroup
                             {
                                 PartId = part.Id,
-                                TextContent = passageContent, // Lưu đoạn văn vào Group
+                                TextContent = string.IsNullOrEmpty(passageContent) ? null : passageContent,
                                 ImageUrl = null,
                                 AudioUrl = null,
                             };
@@ -231,7 +228,6 @@ namespace ToeicMaster.API.Controllers
                             await _efContext.SaveChangesAsync(); // Lưu để lấy ID
 
                             currentGroupId = newGroup.Id;
-                            lastPassageContent = passageContent; // Cập nhật biến tạm
                         }
                         // ----------------------
 
@@ -342,25 +338,27 @@ namespace ToeicMaster.API.Controllers
                 // Cache để tránh upload cùng 1 ảnh nhiều lần
                 var savedImages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-                string lastPassage = "##INIT##";
-                string lastImageName = "##INIT##";
                 int currentGroupId = 0;
                 int countSuccess = 0;
 
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    var passageRaw = worksheet.Cells[row, 1].Text?.Trim().Replace("<br>", "\n");
                     var qNoText = worksheet.Cells[row, 2].Text?.Trim();
-                    var content = worksheet.Cells[row, 3].Text?.Trim();
-
                     if (string.IsNullOrEmpty(qNoText)) continue;
 
+                    // Read passage from col A. 
+                    // NEW RULE: A non-empty value in col A signals the START of a new group.
+                    // Empty col A means "same group as above" — no need to repeat the passage.
+                    var passageRaw = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+
+                    var content = worksheet.Cells[row, 3].Text?.Trim();
                     var imageName = worksheet.Cells[row, 10].Text?.Trim(); // Col J
                     var correctOpt = worksheet.Cells[row, 8].Text?.Trim().ToUpper(); // Col H
                     var explain = worksheet.Cells[row, 9].Text?.Trim(); // Col I
 
-                    // 2. Phát hiện nhóm mới
-                    bool isNewGroup = (passageRaw != lastPassage) || (imageName != lastImageName);
+                    // 2. A non-empty passage column marks the start of a NEW group.
+                    //    An empty passage column means this question belongs to the CURRENT group.
+                    bool isNewGroup = !string.IsNullOrEmpty(passageRaw) || currentGroupId == 0;
 
                     if (isNewGroup)
                     {
@@ -397,11 +395,14 @@ namespace ToeicMaster.API.Controllers
                             }
                         }
 
+                        // Store passage as HTML (keep <br> tags for the frontend to render)
+                        var passageHtml = string.IsNullOrEmpty(passageRaw) ? null : passageRaw;
+
                         // 4. Tạo QuestionGroup mới
                         var newGroup = new QuestionGroup
                         {
                             PartId = part.Id,
-                            TextContent = string.IsNullOrEmpty(passageRaw) ? null : passageRaw,
+                            TextContent = passageHtml,
                             ImageUrl = finalImageUrl,
                             AudioUrl = null,
                         };
@@ -409,8 +410,6 @@ namespace ToeicMaster.API.Controllers
                         await _efContext.SaveChangesAsync();
 
                         currentGroupId = newGroup.Id;
-                        lastPassage = passageRaw;
-                        lastImageName = imageName;
                     }
 
                     // 5. Tạo Question

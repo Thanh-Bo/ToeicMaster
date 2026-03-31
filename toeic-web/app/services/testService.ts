@@ -12,7 +12,7 @@ export const testService = {
 
   // 2. Lấy chi tiết đề (Cho trang thi)
   // app/services/testService.ts
-  getTestFull: (id: number, parts?: string | null) => {
+  getTestFull: (id: number | string, parts?: string | null) => {
     const url = parts
       ? `/tests/${id}/full?parts=${parts}`
       : `/tests/${id}/full`;
@@ -22,7 +22,7 @@ export const testService = {
   submit: (data: any) => {
     return axiosClient.post("/tests/submit", data);
   },
-  getResult: (attemptId: number) => {
+  getResult: (attemptId: number | string) => {
     return axiosClient.get(`/tests/results/${attemptId}`);
   },
 

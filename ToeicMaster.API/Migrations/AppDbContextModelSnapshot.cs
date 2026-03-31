@@ -350,7 +350,13 @@ namespace ToeicMaster.API.Migrations
                     b.Property<string>("TextContent")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TextContentTranslation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Transcript")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TranscriptTranslation")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id")
@@ -359,6 +365,68 @@ namespace ToeicMaster.API.Migrations
                     b.HasIndex(new[] { "PartId" }, "IX_QuestionGroups_PartId");
 
                     b.ToTable("QuestionGroups");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.QuestionVocab", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CorrectOption")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("LongExplanation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("QuestionNo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ShortExplanation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TopicId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "TopicId" }, "IX_QuestionVocab_TopicId");
+
+                    b.ToTable("QuestionVocab");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.QuestionVocabAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<int>("QuestionVocabId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "QuestionVocabId" }, "IX_QuestionVocabAnswer_QuestionVocabId");
+
+                    b.ToTable("QuestionVocabAnswer");
                 });
 
             modelBuilder.Entity("ToeicMaster.API.Entities.ReviewFeedback", b =>
@@ -499,6 +567,9 @@ namespace ToeicMaster.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AttemptGuid")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CompletedAt")
                         .HasColumnType("datetime2");
@@ -1022,6 +1093,28 @@ namespace ToeicMaster.API.Migrations
                     b.Navigation("Part");
                 });
 
+            modelBuilder.Entity("ToeicMaster.API.Entities.QuestionVocab", b =>
+                {
+                    b.HasOne("ToeicMaster.API.Entities.Topic", "Topic")
+                        .WithMany()
+                        .HasForeignKey("TopicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.QuestionVocabAnswer", b =>
+                {
+                    b.HasOne("ToeicMaster.API.Entities.QuestionVocab", "QuestionVocab")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionVocabId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("QuestionVocab");
+                });
+
             modelBuilder.Entity("ToeicMaster.API.Entities.ReviewFeedback", b =>
                 {
                     b.HasOne("ToeicMaster.API.Entities.UserAnswer", "UserAnswer")
@@ -1161,6 +1254,11 @@ namespace ToeicMaster.API.Migrations
             modelBuilder.Entity("ToeicMaster.API.Entities.QuestionGroup", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("ToeicMaster.API.Entities.QuestionVocab", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("ToeicMaster.API.Entities.Test", b =>

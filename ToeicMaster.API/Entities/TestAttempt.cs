@@ -7,6 +7,7 @@ public partial class TestAttempt
 {
     public int TimeTaken { get; set; }
     public int Id { get; set; }
+    public Guid AttemptGuid { get; set; } = Guid.NewGuid();
 
     public int UserId { get; set; }
 

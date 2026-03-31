@@ -41,7 +41,7 @@ interface PartGroup {
 export default function ResultPage() {
   const params = useParams();
   const router = useRouter();
-  const attemptId = Number(params.id);
+  const attemptId = params.id as string; // Keep as string for UUID
 
   const [result, setResult] = useState<ResultDetail | null>(null);
   const [partGroups, setPartGroups] = useState<PartGroup[]>([]);
@@ -471,6 +471,26 @@ export default function ResultPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [result]);
 
+  // Helper function to format transcript translation with proper grid layout
+  const formatTranscriptTranslationHTML = (text: string) => {
+    if (!text || text.trim().length === 0) return "";
+    
+    return text
+      .split('\n')
+      .filter(line => line.trim())
+      .map(line => {
+        const trimmed = line.trim();
+        const match = trimmed.match(/^(W|M|Man|Woman|Narrator)\s*:\s*(.*)/i);
+        if (match) {
+          const label = match[1];
+          const content = match[2];
+          return `<div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: start; margin-bottom: 0.5rem;"><span style="font-weight: bold; color: inherit; white-space: nowrap;">${label}:</span><span style="word-break: break-word; overflow-wrap: break-word;">${content}</span></div>`;
+        }
+        return `<p style="margin: 0.5rem 0; padding: 0;">${trimmed}</p>`;
+      })
+      .join('');
+  };
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900 bg-linear-to-br from-blue-50 dark:from-zinc-900 to-indigo-100 dark:to-zinc-800">
@@ -842,12 +862,14 @@ export default function ResultPage() {
                                             );
                                             if (match) {
                                               return (
-                                                <p key={i}>
-                                                  <span className="font-bold text-gray-900 dark:text-white">
+                                                <div key={i} className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                                                  <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
                                                     {match[1]}
                                                   </span>
-                                                  {match[2]}
-                                                </p>
+                                                  <span className="break-words">
+                                                    {match[2]}
+                                                  </span>
+                                                </div>
                                               );
                                             }
                                             return <p key={i}>{line.trim()}</p>;
@@ -922,12 +944,14 @@ export default function ResultPage() {
                                         group.groupId,
                                       ) && (
                                         <div
-                                          className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300 leading-6  "
+                                          className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300 leading-6"
                                           dangerouslySetInnerHTML={{
                                             __html:
-                                              transcriptTranslations[
-                                                group.groupId
-                                              ]?.replace(/\n/g, "<br>") || "",
+                                              formatTranscriptTranslationHTML(
+                                                transcriptTranslations[
+                                                  group.groupId
+                                                ] || ""
+                                              ),
                                           }}
                                         ></div>
                                       )
@@ -1037,7 +1061,7 @@ export default function ResultPage() {
                             )}
                             {group.groupContent && (
                               <div
-                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none  bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line"
+                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}
@@ -1097,7 +1121,7 @@ export default function ResultPage() {
                                       group.groupId,
                                     ) && (
                                       <div
-                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 whitespace-pre-line [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
+                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 whitespace-pre-line [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100 [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
                                         dangerouslySetInnerHTML={{
                                           __html:
                                             translations[

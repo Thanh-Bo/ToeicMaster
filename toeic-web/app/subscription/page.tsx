@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, CheckCircle, XCircle, Loader, Clock, Check, ArrowLeft, X, Crown, Lightbulb, CreditCard } from "lucide-react";
+import {
+  Copy, CheckCircle, XCircle, Loader, Clock, Check,
+  ArrowLeft, X, Crown, Lightbulb, CreditCard, Zap, Shield, Star
+} from "lucide-react";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { useAuth } from "@/app/contexts/AuthContext";
@@ -14,135 +17,101 @@ interface SubscriptionTier {
   originalPrice: number;
   discount: number;
   description: string;
+  popular?: boolean;
 }
+
+const subscriptionTiers: SubscriptionTier[] = [
+  {
+    duration: 1,
+    durationLabel: "1 Tháng",
+    basePrice: 30000,
+    originalPrice: 30000,
+    discount: 0,
+    description: "Dùng thử",
+  },
+  {
+    duration: 3,
+    durationLabel: "3 Tháng",
+    basePrice: 79000,
+    originalPrice: 90000,
+    discount: 12,
+    description: "Phổ biến nhất",
+    popular: true,
+  },
+  {
+    duration: 6,
+    durationLabel: "6 Tháng",
+    basePrice: 149000,
+    originalPrice: 180000,
+    discount: 17,
+    description: "Tiết kiệm nhất",
+  },
+];
+
+const premiumBenefits = [
+  { icon: <Zap className="w-4 h-4" />, text: "Mở khoá tất cả nội dung bài học" },
+  { icon: <Star className="w-4 h-4" />, text: "Hỏi AI không giới hạn" },
+  { icon: <Shield className="w-4 h-4" />, text: "Không quảng cáo" },
+  { icon: <Crown className="w-4 h-4" />, text: "Ưu tiên hỗ trợ 24/7" },
+  { icon: <CheckCircle className="w-4 h-4" />, text: "Theo dõi tiến độ toàn hệ thống" },
+];
 
 export default function PaymentPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // Check if user is authenticated
   useEffect(() => {
     if (!user) {
       toast.error("Vui lòng đăng nhập để tiếp tục");
       router.push("/login");
     }
   }, [user, router]);
-  // Subscription tiers
-  const subscriptionTiers: SubscriptionTier[] = [
-    {
-      duration: 1,
-      durationLabel: "1 Tháng",
-      basePrice: 30000,
-      originalPrice: 30000,
-      discount: 0,
-      description: "Unlimited Access",
-    },
-    {
-      duration: 3,
-      durationLabel: "3 Tháng",
-      basePrice: 79000,
-      originalPrice: 90000,
-      discount: 12,
-      description: "~12% tiết kiệm",
-    },
-    {
-      duration: 6,
-      durationLabel: "6 Tháng",
-      basePrice: 149000,
-      originalPrice: 180000,
-      discount: 17,
-      description: "~17% tiết kiệm",
-    },
-  ];
 
-  const premiumBenefits = [
-    "Mở khoá tất cả nội dung bài học",
-    "Mở khoá tính năng nâng cao (trà từ điển, hỏi AI...)",
-    "Không quảng cáo",
-    "Ưu tiên hỗ trợ",
-    "Trạng theo dõi tiếng độ học toàn hệ thống",
-  ];
-
-  const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(
-    subscriptionTiers[0]
-  );
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(subscriptionTiers[1]);
   const [loading, setLoading] = useState(false);
-  const [qrCode, setQrCode] = useState<string>("");
+  const [qrUrl, setQrUrl] = useState<string>("");
   const [bankInfo, setBankInfo] = useState<any>(null);
   const [transactionId, setTransactionId] = useState<number | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string>("PENDING");
   const [checkingStatus, setCheckingStatus] = useState(false);
-  const [statusCheckInterval, setStatusCheckInterval] = useState<
-    NodeJS.Timeout | null
-  >(null);
+  const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
-  // Step 1: Initiate payment and get QR code
   const initiatePayment = async () => {
     try {
       setLoading(true);
       const token = Cookies.get("token");
+      if (!token) { toast.error("Vui lòng đăng nhập"); router.push("/login"); return; }
 
-      if (!token) {
-        toast.error("Vui lòng đăng nhập để tiếp tục");
-        router.push("/login");
-        return;
-      }
-
-      console.log("Token:", token.substring(0, 20) + "..."); // Log first 20 chars of token
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/payment/initiate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            amount: selectedTier.basePrice,
-            description: `Premium ${selectedTier.durationLabel}`,
-            duration: selectedTier.duration,
-          }),
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/initiate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ amount: selectedTier.basePrice, description: `Premium ${selectedTier.durationLabel}`, duration: selectedTier.duration }),
+      });
 
       if (!response.ok) {
         const error = await response.json();
-        toast.error(error.error || "Failed to initiate payment");
+        toast.error(error.error || "Lỗi tạo thanh toán");
         return;
       }
 
       const data = await response.json();
-      setQrCode(data.qrCode);
+      setQrUrl(data.qrUrl);
       setBankInfo(data.bankInfo);
       setTransactionId(data.transactionId);
       setPaymentStatus("PENDING");
-
-      toast.success("Mã QR được tạo! Vui lòng hoàn tất chuyển khoản.");
-
-      // Start polling for payment status
+      toast.success("Mã QR đã sẵn sàng! 🎉");
       startStatusPolling(data.transactionId);
     } catch (error) {
-      console.error("Payment initiation error:", error);
-      toast.error("Error initiating payment");
+      toast.error("Lỗi kết nối. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Poll for payment status
   const startStatusPolling = (txId: number) => {
-    // Clear existing interval if any
     if (statusCheckInterval) clearInterval(statusCheckInterval);
-
-    // Check immediately
     checkPaymentStatus(txId);
-
-    // Then check every 5 seconds
-    const interval = setInterval(() => {
-      checkPaymentStatus(txId);
-    }, 5000);
-
+    const interval = setInterval(() => checkPaymentStatus(txId), 5000);
     setStatusCheckInterval(interval);
   };
 
@@ -150,30 +119,13 @@ export default function PaymentPage() {
     try {
       setCheckingStatus(true);
       const token = Cookies.get("token");
-
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/payment/status/${txId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        console.error("Failed to check status");
-        return;
-      }
-
+      if (!token) return;
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/status/${txId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) return;
       const data = await response.json();
       setPaymentStatus(data.status);
-
-      // If payment is completed, stop polling and show success
       if (data.isPaid) {
         if (statusCheckInterval) clearInterval(statusCheckInterval);
         toast.success("Thanh toán thành công! ✅");
@@ -186,341 +138,285 @@ export default function PaymentPage() {
     }
   };
 
-  // Copy to clipboard
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(`${label} copied!`);
+    toast.success(`Đã sao chép ${label}!`);
   };
 
-  // Reset payment to go back to tier selection
   const resetPayment = () => {
-    setQrCode("");
+    setQrUrl("");
     setBankInfo(null);
     setTransactionId(null);
     setPaymentStatus("PENDING");
     if (statusCheckInterval) clearInterval(statusCheckInterval);
   };
 
-  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      if (statusCheckInterval) clearInterval(statusCheckInterval);
-    };
+    return () => { if (statusCheckInterval) clearInterval(statusCheckInterval); };
   }, [statusCheckInterval]);
 
-  // Handle success - redirect after payment confirmation
   useEffect(() => {
     if (paymentStatus === "COMPLETED") {
-      const timer = setTimeout(() => {
-        window.location.reload(); // Refresh user data
-      }, 2000);
+      const timer = setTimeout(() => router.push("/"), 2500);
       return () => clearTimeout(timer);
     }
-  }, [paymentStatus]);
+  }, [paymentStatus, router]);
 
-  const handleGoBack = () => {
-    router.back();
-  };
+  // ─── PAYMENT COMPLETED ────────────────────────────────────
+  if (paymentStatus === "COMPLETED") {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+        <div className="text-center space-y-6 animate-fade-in">
+          <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mx-auto border-4 border-green-500">
+            <CheckCircle className="w-12 h-12 text-green-400" />
+          </div>
+          <h2 className="text-3xl font-bold text-white">Thanh toán thành công!</h2>
+          <p className="text-zinc-400">Tài khoản Premium của bạn đã được kích hoạt 🎉</p>
+          <div className="animate-pulse text-zinc-500 text-sm">Đang chuyển về trang chủ...</div>
+        </div>
+      </div>
+    );
+  }
 
+  // ─── QR PAYMENT VIEW ─────────────────────────────────────
+  if (qrUrl) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white">
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+          <button onClick={resetPayment} className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-medium">
+            <ArrowLeft className="w-4 h-4" /> Chọn gói khác
+          </button>
+          <div className="flex items-center gap-2 text-yellow-400 font-bold">
+            <Crown className="w-5 h-5" /> Premium {selectedTier.durationLabel}
+          </div>
+          <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors">
+            <X className="w-4 h-4 text-zinc-400" />
+          </button>
+        </div>
+
+        <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
+          {/* Status banner */}
+          <div className={`rounded-2xl p-4 flex items-center gap-3 border ${
+            paymentStatus === "PENDING"
+              ? "bg-amber-500/10 border-amber-500/30"
+              : "bg-red-500/10 border-red-500/30"
+          }`}>
+            {paymentStatus === "PENDING" ? (
+              <>
+                <div className="relative">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                  {checkingStatus && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-300 text-sm">Đang chờ xác nhận</p>
+                  <p className="text-amber-400/70 text-xs">Hệ thống tự động kiểm tra mỗi 5 giây</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <XCircle className="w-5 h-5 text-red-400" />
+                <p className="font-semibold text-red-300 text-sm">Thanh toán thất bại. Vui lòng thử lại.</p>
+              </>
+            )}
+          </div>
+
+          {/* QR Card */}
+          <div className="bg-zinc-900 rounded-3xl border border-zinc-800 overflow-hidden">
+            <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-6 text-center border-b border-zinc-800">
+              <p className="text-zinc-400 text-sm mb-4">Quét mã để thanh toán</p>
+              <div className="inline-block bg-white rounded-2xl p-3 shadow-2xl shadow-blue-500/20">
+                <img src={qrUrl} alt="VietQR" className="w-52 h-52 rounded-xl" />
+              </div>
+              <p className="text-zinc-500 text-xs mt-3">Hỗ trợ tất cả ứng dụng ngân hàng Việt Nam</p>
+            </div>
+
+            {/* Bank Details */}
+            {bankInfo && (
+              <div className="p-5 space-y-3">
+                <p className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-4">Thông tin chuyển khoản</p>
+
+                {[
+                  { label: "Ngân hàng", value: bankInfo.bankName },
+                  { label: "Số tài khoản", value: bankInfo.accountNumber, mono: true },
+                  { label: "Chủ tài khoản", value: bankInfo.accountHolder },
+                ].map(({ label, value, mono }) => (
+                  <div key={label} className="flex items-center justify-between bg-zinc-800/60 rounded-xl px-4 py-3">
+                    <div>
+                      <p className="text-zinc-500 text-xs">{label}</p>
+                      <p className={`text-white font-semibold text-sm mt-0.5 ${mono ? "font-mono" : ""}`}>{value}</p>
+                    </div>
+                    <button onClick={() => copyToClipboard(value, label)} className="p-2 rounded-lg hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-white">
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Amount highlight */}
+                <div className="flex items-center justify-between bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl px-4 py-3">
+                  <div>
+                    <p className="text-blue-400/70 text-xs">Số tiền</p>
+                    <p className="text-blue-300 font-bold text-lg">₫{selectedTier.basePrice.toLocaleString("vi-VN")}</p>
+                  </div>
+                  <button onClick={() => copyToClipboard(selectedTier.basePrice.toString(), "Số tiền")} className="p-2 rounded-lg hover:bg-blue-500/20 transition-colors text-blue-400">
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Guide */}
+          <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800 p-4">
+            <p className="text-zinc-400 text-xs font-semibold flex items-center gap-1.5 mb-3">
+              <Lightbulb className="w-3.5 h-3.5 text-blue-400" /> Hướng dẫn
+            </p>
+            <ol className="space-y-2">
+              {[
+                "Mở ứng dụng ngân hàng của bạn",
+                "Chọn Chuyển tiền → Quét mã QR",
+                "Hoặc nhập thủ công thông tin trên",
+                "Xác nhận giao dịch"
+              ].map((step, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-xs text-zinc-400">
+                  <span className="w-4 h-4 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-xs flex-shrink-0 mt-0.5 font-bold">{i + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── TIER SELECTION VIEW ────────────────────────────────
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900">
+    <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header */}
-      <div className="sticky top-0 flex justify-between items-center p-6 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 z-40">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Crown size={24} className="text-yellow-500" /> Thanh toán PRO Trọn đời
-        </h2>
-        <button
-          onClick={handleGoBack}
-          className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
-        >
-          <X size={20} />
+      <div className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 font-bold text-lg">
+          <Crown className="w-5 h-5 text-yellow-400" />
+          <span>Nâng cấp Premium</span>
+        </div>
+        <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors">
+          <X className="w-4 h-4 text-zinc-400" />
         </button>
       </div>
 
-      {/* Content */}
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-          {!qrCode ? (
-            <div className="space-y-6">
-              {/* Benefits Section */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <Crown size={20} className="text-yellow-500" /> Premium Benefits
-                </h3>
-                <ul className="space-y-3">
-                  {premiumBenefits.map((benefit, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <Check
-                        size={20}
-                        className="text-green-500 flex-shrink-0 mt-0.5"
-                      />
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {benefit}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+      <div className="max-w-2xl mx-auto px-6 py-10 space-y-8">
+        {/* Hero */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-2 bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 rounded-full px-4 py-1.5 text-sm font-semibold">
+            <Crown className="w-4 h-4" /> Premium
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+            Học TOEIC không giới hạn
+          </h1>
+          <p className="text-zinc-400 text-base max-w-md mx-auto">
+            Mở khoá toàn bộ tính năng và tăng tốc hành trình đạt điểm cao
+          </p>
+        </div>
 
-              {/* Subscription Tiers */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Chọn gói của bạn
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {subscriptionTiers.map((tier) => (
-                    <button
-                      key={tier.duration}
-                      onClick={() => setSelectedTier(tier)}
-                      className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-                        selectedTier.duration === tier.duration
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg"
-                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-zinc-800 hover:border-blue-300"
-                      }`}
-                    >
-                      <h4 className="font-bold text-lg text-gray-900 dark:text-white">
-                          {tier.durationLabel}
-                        </h4>
-
-                        {/* Price */}
-                        <div>
-                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                            ₫{tier.basePrice.toLocaleString("vi-VN")}
-                          </div>
-                          {tier.discount > 0 && (
-                            <div className="text-xs text-gray-600 dark:text-gray-400 line-through">
-                              ₫{tier.originalPrice.toLocaleString("vi-VN")}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Discount Badge */}
-                        {tier.discount > 0 && (
-                          <div className="inline-block bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                            Tiết kiệm ~{tier.discount}%
-                          </div>
-                        )}
-
-                        {/* Check mark */}
-                        {selectedTier.duration === tier.duration && (
-                          <div className="flex justify-center">
-                            <CheckCircle
-                              size={24}
-                              className="text-blue-500"
-                            />
-                          </div>
-                        )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <button
-                onClick={initiatePayment}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader size={20} className="animate-spin" /> Loading...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={20} /> Tiếp tục thanh toán ₫
-                    {selectedTier.basePrice.toLocaleString("vi-VN")}
-                  </>
-                )}
-              </button>
+        {/* Benefits */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {premiumBenefits.map(({ icon, text }) => (
+            <div key={text} className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 hover:border-zinc-700 transition-colors">
+              <span className="text-blue-400">{icon}</span>
+              <span className="text-zinc-300 text-sm">{text}</span>
             </div>
-          ) : (
-            // Step 2: Show QR and payment details
-            <div className="space-y-6">
-              {/* Back Button */}
-              <button
-                onClick={resetPayment}
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold flex items-center gap-2 text-sm mb-4"
-              >
-                <ArrowLeft size={16} /> Quay lại & chọn gói khác
-              </button>
-              {/* QR Code */}
-              <div className="bg-gray-50 dark:bg-zinc-800 p-6 rounded-xl text-center">
-                <h3 className="font-bold mb-4 text-gray-900 dark:text-white">
-                  Quét mã QR hoặc nhập thông tin chuyển khoản
-                </h3>
-                {qrCode && (
-                  <img
-                    src={`data:image/png;base64,${qrCode}`}
-                    alt="QR Code"
-                    className="w-64 h-64 mx-auto border-2 border-gray-200 dark:border-zinc-700 rounded-lg"
-                  />
-                )}
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-                  Nội dung chuyển khoản sẽ được điền tự động
-                </p>
-              </div>
+          ))}
+        </div>
 
-              {/* Bank Info */}
-              {bankInfo && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg text-gray-900 dark:text-white">
-                    Thông tin chuyển khoản
-                  </h3>
-
-                  {/* Bank Name */}
-                  <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
-                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                      Ngân hàng
-                    </label>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {bankInfo.bankName}
-                      </p>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(bankInfo.bankName, "Bank name")
-                        }
-                        className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded transition-colors"
-                      >
-                        <Copy size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Account Number */}
-                  <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
-                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                      Số tài khoản
-                    </label>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-lg font-bold text-gray-900 dark:text-white font-mono">
-                        {bankInfo.accountNumber}
-                      </p>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(
-                            bankInfo.accountNumber,
-                            "Account number"
-                          )
-                        }
-                        className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded transition-colors"
-                      >
-                        <Copy size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Account Holder */}
-                  <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
-                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                      Chủ tài khoản
-                    </label>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {bankInfo.accountHolder}
-                      </p>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(
-                            bankInfo.accountHolder,
-                            "Account holder"
-                          )
-                        }
-                        className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded transition-colors"
-                      >
-                        <Copy size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <label className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      Số tiền
-                    </label>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                        ₫{selectedTier.basePrice.toLocaleString("vi-VN")}
-                      </p>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(selectedTier.basePrice.toString(), "Amount")
-                        }
-                        className="p-2 hover:bg-blue-200 dark:hover:bg-blue-800 rounded transition-colors"
-                      >
-                        <Copy size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Status Section */}
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  {paymentStatus === "PENDING" && (
-                    <>
-                      <Clock className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <h4 className="font-bold text-yellow-700 dark:text-yellow-300">
-                          Đang chờ xác nhận thanh toán
-                        </h4>
-                        <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                          Vui lòng hoàn tất chuyển khoản. Chúng tôi sẽ tự động
-                          xác nhận trong vài phút.
-                        </p>
-                        {checkingStatus && (
-                          <div className="flex items-center gap-2 mt-2 text-yellow-600 dark:text-yellow-400">
-                            <Loader size={16} className="animate-spin" />
-                            <span className="text-xs">Đang kiểm tra...</span>
-                          </div>
-                        )}
-                      </div>
-                    </>
+        {/* Tiers */}
+        <div>
+          <p className="text-zinc-400 text-sm font-semibold mb-4 uppercase tracking-wider">Chọn gói của bạn</p>
+          <div className="grid grid-cols-3 gap-3">
+            {subscriptionTiers.map((tier) => {
+              const isSelected = selectedTier.duration === tier.duration;
+              return (
+                <button
+                  key={tier.duration}
+                  onClick={() => setSelectedTier(tier)}
+                  className={`relative flex flex-col items-center p-5 rounded-2xl border-2 transition-all duration-200 ${
+                    isSelected
+                      ? "border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10"
+                      : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+                  }`}
+                >
+                  {tier.popular && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                      Phổ biến
+                    </span>
                   )}
 
-                  {paymentStatus === "COMPLETED" && (
+                  <p className="font-bold text-white text-base mt-1">{tier.durationLabel}</p>
+
+                  <p className="text-2xl font-extrabold text-blue-400 mt-2">
+                    ₫{tier.basePrice.toLocaleString("vi-VN")}
+                  </p>
+
+                  {tier.discount > 0 ? (
                     <>
-                      <CheckCircle className="text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <h4 className="font-bold text-green-700 dark:text-green-300">
-                          Thanh toán thành công! ✅
-                        </h4>
-                        <p className="text-sm text-green-600 dark:text-green-400">
-                          Bạn đã nâng cấp lên tài khoản PRO. Tận hưởng tất cả
-                          các tính năng!
-                        </p>
-                      </div>
+                      <p className="text-xs text-zinc-600 line-through mt-0.5">
+                        ₫{tier.originalPrice.toLocaleString("vi-VN")}
+                      </p>
+                      <span className="mt-2 bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold px-2.5 py-1 rounded-full">
+                        -{tier.discount}%
+                      </span>
                     </>
+                  ) : (
+                    <p className="text-xs text-zinc-500 mt-1">{tier.description}</p>
                   )}
 
-                  {paymentStatus === "FAILED" && (
-                    <>
-                      <XCircle className="text-red-600 flex-shrink-0 mt-1" />
-                      <div>
-                        <h4 className="font-bold text-red-700">
-                          Thanh toán thất bại
-                        </h4>
-                        <p className="text-sm text-red-600">
-                          Vui lòng thử lại hoặc liên hệ hỗ trợ.
-                        </p>
-                      </div>
-                    </>
+                  {isSelected && (
+                    <div className="mt-3 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
                   )}
-                </div>
-              </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-              {/* Help Text */}
-              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-2 px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-lg">
-                <p className="font-semibold flex items-center gap-2"><Lightbulb size={16} className="text-blue-500" /> Hướng dẫn:</p>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li>Mở ứng dụng ngân hàng của bạn</li>
-                  <li>Chọn Chuyển tiền → Quét mã QR</li>
-                  <li>Hoặc nhập thông tin tài khoản ở trên</li>
-                  <li>Xác nhận giao dịch</li>
-                </ol>
-              </div>
+        {/* Price summary */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex items-center justify-between">
+          <div>
+            <p className="text-zinc-400 text-sm">Tổng thanh toán</p>
+            <p className="text-2xl font-bold text-white mt-0.5">
+              ₫{selectedTier.basePrice.toLocaleString("vi-VN")}
+            </p>
+            <p className="text-zinc-500 text-xs mt-0.5">Premium {selectedTier.durationLabel} · Thanh toán một lần</p>
+          </div>
+          {selectedTier.discount > 0 && (
+            <div className="text-right">
+              <p className="text-zinc-600 text-xs line-through">₫{selectedTier.originalPrice.toLocaleString("vi-VN")}</p>
+              <p className="text-green-400 font-bold text-sm mt-0.5">
+                Tiết kiệm ₫{(selectedTier.originalPrice - selectedTier.basePrice).toLocaleString("vi-VN")}
+              </p>
             </div>
           )}
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={initiatePayment}
+          disabled={loading}
+          className="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-base"
+        >
+          {loading ? (
+            <><Loader className="w-5 h-5 animate-spin" /> Đang tạo mã QR...</>
+          ) : (
+            <><CreditCard className="w-5 h-5" /> Thanh toán ngay · ₫{selectedTier.basePrice.toLocaleString("vi-VN")}</>
+          )}
+        </button>
+
+        <p className="text-center text-zinc-600 text-xs">
+          🔒 Thanh toán an toàn qua VietQR · Xác nhận tự động trong vài phút
+        </p>
       </div>
     </div>
   );

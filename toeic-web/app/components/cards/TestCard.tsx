@@ -5,6 +5,8 @@ import Link from "next/link";
 interface Props {
   /** ID của test */
   id: number;
+  /** UUID của test dùng cho URL */
+  testGuid: string;
   /** Tiêu đề */
   title: string;
   /** Thời gian làm bài (phút) */
@@ -28,6 +30,7 @@ const colorClasses = {
 
 export default function TestCard({
   id,
+  testGuid,
   title,
   duration,
   totalQuestions,
@@ -76,7 +79,7 @@ export default function TestCard({
 
         {/* CTA Button */}
         <Link
-          href={`/tests/${id}`}
+          href={`/tests/${testGuid}`}
           className="block w-full text-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-3 rounded-xl font-bold transition-colors text-sm shadow-md shadow-blue-100 dark:shadow-blue-900/40"
         >
           Làm bài ngay →

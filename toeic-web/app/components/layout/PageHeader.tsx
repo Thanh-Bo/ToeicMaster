@@ -44,11 +44,11 @@ interface Props {
 }
 
 const defaultNavLinks: NavLink[] = [
-  { href: "/grammar", label: "Grammar", icon: BookOpen },
-  { href: "/vocabulary", label: "Vocab", icon: BookOpen },
+  // { href: "/grammar", label: "Grammar", icon: BookOpen },
+  // { href: "/vocabulary", label: "Vocab", icon: BookOpen },
   // { href: "/listening", label: "Listening", icon: Mic },
   // { href: "/reading", label: "Reading", icon: Eye },
-  { href: "/practice", label: "Test", icon: FileText },
+  // { href: "/practice", label: "Test", icon: FileText },
 ];
 
 export default function PageHeader({

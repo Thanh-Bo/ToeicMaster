@@ -7,6 +7,8 @@ public partial class Test
 {
     public int Id { get; set; }
 
+    public Guid TestGuid { get; set; } = Guid.NewGuid();
+
     public string Title { get; set; } = null!;
 
     public string? Slug { get; set; }

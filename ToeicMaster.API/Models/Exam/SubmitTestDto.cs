@@ -18,6 +18,7 @@ namespace ToeicMaster.API.Models.Exam
         public int ListeningScore { get; set; }
         public int ReadingScore { get; set; }
         public int AttemptId { get; set; }
+        public Guid AttemptGuid { get; set; }
         public int TotalScore { get; set; }
         public int TotalQuestions { get; set; }
         public string Message { get; set; } = string.Empty;

@@ -6,6 +6,7 @@ import { Clock, BookOpen, Play, Zap, Filter } from "lucide-react";
 
 interface TestSummary {
   id: number;
+  testGuid: string;
   title: string;
   slug?: string;
   type?: string;
@@ -164,7 +165,7 @@ export default function PracticeTab({
                 {/* Action Buttons */}
                 <div className="flex gap-3">
                   <Link
-                    href={`/tests/${test.id}`}
+                    href={`/tests/${test.testGuid}`}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium rounded-lg transition"
                   >
                     <Play className="w-4 h-4" />

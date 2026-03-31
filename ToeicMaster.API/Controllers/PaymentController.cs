@@ -15,11 +15,13 @@ namespace ToeicMaster.API.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly AppDbContext _dbContext;
+        private readonly IConfiguration _configuration;
 
-        public PaymentController(IPaymentService paymentService, AppDbContext dbContext)
+        public PaymentController(IPaymentService paymentService, AppDbContext dbContext, IConfiguration configuration)
         {
             _paymentService = paymentService;
             _dbContext = dbContext;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -61,8 +63,8 @@ namespace ToeicMaster.API.Controllers
                 _dbContext.Transactions.Add(transaction);
                 await _dbContext.SaveChangesAsync();
 
-                // Generate QR code
-                var (qrCodeBase64, transferData) = _paymentService.GenerateQRCode(
+                // Generate VietQR URL (cross-platform, no System.Drawing)
+                var (vietQrUrl, transferData) = _paymentService.GenerateVietQR(
                     userId,
                     request.Amount,
                     request.Description,
@@ -77,7 +79,7 @@ namespace ToeicMaster.API.Controllers
                     amount = request.Amount,
                     description = request.Description,
                     status = "PENDING",
-                    qrCode = qrCodeBase64,
+                    qrUrl = vietQrUrl,  // direct VietQR image URL — use in <img src>
                     bankInfo = new
                     {
                         bankName = bankInfo.BankName,
@@ -143,6 +145,18 @@ namespace ToeicMaster.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> HandleBankWebhook([FromBody] BankWebhookRequest webhookData)
         {
+            // Verify webhook secret to prevent fake payment confirmations
+            var expectedSecret = _configuration["WebhookSecret"];
+            if (!string.IsNullOrEmpty(expectedSecret))
+            {
+                Request.Headers.TryGetValue("X-Webhook-Secret", out var receivedSecret);
+                if (receivedSecret != expectedSecret)
+                {
+                    Console.WriteLine("[WEBHOOK] Invalid secret — rejected");
+                    return Unauthorized(new { error = "Invalid webhook secret" });
+                }
+            }
+
             try
             {
                 // Log webhook received
@@ -225,6 +239,7 @@ namespace ToeicMaster.API.Controllers
         /// <summary>
         /// Manual payment confirmation (fallback for admin)
         /// </summary>
+        [Authorize(Roles = "Admin")]  // Only admins can manually confirm payments
         [HttpPost("confirm/{transactionId}")]
         public async Task<IActionResult> ConfirmPayment(int transactionId, [FromBody] ConfirmPaymentRequest request)
         {

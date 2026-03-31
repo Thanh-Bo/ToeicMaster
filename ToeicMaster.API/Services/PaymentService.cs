@@ -1,27 +1,19 @@
-using System;
-using System.Drawing;
-using System.IO;
-using System.Text;
 using Microsoft.Extensions.Configuration;
-using QRCoder;
 
 namespace ToeicMaster.API.Services;
 
 public interface IPaymentService
 {
     /// <summary>
-    /// Generates a QR code for bank transfer payment
+    /// Returns a VietQR image URL for the bank transfer (cross-platform, no System.Drawing)
     /// </summary>
-    (string QrCodeBase64, string ManualTransferData) GenerateQRCode(
+    (string VietQrUrl, string TransferData) GenerateVietQR(
         int userId,
         decimal amount,
         string description,
         int transactionId
     );
 
-    /// <summary>
-    /// Gets bank account information for manual transfer
-    /// </summary>
     BankAccountInfo GetBankAccountInfo();
 }
 
@@ -34,7 +26,7 @@ public class PaymentService : IPaymentService
         _configuration = configuration;
     }
 
-    public (string QrCodeBase64, string ManualTransferData) GenerateQRCode(
+    public (string VietQrUrl, string TransferData) GenerateVietQR(
         int userId,
         decimal amount,
         string description,
@@ -42,24 +34,16 @@ public class PaymentService : IPaymentService
     )
     {
         var bankSettings = _configuration.GetSection("BankSettings");
-        var bankName = bankSettings["BankName"];
         var accountNumber = bankSettings["AccountNumber"];
-        var accountHolder = bankSettings["AccountHolder"];
         var bankCode = bankSettings["BankCode"];
 
-        // Build transfer data for manual entry
-        var transferData = BuildTransferData(
-            accountNumber,
-            accountHolder,
-            amount,
-            description,
-            bankCode
-        );
+        // Build VietQR image URL — works cross-platform, no QRCoder needed
+        // The URL itself IS an image rendered by vietqr.io that works in any <img> tag
+        var encodedDesc = Uri.EscapeDataString(description ?? "Thanh toan TOEIC Master");
+        var vietQrUrl =
+            $"https://img.vietqr.io/image/{bankCode}-{accountNumber}-qr_only.png?amount={(long)amount}&addInfo={encodedDesc}";
 
-        // Generate QR code
-        var qrCodeBase64 = GenerateQRCodeBase64(transferData);
-
-        return (qrCodeBase64, transferData);
+        return (vietQrUrl, vietQrUrl);
     }
 
     public BankAccountInfo GetBankAccountInfo()
@@ -70,55 +54,8 @@ public class PaymentService : IPaymentService
             BankName = bankSettings["BankName"],
             AccountNumber = bankSettings["AccountNumber"],
             AccountHolder = bankSettings["AccountHolder"],
-            BankCode = bankSettings["BankCode"]
+            BankCode = bankSettings["BankCode"],
         };
-    }
-
-    /// <summary>
-    /// Generates VietQR static QR code URL for Sacombank
-    /// Scanned QR will show payment details with bank app options
-    /// Users can choose their bank app to complete payment
-    /// </summary>
-    private string BuildTransferData(
-        string accountNumber,
-        string accountHolder,
-        decimal amount,
-        string description,
-        string bankCode
-    )
-    {
-        // VietQR static image endpoint - simple and reliable
-        // This returns an image that shows payment details with bank logos
-        // When user scans, they can tap any bank logo to open the app
-        var encodedDesc = Uri.EscapeDataString(description ?? "Thanh toan TOEIC Master");
-        return $"https://img.vietqr.io/image/{bankCode}-{accountNumber}-compact2.png?amount={(long)amount}&addInfo={encodedDesc}";
-    }
-
-    /// <summary>
-    /// Generates QR code image as Base64 string
-    /// </summary>
-    private string GenerateQRCodeBase64(string transferData)
-    {
-        using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
-        {
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode(
-                transferData,
-                QRCodeGenerator.ECCLevel.Q
-            );
-
-            using (QRCode qrCode = new QRCode(qrCodeData))
-            {
-                using (Bitmap qrImage = qrCode.GetGraphic(20))
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        qrImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        byte[] qrImageBytes = ms.ToArray();
-                        return Convert.ToBase64String(qrImageBytes);
-                    }
-                }
-            }
-        }
     }
 }
 

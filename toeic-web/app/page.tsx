@@ -6,17 +6,27 @@ import { PageHeader, Footer } from "./components/layout";
 import { FeatureCard } from "./components/cards";
 import { useAuth } from "./contexts/AuthContext";
 import { statisticsService, StreakData } from "./services/statisticsService";
-import { BookOpen, Mic, Eye, FileText, ShoppingBag, PenTool, GraduationCap, Newspaper, Check } from "lucide-react";
+import {
+  BookOpen,
+  Mic,
+  Eye,
+  FileText,
+  ShoppingBag,
+  PenTool,
+  GraduationCap,
+  Newspaper,
+  Check,
+} from "lucide-react";
 
 // Quick access features
 const quickFeatures = [
-  {
-    icon: <BookOpen className="w-8 h-8" />,
-    title: "Ngữ pháp",
-    description: "Chính thức Part 5 TOEIC với hệ thống bài học và luyện tập toàn diện",
-    href: "/grammar",
-    iconBgColor: "bg-gray-100",
-  },
+  // {
+  //   icon: <BookOpen className="w-8 h-8" />,
+  //   title: "Ngữ pháp",
+  //   description: "Chính thức Part 5 TOEIC với hệ thống bài học và luyện tập toàn diện",
+  //   href: "/grammar",
+  //   iconBgColor: "bg-gray-100",
+  // },
   // {
   //   icon: <Mic className="w-8 h-8" />,
   //   title: "Luyện nghe",
@@ -24,17 +34,18 @@ const quickFeatures = [
   //   href: "/listening",
   //   iconBgColor: "bg-gray-100",
   // },
-  {
-    icon: <Eye className="w-8 h-8" />,
-    title: "Từ vựng",
-    description: "Học từ vựng TOEIC theo chủ đề với flashcard và spaced repetition",
-    href: "/vocabulary",
-    iconBgColor: "bg-gray-100",
-  },
+  // {
+  //   icon: <Eye className="w-8 h-8" />,
+  //   title: "Từ vựng",
+  //   description: "Học từ vựng TOEIC theo chủ đề với flashcard và spaced repetition",
+  //   href: "/vocabulary",
+  //   iconBgColor: "bg-gray-100",
+  // },
   {
     icon: <FileText className="w-8 h-8" />,
     title: "Luyện đề",
-    description: "Luyện đề TOEIC full test với chấm điểm và giải thích chi tiết",
+    description:
+      "Luyện đề TOEIC full test với chấm điểm và giải thích chi tiết",
     href: "/practice",
     iconBgColor: "bg-gray-100",
   },
@@ -52,7 +63,6 @@ const quickFeatures = [
   //   href: "/reading",
   //   iconBgColor: "bg-gray-100",
   // },
-  
 ];
 
 export default function HomePage() {
@@ -89,8 +99,6 @@ export default function HomePage() {
       {/* HERO BANNER - SIMPLIFIED CENTERED LAYOUT */}
       <section className="relative overflow-hidden">
         <div className="relative max-w-4xl mx-auto px-4 py-20 md:py-32 flex flex-col items-center justify-center min-h-[600px]">
-          
-
           {/* MAIN HEADING */}
           <div className="text-center space-y-4 mb-8 animate-fade-in">
             <h1 className="text-5xl md:text-7xl font-bold  leading-tight">
@@ -103,7 +111,8 @@ export default function HomePage() {
 
           {/* DESCRIPTION */}
           <p className=" text-lg md:text-xl max-w-2xl text-center mb-12 leading-relaxed">
-            Luyện nghe 3 chế độ, luyện đề, học từ vựng — tất cả trong một nền tảng.
+            Luyện nghe 3 chế độ, luyện đề, học từ vựng — tất cả trong một nền
+            tảng.
           </p>
 
           {/* CTA BUTTONS - CENTERED */}
@@ -113,7 +122,7 @@ export default function HomePage() {
               className="group  border border-gray-200 dark:border-zinc-700 relative inline-flex items-center justify-center px-10 py-4 font-bold   rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Tiếp tục học 
+                Tiếp tục học
               </span>
             </Link>
 
@@ -139,15 +148,21 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-8 justify-center text-white">
             <div className="flex items-center gap-3">
               <Check size={28} className="text-white" />
-              <span className="text-sm md:text-base">Đăng ký miễn phí, bắt đầu ngay</span>
+              <span className="text-sm md:text-base">
+                Đăng ký miễn phí, bắt đầu ngay
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <Check size={28} className="text-white" />
-              <span className="text-sm md:text-base">Theo dõi tiến độ học tập</span>
+              <span className="text-sm md:text-base">
+                Theo dõi tiến độ học tập
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <Check size={28} className="text-white" />
-              <span className="text-sm md:text-base">Giải thích chi tiết từng câu</span>
+              <span className="text-sm md:text-base">
+                Giải thích chi tiết từng câu
+              </span>
             </div>
           </div>
         </div>
@@ -175,31 +190,41 @@ export default function HomePage() {
             </div>
 
             {/* Title */}
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4"></h2>
 
             {/* Subtitle */}
             <p className="text-gray-600 dark:text-zinc-400 text-lg mb-12 max-w-2xl mx-auto">
-              Trải nghiệm đầy đủ các tính năng 
+              Trải nghiệm đầy đủ các tính năng
             </p>
 
             {/* Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-2xl mx-auto">
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
+                <Check
+                  size={24}
+                  className="text-green-500 dark:text-green-400 flex-shrink-0"
+                />
                 <span>Luyện tập ngữ pháp & từ vựng miễn phí</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
+                <Check
+                  size={24}
+                  className="text-green-500 dark:text-green-400 flex-shrink-0"
+                />
                 <span>Giải thích chi tiết mỗi đáp án</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
+                <Check
+                  size={24}
+                  className="text-green-500 dark:text-green-400 flex-shrink-0"
+                />
                 <span>Hỏi AI khi không hiểu</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check size={24} className="text-green-500 dark:text-green-400 flex-shrink-0" />
+                <Check
+                  size={24}
+                  className="text-green-500 dark:text-green-400 flex-shrink-0"
+                />
                 <span>Đăng nhập để lưu tiến độ & streak</span>
               </div>
             </div>
@@ -255,14 +280,12 @@ export default function HomePage() {
                     Làm bài và nhận phản hồi
                   </h3>
                   <p className="text-gray-600 dark:text-zinc-400">
-                    Bắt đầu làm bài và nhận phản hồi chi tiết cho từng câu trả lời
+                    Bắt đầu làm bài và nhận phản hồi chi tiết cho từng câu trả
+                    lời
                   </p>
                 </div>
               </div>
             </div>
-
-           
-            
           </div>
         </div>
       </section>
@@ -272,9 +295,8 @@ export default function HomePage() {
         links={[
           { label: "Trang chủ", href: "/" },
           { label: "Luyện đề", href: "/practice" },
-          { label: "Từ vựng", href: "/vocabulary" },
-          { label: "Đánh dấu", href: "/bookmarks" },
-         
+          // { label: "Từ vựng", href: "/vocabulary" },
+          // { label: "Đánh dấu", href: "/bookmarks" },
         ]}
       />
     </div>

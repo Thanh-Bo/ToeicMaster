@@ -310,13 +310,12 @@ Hãy giải thích:
 
 YÊU CẦU ĐẦU RA:
 
--Trả về văn bản thuần (plain text), giữ nguyên xuống dòng.
--KHÔNG dùng Markdown (không dùng **, *, ##, v.v.).
-- CHỈ dùng thẻ <b>...</b> (và không thẻ HTML nào khác) cho các trường hợp SAU:
-  1. Nhãn email/memo: To, From, Date, Subject, Kính gửi, v.v. (ví dụ: <b>Đến:</b>)
-  2. Tiêu đề bài báo, tiêu đề đoạn văn.
-  3. Tiêu đề cột bảng / lịch trình.
-  4. Từ vựng được in nghiêng/đậm trong câu hỏi (ví dụ: từ <b>""contract""</b>).
+- Trả về văn bản thuần (plain text), giữ nguyên xuống dòng.
+- KHÔNG dùng Markdown (không dùng **, *, ##, v.v.).
+- CHỈ dùng các thẻ HTML sau:
+  1. <b>...</b> cho: nhãn email/memo (To, From, Subject...), tiêu đề bài báo, tiêu đề cột bảng, từ vựng in đậm.
+  2. <table>, <tr>, <th>, <td> — NẾU đoạn gốc chứa bảng HTML (<table>), hãy GIỮ NGUYÊN cấu trúc bảng đó và CHỈ DỊCH nội dung văn bản bên trong các thẻ <th> và <td>. Không được xóa hay thay thế bảng bằng văn bản thuần.
+  3. <br> để xuống dòng.
 - Mọi nội dung khác: văn bản thuần, không thẻ.
 - Chỉ trả về bản dịch, không giải thích thêm.
 

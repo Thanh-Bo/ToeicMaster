@@ -18,7 +18,7 @@ export default function ExamPage() {
   const partsParam = searchParams.get("parts"); // Kết quả: "1"
   const durationParam = searchParams.get("duration"); // Kết quả: "60"
   const params = useParams();
-  const testId = Number(params.id);
+  const testGuid = params.id as string; // UUID string from URL
   const router = useRouter();
   const BASE_URL = "http://localhost:5298";
 
@@ -36,7 +36,7 @@ export default function ExamPage() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
-  const STORAGE_KEY = `exam_progress_${testId}`;
+  const STORAGE_KEY = `exam_progress_${testGuid}`;
 
   // --- TÍNH TOÁN ---
   const totalQuestions =
@@ -89,10 +89,10 @@ export default function ExamPage() {
     const userCookie = Cookies.get("user");
     if (userCookie) setUser(JSON.parse(userCookie));
 
-    if (testId) {
+    if (testGuid) {
       setLoading(true);
       testService
-        .getTestFull(testId, partsParam)
+        .getTestFull(testGuid, partsParam)
         .then((res) => {
           const data = res.data.data;
           setTestData(data);
@@ -139,7 +139,7 @@ export default function ExamPage() {
         })
         .finally(() => setLoading(false));
     }
-  }, [testId, partsParam, durationParam]);
+  }, [testGuid, partsParam, durationParam]);
 
   // --- EFFECT: Auto-save answers to localStorage ---
   useEffect(() => {
@@ -222,7 +222,7 @@ export default function ExamPage() {
       }
 
       const payload = {
-        testId: testId,
+        testId: testData!.id, // integer ID from loaded test data
         answers: Object.entries(userAnswers).map(([qId, opt]) => ({
           questionId: Number(qId),
           selectedOption: opt,
@@ -230,10 +230,10 @@ export default function ExamPage() {
         duration: timeSpent, // Gửi thời gian thực tế đã làm
       };
       const res = await testService.submit(payload);
-      if (res.data && res.data.attemptId) {
+      if (res.data && res.data.attemptGuid) {
         // Clear localStorage after successful submission
         localStorage.removeItem(STORAGE_KEY);
-        router.push(`/results/${res.data.attemptId}`);
+        router.push(`/results/${res.data.attemptGuid}`);
       } else {
         router.push("/results"); // Fallback
       }
@@ -589,7 +589,7 @@ export default function ExamPage() {
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300  leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white"
+                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}

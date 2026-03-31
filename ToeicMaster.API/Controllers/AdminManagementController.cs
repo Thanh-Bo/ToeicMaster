@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 
@@ -50,7 +50,9 @@ public class AdminManagementController : ControllerBase
         // Total users
         var totalUsers = await _context.Users.CountAsync();
         var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
-        var newUsersToday = await _context.Users.CountAsync(u => u.CreatedAt != null && u.CreatedAt.Value.Date == today);
+        var newUsersToday = await _context.Users.CountAsync(u =>
+            u.CreatedAt != null && u.CreatedAt.Value.Date == today
+        );
 
         // Total tests
         var totalTests = await _context.Tests.CountAsync();
@@ -60,11 +62,13 @@ public class AdminManagementController : ControllerBase
 
         // Total attempts
         var totalAttempts = await _context.TestAttempts.CountAsync();
-        var attemptsThisWeek = await _context.TestAttempts.CountAsync(ta => ta.CompletedAt >= sevenDaysAgo);
+        var attemptsThisWeek = await _context.TestAttempts.CountAsync(ta =>
+            ta.CompletedAt >= sevenDaysAgo
+        );
 
         // Recent activity
-        var recentAttempts = await _context.TestAttempts
-            .OrderByDescending(ta => ta.CompletedAt)
+        var recentAttempts = await _context
+            .TestAttempts.OrderByDescending(ta => ta.CompletedAt)
             .Take(5)
             .Include(ta => ta.User)
             .Include(ta => ta.Test)
@@ -74,21 +78,23 @@ public class AdminManagementController : ControllerBase
                 UserName = ta.User.FullName ?? "Unknown",
                 TestTitle = ta.Test.Title,
                 ta.TotalScore,
-                ta.CompletedAt
+                ta.CompletedAt,
             })
             .ToListAsync();
 
-        return Ok(new
-        {
-            totalUsers,
-            activeUsers,
-            newUsersToday,
-            totalTests,
-            totalQuestions,
-            totalAttempts,
-            attemptsThisWeek,
-            recentAttempts
-        });
+        return Ok(
+            new
+            {
+                totalUsers,
+                activeUsers,
+                newUsersToday,
+                totalTests,
+                totalQuestions,
+                totalAttempts,
+                attemptsThisWeek,
+                recentAttempts,
+            }
+        );
     }
 
     // ==========================================
@@ -104,7 +110,8 @@ public class AdminManagementController : ControllerBase
         [FromQuery] string? role,
         [FromQuery] bool? isActive,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20
+    )
     {
         if (!await IsAdminAsync())
             return Forbid("Chỉ Admin mới được truy cập");
@@ -113,9 +120,9 @@ public class AdminManagementController : ControllerBase
 
         if (!string.IsNullOrEmpty(search))
         {
-            query = query.Where(u => 
-                (u.FullName != null && u.FullName.Contains(search)) ||
-                u.Email.Contains(search));
+            query = query.Where(u =>
+                (u.FullName != null && u.FullName.Contains(search)) || u.Email.Contains(search)
+            );
         }
 
         if (!string.IsNullOrEmpty(role))
@@ -144,18 +151,20 @@ public class AdminManagementController : ControllerBase
                 u.CreatedAt,
                 u.LastLoginAt,
                 u.IsPremium,
-                TotalTests = u.TestAttempts.Count
+                TotalTests = u.TestAttempts.Count,
             })
             .ToListAsync();
 
-        return Ok(new
-        {
-            items = users,
-            total,
-            page,
-            pageSize,
-            totalPages = (int)Math.Ceiling(total / (double)pageSize)
-        });
+        return Ok(
+            new
+            {
+                items = users,
+                total,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(total / (double)pageSize),
+            }
+        );
     }
 
     /// <summary>
@@ -167,8 +176,8 @@ public class AdminManagementController : ControllerBase
         if (!await IsAdminAsync())
             return Forbid("Chỉ Admin mới được truy cập");
 
-        var user = await _context.Users
-            .Where(u => u.Id == userId)
+        var user = await _context
+            .Users.Where(u => u.Id == userId)
             .Select(u => new
             {
                 u.Id,
@@ -185,7 +194,7 @@ public class AdminManagementController : ControllerBase
                 TotalTests = u.TestAttempts.Count,
                 TotalPractice = u.PracticeSessions.Count,
                 TotalBookmarks = u.Bookmarks.Count,
-                TotalVocabulary = u.UserVocabularies.Count
+                TotalVocabulary = u.UserVocabularies.Count,
             })
             .FirstOrDefaultAsync();
 
@@ -215,19 +224,24 @@ public class AdminManagementController : ControllerBase
         user.IsActive = !user.IsActive;
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            userId = user.Id,
-            isActive = user.IsActive,
-            message = user.IsActive ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản"
-        });
+        return Ok(
+            new
+            {
+                userId = user.Id,
+                isActive = user.IsActive,
+                message = user.IsActive ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản",
+            }
+        );
     }
 
     /// <summary>
     /// Thay đổi role của user
     /// </summary>
     [HttpPut("users/{userId}/role")]
-    public async Task<IActionResult> UpdateUserRole(int userId, [FromBody] UpdateRoleRequest request)
+    public async Task<IActionResult> UpdateUserRole(
+        int userId,
+        [FromBody] UpdateRoleRequest request
+    )
     {
         if (!await IsAdminAsync())
             return Forbid("Chỉ Admin mới được truy cập");
@@ -246,12 +260,14 @@ public class AdminManagementController : ControllerBase
         user.Role = request.Role;
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            userId = user.Id,
-            role = user.Role,
-            message = $"Đã cập nhật role thành {request.Role}"
-        });
+        return Ok(
+            new
+            {
+                userId = user.Id,
+                role = user.Role,
+                message = $"Đã cập nhật role thành {request.Role}",
+            }
+        );
     }
 
     // ==========================================
@@ -267,7 +283,8 @@ public class AdminManagementController : ControllerBase
         [FromQuery] string? type,
         [FromQuery] bool? isActive,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20
+    )
     {
         if (!await IsAdminAsync())
             return Forbid("Chỉ Admin mới được truy cập");
@@ -305,18 +322,20 @@ public class AdminManagementController : ControllerBase
                 t.TotalParticipants,
                 t.IsActive,
                 t.CreatedAt,
-                PartsCount = t.Parts.Count
+                PartsCount = t.Parts.Count,
             })
             .ToListAsync();
 
-        return Ok(new
-        {
-            items = tests,
-            total,
-            page,
-            pageSize,
-            totalPages = (int)Math.Ceiling(total / (double)pageSize)
-        });
+        return Ok(
+            new
+            {
+                items = tests,
+                total,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(total / (double)pageSize),
+            }
+        );
     }
 
     /// <summary>
@@ -335,12 +354,14 @@ public class AdminManagementController : ControllerBase
         test.IsActive = !test.IsActive;
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            testId = test.Id,
-            isActive = test.IsActive,
-            message = test.IsActive.Value ? "Đã kích hoạt bài test" : "Đã ẩn bài test"
-        });
+        return Ok(
+            new
+            {
+                testId = test.Id,
+                isActive = test.IsActive,
+                message = test.IsActive.Value ? "Đã kích hoạt bài test" : "Đã ẩn bài test",
+            }
+        );
     }
 
     /// <summary>
@@ -360,11 +381,7 @@ public class AdminManagementController : ControllerBase
         test.IsActive = false;
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            message = "Đã xóa bài test thành công",
-            testId = test.Id
-        });
+        return Ok(new { message = "Đã xóa bài test thành công", testId = test.Id });
     }
 
     // ==========================================
@@ -379,7 +396,8 @@ public class AdminManagementController : ControllerBase
         int testId,
         [FromQuery] int? partNumber,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50)
+        [FromQuery] int pageSize = 50
+    )
     {
         if (!await IsAdminAsync())
             return Forbid("Chỉ Admin mới được truy cập");
@@ -388,8 +406,8 @@ public class AdminManagementController : ControllerBase
         if (test == null)
             return NotFound("Không tìm thấy bài test");
 
-        var query = _context.Questions
-            .Include(q => q.Group)
+        var query = _context
+            .Questions.Include(q => q.Group)
                 .ThenInclude(g => g.Part)
             .Where(q => q.Group.Part.TestId == testId);
 
@@ -415,26 +433,31 @@ public class AdminManagementController : ControllerBase
                 q.CorrectOption,
                 Explanation = q.ShortExplanation ?? q.FullExplanation,
                 GroupId = q.GroupId,
-                GroupContent = q.Group.TextContent ?? q.Group.AudioUrl
+                GroupContent = q.Group.TextContent ?? q.Group.AudioUrl,
             })
             .ToListAsync();
 
-        return Ok(new
-        {
-            items = questions,
-            total,
-            page,
-            pageSize,
-            totalPages = (int)Math.Ceiling(total / (double)pageSize),
-            testTitle = test.Title
-        });
+        return Ok(
+            new
+            {
+                items = questions,
+                total,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(total / (double)pageSize),
+                testTitle = test.Title,
+            }
+        );
     }
 
     /// <summary>
     /// Cập nhật một câu hỏi
     /// </summary>
     [HttpPut("questions/{questionId}")]
-    public async Task<IActionResult> UpdateQuestion(int questionId, [FromBody] UpdateQuestionRequest request)
+    public async Task<IActionResult> UpdateQuestion(
+        int questionId,
+        [FromBody] UpdateQuestionRequest request
+    )
     {
         if (!await IsAdminAsync())
             return Forbid("Chỉ Admin mới được truy cập");
@@ -445,20 +468,16 @@ public class AdminManagementController : ControllerBase
 
         if (!string.IsNullOrEmpty(request.Content))
             question.Content = request.Content;
-        
+
         if (!string.IsNullOrEmpty(request.CorrectOption))
             question.CorrectOption = request.CorrectOption;
-        
+
         if (!string.IsNullOrEmpty(request.Explanation))
             question.ShortExplanation = request.Explanation;
 
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            message = "Đã cập nhật câu hỏi thành công",
-            questionId = question.Id
-        });
+        return Ok(new { message = "Đã cập nhật câu hỏi thành công", questionId = question.Id });
     }
 
     // ==========================================
@@ -477,47 +496,41 @@ public class AdminManagementController : ControllerBase
         var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
 
         // User growth (30 ngày)
-        var userGrowth = await _context.Users
-            .Where(u => u.CreatedAt >= thirtyDaysAgo)
+        var userGrowth = await _context
+            .Users.Where(u => u.CreatedAt >= thirtyDaysAgo)
             .GroupBy(u => u.CreatedAt!.Value.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                Count = g.Count()
-            })
+            .Select(g => new { Date = g.Key, Count = g.Count() })
             .OrderBy(x => x.Date)
             .ToListAsync();
 
         // Test attempts (30 ngày)
-        var attemptsTrend = await _context.TestAttempts
-            .Where(ta => ta.CompletedAt >= thirtyDaysAgo)
+        var attemptsTrend = await _context
+            .TestAttempts.Where(ta => ta.CompletedAt >= thirtyDaysAgo)
             .GroupBy(ta => ta.CompletedAt.Date)
             .Select(g => new
             {
                 Date = g.Key,
                 Count = g.Count(),
-                AvgScore = g.Average(ta => ta.TotalScore)
+                AvgScore = g.Average(ta => ta.TotalScore),
             })
             .OrderBy(x => x.Date)
             .ToListAsync();
 
         // Score distribution
-        var scoreDistribution = await _context.TestAttempts
-            .GroupBy(ta => (int)(ta.TotalScore / 100) * 100)
-            .Select(g => new
-            {
-                ScoreRange = $"{g.Key}-{g.Key + 99}",
-                Count = g.Count()
-            })
+        var scoreDistribution = await _context
+            .TestAttempts.GroupBy(ta => (int)(ta.TotalScore / 100) * 100)
+            .Select(g => new { ScoreRange = $"{g.Key}-{g.Key + 99}", Count = g.Count() })
             .OrderBy(x => x.ScoreRange)
             .ToListAsync();
 
-        return Ok(new
-        {
-            userGrowth,
-            attemptsTrend,
-            scoreDistribution
-        });
+        return Ok(
+            new
+            {
+                userGrowth,
+                attemptsTrend,
+                scoreDistribution,
+            }
+        );
     }
 }
 

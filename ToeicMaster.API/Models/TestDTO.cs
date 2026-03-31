@@ -4,6 +4,7 @@ namespace ToeicMaster.API.Models
     public class TestSummaryDto
     {
         public int Id { get; set; }
+        public Guid TestGuid { get; set; }
         public string? Title { get; set; }
         public int Duration { get; set; }
         public int TotalQuestions { get; set; }
@@ -13,6 +14,7 @@ namespace ToeicMaster.API.Models
     public class TestDetailDto
     {
         public int Id { get; set; }
+        public Guid TestGuid { get; set; }
         public string? Title { get; set; }
         public int Duration { get; set; }
         public List<PartDto> Parts { get; set; } = new();

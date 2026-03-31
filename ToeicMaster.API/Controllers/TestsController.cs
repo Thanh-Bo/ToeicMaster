@@ -48,7 +48,7 @@ namespace ToeicMaster.API.Controllers
             var skip = (page - 1) * limit;
             var sql =
                 @"
-                SELECT Id, Title, Slug, Duration, TotalQuestions 
+                SELECT Id, TestGuid, Title, Slug, Duration, TotalQuestions 
                 FROM Tests
                 WHERE (@Search IS NULL OR Title LIKE '%' + @Search + '%')
                 ORDER BY Id DESC
@@ -88,9 +88,23 @@ namespace ToeicMaster.API.Controllers
             }
         }
 
-        [HttpGet("{id}/full")]
-        public async Task<IActionResult> GetTestFull(int id, [FromQuery] string? parts = null)
+        [HttpGet("{idOrGuid}/full")]
+        public async Task<IActionResult> GetTestFull(string idOrGuid, [FromQuery] string? parts = null)
         {
+            // Resolve testId: accept either integer ID or UUID
+            int id;
+            if (Guid.TryParse(idOrGuid, out var testGuid))
+            {
+                var test = await _efContext.Tests.FirstOrDefaultAsync(t => t.TestGuid == testGuid);
+                if (test == null)
+                    return NotFound(new { message = "Không tìm thấy đề thi." });
+                id = test.Id;
+            }
+            else if (!int.TryParse(idOrGuid, out id))
+            {
+                return BadRequest(new { message = "ID không hợp lệ." });
+            }
+
             // 1. Phân tách chuỗi "1,2,5" thành danh sách số nguyên [1, 2, 5]
             List<int> partNumbers = new List<int>();
             if (!string.IsNullOrEmpty(parts))
@@ -154,9 +168,16 @@ namespace ToeicMaster.API.Controllers
                     return NotFound(new { message = "Không tìm thấy nội dung phù hợp" });
 
                 var firstRow = flatData.First();
+                int resolvedTestId = (int)firstRow.TestId; // extract from dynamic before using in LINQ
+                var testGuidValue = await _efContext.Tests
+                    .Where(t => t.Id == resolvedTestId)
+                    .Select(t => t.TestGuid)
+                    .FirstOrDefaultAsync();
+
                 var testDetail = new TestDetailDto
                 {
                     Id = firstRow.TestId,
+                    TestGuid = testGuidValue,
                     Title = firstRow.Title,
                     Duration = firstRow.Duration,
                     Parts = flatData
@@ -283,6 +304,7 @@ namespace ToeicMaster.API.Controllers
                 new TestResultResponse
                 {
                     AttemptId = attempt.Id,
+                    AttemptGuid = attempt.AttemptGuid,
                     TotalScore = toeicScore.TotalScore, // Giờ là điểm 990
                     TotalQuestions = questionsInfo.Count,
                     Message = "Nộp bài thành công!",
@@ -291,13 +313,27 @@ namespace ToeicMaster.API.Controllers
         }
 
         // 4. GET RESULT
-        [HttpGet("results/{attemptId}")]
+        [HttpGet("results/{attemptIdOrGuid}")]
         [Authorize]
-        public async Task<IActionResult> GetTestResult(int attemptId)
+        public async Task<IActionResult> GetTestResult(string attemptIdOrGuid)
         {
-            var attempt = await _efContext
-                .TestAttempts.Include(t => t.Test)
-                .FirstOrDefaultAsync(a => a.Id == attemptId);
+            TestAttempt? attempt = null;
+            
+            // Try parsing as Guid first (new way)
+            if (Guid.TryParse(attemptIdOrGuid, out var guid))
+            {
+                attempt = await _efContext
+                    .TestAttempts.Include(t => t.Test)
+                    .FirstOrDefaultAsync(a => a.AttemptGuid == guid);
+            }
+            // Fallback to int (legacy support)
+            else if (int.TryParse(attemptIdOrGuid, out var id))
+            {
+                attempt = await _efContext
+                    .TestAttempts.Include(t => t.Test)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+            }
+            
             if (attempt == null)
                 return NotFound("Không tìm thấy bài làm.");
 
@@ -317,7 +353,7 @@ namespace ToeicMaster.API.Controllers
 
             // Lấy các câu trả lời của user
             var userAnswers = await _efContext
-                .UserAnswers.Where(ua => ua.AttemptId == attemptId)
+                .UserAnswers.Where(ua => ua.AttemptId == attempt.Id)
                 .ToDictionaryAsync(ua => ua.QuestionId, ua => ua);
 
             var result = new TestResultDetailDto
