@@ -22,7 +22,9 @@ export default function ProfileStatsTab({ stats }: ProfileStatsTabProps) {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Thống kê học tập</h3>
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+        Thống kê học tập
+      </h3>
 
       <div className="grid grid-cols-2 gap-4">
         {statCards.map(({ label, value }) => (
@@ -30,20 +32,14 @@ export default function ProfileStatsTab({ stats }: ProfileStatsTabProps) {
             key={label}
             className="border border-gray-200 dark:border-zinc-700 rounded-2xl p-5"
           >
-            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider font-medium">{label}</p>
-            <p className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">{value}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider font-medium">
+              {label}
+            </p>
+            <p className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
+              {value}
+            </p>
           </div>
         ))}
-      </div>
-
-      <div className="text-center pt-2">
-        <Link
-          href="/history"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition font-medium"
-        >
-          Xem chi tiết lịch sử làm bài
-          <ArrowRight className="w-4 h-4" />
-        </Link>
       </div>
     </div>
   );

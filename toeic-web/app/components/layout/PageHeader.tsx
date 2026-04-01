@@ -61,7 +61,6 @@ export default function PageHeader({
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-
   const handleUpgradeClick = () => {
     router.push("/subscription");
   };
@@ -102,13 +101,13 @@ export default function PageHeader({
         {/* Right: Actions */}
         {user ? (
           <div className="flex items-center gap-4 flex-shrink-0">
-            <button
+            {/* <button
               onClick={handleUpgradeClick}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-sm"
             >
               <Crown size={16} />
               Nâng cấp PRO
-            </button>
+            </button> */}
             <ThemeToggle />
             {/* Notification Bell */}
 
@@ -131,7 +130,9 @@ export default function PageHeader({
               </button>
               {showLogoutConfirm && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg p-3 z-50 animate-fade-in">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 font-medium text-center">Xác nhận đăng xuất?</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 font-medium text-center">
+                    Xác nhận đăng xuất?
+                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowLogoutConfirm(false)}
