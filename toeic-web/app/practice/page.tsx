@@ -12,6 +12,7 @@ import BookmarksTab from "./components/BookmarksTab";
 // Định nghĩa kiểu dữ liệu
 interface TestSummary {
   id: number;
+  testGuid: string;
   title: string;
   slug?: string;
   type?: string;
