@@ -13,7 +13,7 @@ import { ThumbsUp, MessageSquare, MoreVertical, Trash2, Edit, LoaderCircle } fro
 
 interface CommentItemProps {
   comment: Comment;
-  testId: number;
+  testId: string | number;
   onCommentUpdated: (updatedComment: Comment) => void;
   onCommentDeleted: (commentId: number) => void;
   onReplyAdded: (newReply: Comment) => void;
@@ -109,7 +109,7 @@ export function CommentItem({
 
   return (
     <div className={cn("flex items-start gap-3", isReply && "mt-3")}>
-      <UserAvatar user={comment} className={isReply ? "h-8 w-8" : "h-10 w-10"} />
+      <UserAvatar user={comment.userAvatar ? { fullName: comment.userName, avatarUrl: comment.userAvatar } : { fullName: comment.userName }} className={isReply ? "h-8 w-8" : "h-10 w-10"} />
       
       <div className="flex-1 min-w-0">
         {!isEditing ? (
@@ -146,7 +146,7 @@ export function CommentItem({
 
             {/* Actions */}
             <div className="mt-2 flex items-center gap-4 text-xs font-medium text-gray-600 dark:text-gray-400">
-              <button onClick={handleLike} className={cn("inline-flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors", isLiked && "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30")}>
+              <button onClick={handleLike} className={cn("inline-flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors", isLiked && "text-gray-900 dark:text-white bg-gray-100 dark:bg-zinc-700 font-semibold")}>
                 <ThumbsUp size={14} className={cn(isLiked && "fill-current")} /> 
                 <span>{likeCount}</span>
               </button>

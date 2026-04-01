@@ -5,7 +5,7 @@ import { CommentItem } from "./CommentItem";
 
 interface CommentListProps {
   comments: Comment[];
-  testId: number;
+  testId: string | number;
   onCommentUpdated: (updatedComment: Comment) => void;
   onCommentDeleted: (commentId: number) => void;
   onReplyAdded: (newReply: Comment) => void;

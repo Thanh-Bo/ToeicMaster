@@ -61,11 +61,11 @@ export default function ExamRightSidebar({
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border border-gray-200 dark:border-zinc-700
+          className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border
             ${
               isLowTime
-                ? "bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-800"
-                : "bg-transparent border   dark:hover:bg-white hover:bg-zinc-900 dark:hover:text-gray-800  hover:text-gray-200"
+                ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
+                : "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-700"
             }`}
         >
           {isSubmitting ? "Đang nộp..." : "Nộp bài"}
@@ -79,7 +79,7 @@ export default function ExamRightSidebar({
           }
         }}
         className="w-full py-2 rounded-lg font-bold transition-all duration-200 text-sm mb-4 uppercase
-          bg-transparent  border border-gray-200 dark:border-zinc-700  dark:hover:bg-white hover:bg-zinc-900 dark:hover:text-gray-800  hover:text-gray-200"
+          border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:border-red-400 dark:hover:border-red-500 hover:text-red-600 dark:hover:text-red-400"
       >
         Xóa tất cả
       </button>
@@ -111,11 +111,11 @@ export default function ExamRightSidebar({
                       key={q.id}
                       onClick={() => onScrollToQuestion(q.id)}
                       className={`h-8 w-8 text-xs font-medium rounded flex items-center justify-center border-2 transition-all
-                      ${isCurrent ? "ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-1 dark:ring-offset-zinc-900" : ""}
+                      ${isCurrent ? "ring-2 ring-gray-400 dark:ring-zinc-400 ring-offset-1 dark:ring-offset-zinc-900" : ""}
                       ${
                         isAnswered
-                          ? "bg-blue-600 text-white border-blue-600 font-medium"
-                          : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-600 hover:bg-gray-300 dark:hover:bg-zinc-600"
+                          ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white font-medium"
+                          : "bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700"
                       }`}
                     >
                       {q.questionNo}

@@ -182,24 +182,15 @@ export default function BookmarksTab() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 font-sans">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="bg-white dark:bg-zinc-900">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-2">
-              <button
-                onClick={() => router.push("/")}
-                className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-              >
-                Trang chủ
-              </button>
-              <span>/</span>
-              <span>Bookmarks</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white flex items-center gap-2">
-              <BookOpen className="text-blue-600 dark:text-blue-400" /> Kho lưu trữ
-              <span className="text-lg bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+              Kho lưu trữ
+              <span className="text-sm border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full">
                 {stats.total} câu
               </span>
             </h1>
@@ -208,16 +199,16 @@ export default function BookmarksTab() {
           <button
             disabled={bookmarks.length === 0}
             onClick={handleOpenReview}
-            className=" bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg  transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 px-5 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <PlayCircle size={20} /> Ôn tập ngẫu nhiên
+            <PlayCircle size={18} /> Ôn tập ngẫu nhiên
           </button>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* --- LEFT SIDEBAR (FILTERS & STATS) --- */}
           <div className="lg:w-1/4">
-            <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-4 sticky top-24">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 p-4 sticky top-24">
               <h3 className="font-bold text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-4 px-2">
                 Bộ lọc kỹ năng
               </h3>
@@ -270,19 +261,19 @@ export default function BookmarksTab() {
           {/* --- MAIN CONTENT --- */}
           <div className="lg:w-3/4">
             {/* Toolbar: Date & Sort */}
-            <div className="bg-white dark:bg-zinc-800 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm mb-6">
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 mb-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Date Picker Section */}
-                <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-600">
-                  <Calendar size={18} className="text-gray-500 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700">
+                  <Calendar size={16} className="text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     Ngày lưu:
                   </span>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-transparent text-sm outline-none text-gray-800 dark:text-white"
+                    className="bg-transparent text-sm outline-none text-gray-700 dark:text-gray-300"
                   />
                   {selectedDate && (
                     <button
@@ -295,14 +286,14 @@ export default function BookmarksTab() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="bg-white dark:bg-zinc-700 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-zinc-600 hover:border-gray-300 dark:hover:border-zinc-500 transition">
-                    <ArrowUpDown size={16} className="text-gray-600 dark:text-gray-400" />
+                  <div className="bg-white dark:bg-zinc-900 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 transition">
+                    <ArrowUpDown size={16} className="text-gray-400 dark:text-gray-500" />
                     <select
                       value={sortOrder}
                       onChange={(e) =>
                         setSortOrder(e.target.value as "newest" | "oldest")
                       }
-                      className=" bg-white dark:bg-zinc-700 text-sm font-medium cursor-pointer text-gray-700 dark:text-white"
+                      className="bg-transparent text-sm font-medium cursor-pointer text-gray-700 dark:text-gray-300 outline-none"
                     >
                       <option value="newest">Mới nhất</option>
                       <option value="oldest">Cũ nhất</option>
@@ -325,10 +316,10 @@ export default function BookmarksTab() {
             {/* List */}
             {loading ? (
               <div className="flex justify-center py-20">
-                <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 dark:border-blue-400 border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white"></div>
               </div>
             ) : bookmarks.length === 0 ? (
-              <div className="text-center py-20 bg-white dark:bg-zinc-800 rounded-2xl border border-dashed border-gray-300 dark:border-zinc-700">
+              <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-700">
                 <div className="text-6xl mb-4">📭</div>
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                   Không có dữ liệu
@@ -348,13 +339,12 @@ export default function BookmarksTab() {
                   return (
                     <div
                       key={item.id}
-                      className={`bg-white dark:bg-zinc-800 rounded-xl border transition-all duration-200 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-zinc-900
+                      className={`bg-white dark:bg-zinc-900 rounded-xl border transition-all duration-200 hover:shadow-md
                             ${
                               expandedId === item.id
-                                ? "ring-2 ring-blue-400 dark:ring-blue-500 border-transparent shadow-lg"
-                                : "border-gray-200 dark:border-slate-700"
-                            }
-                            `}
+                                ? "ring-2 ring-gray-400 dark:ring-zinc-500 border-transparent shadow-md"
+                                : "border-gray-200 dark:border-zinc-700"
+                            }`}
                     >
                       <div
                         className="p-5 cursor-pointer"
@@ -368,8 +358,8 @@ export default function BookmarksTab() {
                               className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 font-bold border
                                             ${
                                               item.question.partNumber <= 4
-                                                ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700"
-                                                : "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+                                                ? "bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-zinc-700"
+                                                : "bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-zinc-700"
                                             }
                                         `}
                             >
@@ -393,7 +383,7 @@ export default function BookmarksTab() {
                                 </div>
 
                                 {item.sourceTestName && (
-                                  <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-700 truncate max-w-[150px]">
+                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded border border-gray-200 dark:border-zinc-700 truncate max-w-[150px]">
                                     {item.sourceTestName}
                                   </span>
                                 )}
@@ -526,17 +516,17 @@ export default function BookmarksTab() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
+                  className="px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
                 >
                   Trước
                 </button>
-                <span className="px-4 py-2 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400 font-bold rounded border border-blue-200 dark:border-blue-700">
+                <span className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-lg">
                   {page} / {totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
+                  className="px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
                 >
                   Sau
                 </button>
@@ -545,14 +535,15 @@ export default function BookmarksTab() {
           </div>
         </div>
       </div>
+
       <BookmarkNoteModal
-        isOpen={!!editModalData} // Mở khi có data
+        isOpen={!!editModalData}
         onClose={() => setEditModalData(null)}
         onSave={handleUpdateNote}
         defaultNote={editModalData?.note || ""}
       />
 
-      <ReviewSetupModal 
+      <ReviewSetupModal
           isOpen={isSetupOpen}
           onClose={() => setIsSetupOpen(false)}
           currentPart={selectedPart}
@@ -569,6 +560,5 @@ export default function BookmarksTab() {
        />
 
     </div>
-    
   );
 }

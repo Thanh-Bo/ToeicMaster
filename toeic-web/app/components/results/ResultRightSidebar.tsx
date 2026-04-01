@@ -59,16 +59,16 @@ export default function ResultRightSidebar({
   }, [questions]);
 
   return (
-    <div className="sticky top-0 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700  overflow-y-auto custom-scrollbar max-h-screen">
+    <div className="sticky top-20 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-y-auto custom-scrollbar max-h-[calc(100vh-5rem)]">
       <div className="p-5">
         {/* --- KẾT QUẢ TỔNG QUAN --- */}
         <div className="text-center mb-6">
         <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 font-medium uppercase tracking-wider">
           Tổng điểm
         </p>
-        <div className="text-4xl font-extrabold text-blue-600 dark:text-blue-400 mb-2 font-mono">
+        <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 font-mono">
           {totalScore}
-          <span className="text-lg text-gray-500 dark:text-gray-400 font-normal">/990</span>
+          <span className="text-lg text-gray-400 dark:text-gray-500 font-normal">/990</span>
         </div>
         <p className="text-gray-600 dark:text-gray-400 text-[10px] font-bold mb-4">
           ({correctCount}/{totalQuestions} câu đúng)
@@ -112,15 +112,12 @@ export default function ResultRightSidebar({
           <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-semibold uppercase tracking-widest flex items-center justify-center gap-2">
             <Clock size={16} /> Thời gian làm bài
           </p>
-          <div className="text-5xl font-black text-blue-600 dark:text-blue-400 font-mono mb-2">
+          <div className="text-5xl font-black text-gray-900 dark:text-white font-mono mb-2">
             {formatTime(timeTaken)}
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Trung bình: {timePerQuestion.toFixed(1)} giây/câu
           </p>
-          <div className={`text-lg font-bold flex items-center justify-center gap-2 ${speedFeedback.color}`}>
-            {speedFeedback.icon} {speedFeedback.text}
-          </div>
         </div>
 
         {/* Stats row */}
@@ -206,7 +203,7 @@ export default function ResultRightSidebar({
                       key={rawQ.questionId}
                       onClick={() => onScrollToQuestion(rawQ.questionId)}
                       className={`h-8 w-8 text-xs font-medium rounded flex items-center justify-center border transition-all 
-                        ${isCurrent ? "ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-1" : ""} 
+                        ${isCurrent ? "ring-2 ring-gray-400 dark:ring-zinc-400 ring-offset-1" : ""} 
                         ${colorClass}`}
                     >
                       {rawQ.questionNo}
@@ -222,7 +219,7 @@ export default function ResultRightSidebar({
       <div className="mt-6 text-center space-y-2">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center justify-center gap-1"
+          className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center gap-1 transition"
         >
           <ArrowUp size={14} /> Lên đầu trang
         </button>

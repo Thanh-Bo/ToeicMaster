@@ -474,11 +474,11 @@ export default function ResultPage() {
   // Helper function to format transcript translation with proper grid layout
   const formatTranscriptTranslationHTML = (text: string) => {
     if (!text || text.trim().length === 0) return "";
-    
+
     return text
-      .split('\n')
-      .filter(line => line.trim())
-      .map(line => {
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => {
         const trimmed = line.trim();
         const match = trimmed.match(/^(W|M|Man|Woman|Narrator)\s*:\s*(.*)/i);
         if (match) {
@@ -488,15 +488,15 @@ export default function ResultPage() {
         }
         return `<p style="margin: 0.5rem 0; padding: 0;">${trimmed}</p>`;
       })
-      .join('');
+      .join("");
   };
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900 bg-linear-to-br from-blue-50 dark:from-zinc-900 to-indigo-100 dark:to-zinc-800">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 dark:border-blue-500 mx-auto mb-4"></div>
-          <p className="text-blue-600 dark:text-blue-400 font-bold text-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white mx-auto mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Đang tải kết quả...
           </p>
         </div>
@@ -545,7 +545,7 @@ export default function ResultPage() {
         <div className="max-full px-4  flex justify-between items-center">
           <Link
             href="/"
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -568,12 +568,7 @@ export default function ResultPage() {
             {result.testTitle}
           </h1>
 
-          <Link
-            href="/history"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
-          >
-            Lịch sử thi
-          </Link>
+          <div className="w-20" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 pb-3">
@@ -593,7 +588,7 @@ export default function ResultPage() {
                 style={{ width: `${percentage}%` }}
               ></div>
             </div>
-            <span className="font-bold text-blue-600 dark:text-blue-400">
+            <span className="font-bold text-gray-900 dark:text-white">
               {percentage}%
             </span>
           </div>
@@ -602,38 +597,46 @@ export default function ResultPage() {
 
       <div className="w-full mx-auto px-4 mt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-linear-to-br from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-lg">
-            <p className="text-blue-100 text-xs uppercase tracking-wider mb-1">
+          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
               Tổng điểm
             </p>
-            <p className="text-3xl font-extrabold">
+            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
               {result.totalScore}
-              <span className="text-lg opacity-70">/990</span>
+              <span className="text-lg text-gray-400 dark:text-gray-500">
+                /990
+              </span>
             </p>
           </div>
-          <div className="bg-linear-to-br from-green-500 to-emerald-600 text-white p-5 rounded-2xl shadow-lg">
-            <p className="text-green-100 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
               <Headphones size={14} /> Listening
             </p>
-            <p className="text-3xl font-extrabold">
+            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
               {listeningCorrect}
-              <span className="text-lg opacity-70">/445</span>
+              <span className="text-lg text-gray-400 dark:text-gray-500">
+                /445
+              </span>
             </p>
           </div>
-          <div className="bg-linear-to-br from-purple-500 to-violet-600 text-white p-5 rounded-2xl shadow-lg">
-            <p className="text-purple-100 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
               <BookOpen size={14} /> Reading
             </p>
-            <p className="text-3xl font-extrabold">
+            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
               {readingCorrect}
-              <span className="text-lg opacity-70">/445</span>
+              <span className="text-lg text-gray-400 dark:text-gray-500">
+                /445
+              </span>
             </p>
           </div>
-          <div className="bg-linear-to-br from-orange-500 to-amber-600 text-white p-5 rounded-2xl shadow-lg">
-            <p className="text-orange-100 text-xs uppercase tracking-wider mb-1">
+          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
               Tỉ lệ đúng
             </p>
-            <p className="text-3xl font-extrabold">{percentage}%</p>
+            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+              {percentage}%
+            </p>
           </div>
         </div>
       </div>
@@ -648,11 +651,11 @@ export default function ResultPage() {
                 </h2>
                 <div className="h-1 flex-1 bg-gray-300 dark:bg-zinc-900 rounded-full"></div>
                 {part.partNumber <= 4 ? (
-                  <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                  <span className="border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                     <Headphones size={14} /> Listening
                   </span>
                 ) : (
-                  <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                  <span className="border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                     <BookOpen size={14} /> Reading
                   </span>
                 )}
@@ -830,7 +833,7 @@ export default function ResultPage() {
                                 {group.transcript && (
                                   <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
                                     <div className="flex items-center justify-between mb-3">
-                                      <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                      <span className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                         <FileText className="w-4 h-4" />
                                         Transcript
                                       </span>
@@ -838,11 +841,7 @@ export default function ResultPage() {
                                         onClick={() =>
                                           toggleTranscript(group.groupId)
                                         }
-                                        className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
-                                          hiddenTranscripts.has(group.groupId)
-                                            ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/60"
-                                            : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/60"
-                                        }`}
+                                        className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
                                       >
                                         {hiddenTranscripts.has(group.groupId)
                                           ? "Hiện"
@@ -862,7 +861,10 @@ export default function ResultPage() {
                                             );
                                             if (match) {
                                               return (
-                                                <div key={i} className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                                                <div
+                                                  key={i}
+                                                  className="grid grid-cols-[auto_1fr] gap-2 items-start"
+                                                >
                                                   <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
                                                     {match[1]}
                                                   </span>
@@ -917,9 +919,11 @@ export default function ResultPage() {
                                         onClick={() =>
                                           handleTranslateTranscript(group)
                                         }
-                                        disabled={!!loadingTranscriptTranslateIds[
-                                          group.groupId
-                                        ]}
+                                        disabled={
+                                          !!loadingTranscriptTranslateIds[
+                                            group.groupId
+                                          ]
+                                        }
                                         className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                       >
                                         {!!loadingTranscriptTranslateIds[
@@ -950,7 +954,7 @@ export default function ResultPage() {
                                               formatTranscriptTranslationHTML(
                                                 transcriptTranslations[
                                                   group.groupId
-                                                ] || ""
+                                                ] || "",
                                               ),
                                           }}
                                         ></div>
@@ -1076,9 +1080,9 @@ export default function ResultPage() {
                                     onClick={() =>
                                       handleTranslatePassage(group)
                                     }
-                                    disabled={!!loadingTranslateIds[
-                                      group.groupId
-                                    ]}
+                                    disabled={
+                                      !!loadingTranslateIds[group.groupId]
+                                    }
                                     className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                   >
                                     {!!loadingTranslateIds[group.groupId] ? (

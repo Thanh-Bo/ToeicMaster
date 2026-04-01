@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -58,6 +59,8 @@ export default function PageHeader({
 }: Props) {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
 
   const handleUpgradeClick = () => {
     router.push("/subscription");
@@ -67,6 +70,7 @@ export default function PageHeader({
 
   const handleLogout = () => {
     logout();
+    setShowLogoutConfirm(false);
   };
 
   return (
@@ -100,9 +104,9 @@ export default function PageHeader({
           <div className="flex items-center gap-4 flex-shrink-0">
             <button
               onClick={handleUpgradeClick}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-sm"
             >
-              <Crown size={20} />
+              <Crown size={16} />
               Nâng cấp PRO
             </button>
             <ThemeToggle />
@@ -111,32 +115,53 @@ export default function PageHeader({
             {/* User Profile */}
             <Link
               href="/profile"
-              className="flex items-center justify-center w-9 h-9 bg-linear-to-br from-blue-500 to-blue-700 rounded-full text-white font-bold text-sm hover:from-blue-600 hover:to-blue-800 transition"
+              className="flex items-center justify-center w-9 h-9 bg-gray-900 dark:bg-white rounded-full text-white dark:text-gray-900 font-bold text-sm hover:opacity-80 transition"
             >
               {user.fullName?.charAt(0)?.toUpperCase() || "U"}
             </Link>
 
             {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="text-gray-400 hover:text-red-400 transition"
-              title="Đăng xuất"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowLogoutConfirm((v) => !v)}
+                className="text-gray-400 hover:text-red-400 transition"
+                title="Đăng xuất"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+              {showLogoutConfirm && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg p-3 z-50 animate-fade-in">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 font-medium text-center">Xác nhận đăng xuất?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowLogoutConfirm(false)}
+                      className="flex-1 py-1.5 text-xs border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg transition font-semibold"
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-shrink-0">
             <ThemeToggle />
             <Link
               href="/login"
-              className="bg-zinc-900 dark:bg-white text-gray-200 dark:text-gray-800 rounded-lg hover:text-blue-400 transition font-medium text-sm px-3 py-2"
+              className="border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg transition font-medium text-sm px-3 py-2"
             >
               Đăng nhập
             </Link>
             <Link
               href="/register"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium text-sm shadow-lg shadow-blue-500/30"
+              className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-2 rounded-lg hover:opacity-90 transition font-medium text-sm"
             >
               Đăng ký
             </Link>

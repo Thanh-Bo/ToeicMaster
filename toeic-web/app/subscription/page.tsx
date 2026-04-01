@@ -225,7 +225,7 @@ export default function PaymentPage() {
 
           {/* QR Card */}
           <div className="bg-zinc-900 rounded-3xl border border-zinc-800 overflow-hidden">
-            <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-6 text-center border-b border-zinc-800">
+            <div className="bg-zinc-800 p-6 text-center border-b border-zinc-800">
               <p className="text-zinc-400 text-sm mb-4">Quét mã để thanh toán</p>
               <div className="inline-block bg-white rounded-2xl p-3 shadow-2xl shadow-blue-500/20">
                 <img src={qrUrl} alt="VietQR" className="w-52 h-52 rounded-xl" />
@@ -255,7 +255,7 @@ export default function PaymentPage() {
                 ))}
 
                 {/* Amount highlight */}
-                <div className="flex items-center justify-between bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-between bg-zinc-800 rounded-xl px-4 py-3">
                   <div>
                     <p className="text-blue-400/70 text-xs">Số tiền</p>
                     <p className="text-blue-300 font-bold text-lg">₫{selectedTier.basePrice.toLocaleString("vi-VN")}</p>
@@ -347,7 +347,7 @@ export default function PaymentPage() {
                   }`}
                 >
                   {tier.popular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
                       Phổ biến
                     </span>
                   )}
@@ -405,7 +405,7 @@ export default function PaymentPage() {
         <button
           onClick={initiatePayment}
           disabled={loading}
-          className="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-base"
+          className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 text-base"
         >
           {loading ? (
             <><Loader className="w-5 h-5 animate-spin" /> Đang tạo mã QR...</>

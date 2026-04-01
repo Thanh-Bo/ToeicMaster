@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { testService } from "../services/testService";
 import { PageHeader } from "../components/layout";
 import { LoadingSpinner, EmptyState, AlertMessage } from "../components/common";
-import { BookOpen } from "lucide-react";
+import { BookOpen, BarChart2, History, Bookmark } from "lucide-react";
 import PracticeTab from "./components/PracticeTab";
 import ProgressTab from "./components/ProgressTab";
 import BookmarksTab from "./components/BookmarksTab";
+import HistoryTab from "./components/HistoryTab";
 
 // Định nghĩa kiểu dữ liệu
 interface TestSummary {
@@ -30,7 +31,7 @@ export default function PracticePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "completed" | "not-completed">("all");
   const [filterPrefix, setFilterPrefix] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"practice" | "progress" | "bookmarks">("practice");
+  const [activeTab, setActiveTab] = useState<"practice" | "progress" | "history" | "bookmarks">("practice");
 
   useEffect(() => {
     testService.getList()
@@ -73,13 +74,13 @@ export default function PracticePage() {
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Tabs Section */}
-        <div className="flex gap-4 mb-8 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex gap-4 mb-8 border-b border-gray-200 dark:border-zinc-700">
           <button
             onClick={() => setActiveTab("practice")}
             className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
               activeTab === "practice"
-                ? "text-blue-600 dark:text-white border-blue-600 dark:border-blue-500"
-                : "text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-700"
+                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
+                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
             <BookOpen className="w-5 h-5" />
@@ -87,22 +88,35 @@ export default function PracticePage() {
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-4 py-3 font-medium border-b-2 transition ${
+            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
               activeTab === "progress"
-                ? "text-blue-600 dark:text-white border-blue-600 dark:border-blue-500"
-                : "text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-700"
+                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
+                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
+            <BarChart2 className="w-4 h-4" />
             Tiến độ
           </button>
           <button
-            onClick={() => setActiveTab("bookmarks")}
-            className={`px-4 py-3 font-medium border-b-2 transition ${
-              activeTab === "bookmarks"
-                ? "text-blue-600 dark:text-white border-blue-600 dark:border-blue-500"
-                : "text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-700"
+            onClick={() => setActiveTab("history")}
+            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+              activeTab === "history"
+                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
+                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
+            <History className="w-4 h-4" />
+            Lịch sử
+          </button>
+          <button
+            onClick={() => setActiveTab("bookmarks")}
+            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+              activeTab === "bookmarks"
+                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
+                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            <Bookmark className="w-4 h-4" />
             Đã lưu
           </button>
         </div>
@@ -111,9 +125,9 @@ export default function PracticePage() {
         {activeTab === "practice" && (
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Chinh phục <span className="text-cyan-500 dark:text-cyan-400">TOEIC Full Test</span>
+              Chinh phục TOEIC Full Test
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">Luyện đề TOEIC với đề thi thật và chấm điểm tự động</p>
+            <p className="text-gray-500 dark:text-gray-400">Luyện đề TOEIC với đề thi thật và chấm điểm tự động</p>
           </div>
         )}
 
@@ -135,6 +149,8 @@ export default function PracticePage() {
           />
         ) : activeTab === "progress" ? (
           <ProgressTab />
+        ) : activeTab === "history" ? (
+          <HistoryTab />
         ) : (
           <BookmarksTab />
         )}

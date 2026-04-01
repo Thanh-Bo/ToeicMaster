@@ -11,7 +11,7 @@ interface AvatarProps {
 }
 
 export const UserAvatar = ({ user, className = "h-10 w-10" }: AvatarProps) => {
-  const baseClasses = "flex items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-sm ring-2 ring-white dark:ring-zinc-700";
+  const baseClasses = "flex items-center justify-center rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-sm ring-2 ring-white dark:ring-zinc-700";
 
   if (user?.avatarUrl) {
     return (

@@ -10,7 +10,7 @@ import LoadingSpinner from "../common/LoadingSpinner";
 import AlertMessage from "../common/AlertMessage";
 
 interface CommentSectionProps {
-  testId: number;
+  testId: string | number;
   defaultSort?: 'newest' | 'mostLiked';
 }
 
@@ -112,9 +112,9 @@ export function CommentSection({ testId, defaultSort = 'newest' }: CommentSectio
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-          <MessageSquare className="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" />
+          <MessageSquare className="w-6 h-6 mr-2 text-gray-500 dark:text-gray-400" />
           Thảo luận
-          <span className="ml-3 inline-block px-3 py-1 text-base font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+          <span className="ml-3 inline-block px-3 py-1 text-base font-semibold border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 rounded-full">
             {pagination.total}
           </span>
         </h2>

@@ -3,290 +3,272 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHeader, Footer } from "./components/layout";
-import { FeatureCard } from "./components/cards";
 import { useAuth } from "./contexts/AuthContext";
-import { statisticsService, StreakData } from "./services/statisticsService";
+import { testService } from "./services/testService";
 import {
+  Sparkles,
   BookOpen,
-  Mic,
-  Eye,
+  Users,
+  Brain,
+  Trophy,
   FileText,
-  ShoppingBag,
-  PenTool,
-  GraduationCap,
-  Newspaper,
-  Check,
+  BarChart2,
+  UserPlus,
+  ClipboardList,
+  Lightbulb,
+  ChevronRight,
+  ArrowRight,
 } from "lucide-react";
-
-// Quick access features
-const quickFeatures = [
-  // {
-  //   icon: <BookOpen className="w-8 h-8" />,
-  //   title: "Ngữ pháp",
-  //   description: "Chính thức Part 5 TOEIC với hệ thống bài học và luyện tập toàn diện",
-  //   href: "/grammar",
-  //   iconBgColor: "bg-gray-100",
-  // },
-  // {
-  //   icon: <Mic className="w-8 h-8" />,
-  //   title: "Luyện nghe",
-  //   description: "Luyện nghe 3 chế độ: Nghe Check, Nghe Chép, Nghe Full",
-  //   href: "/listening",
-  //   iconBgColor: "bg-gray-100",
-  // },
-  // {
-  //   icon: <Eye className="w-8 h-8" />,
-  //   title: "Từ vựng",
-  //   description: "Học từ vựng TOEIC theo chủ đề với flashcard và spaced repetition",
-  //   href: "/vocabulary",
-  //   iconBgColor: "bg-gray-100",
-  // },
-  {
-    icon: <FileText className="w-8 h-8" />,
-    title: "Luyện đề",
-    description:
-      "Luyện đề TOEIC full test với chấm điểm và giải thích chi tiết",
-    href: "/practice",
-    iconBgColor: "bg-gray-100",
-  },
-  // {
-  //   icon: <Newspaper className="w-8 h-8" />,
-  //   title: "Blog",
-  //   description: "Meo làm bài, chiến lược và kinh nghiệm thi TOEIC",
-  //   href: "/blog",
-  //   iconBgColor: "bg-gray-100",
-  // },
-  // {
-  //   icon: <Eye className="w-8 h-8" />,
-  //   title: "Luyện đọc",
-  //   description: "Luyện đọc TOEIC Part 7 song ngữ Anh-Việt",
-  //   href: "/reading",
-  //   iconBgColor: "bg-gray-100",
-  // },
-];
 
 export default function HomePage() {
   const { user } = useAuth();
-  const [streakData, setStreakData] = useState<StreakData | null>(null);
-  const [loadingStreak, setLoadingStreak] = useState(true);
+  const [testCount, setTestCount] = useState<number | null>(null);
 
   useEffect(() => {
-    const loadStreak = async () => {
+    const fetchTestCount = async () => {
       try {
-        const response = await statisticsService.getStreak();
-        if (response) {
-          setStreakData(response);
+        const res = await testService.getList();
+        const data = res.data?.data ?? res.data;
+        if (Array.isArray(data)) {
+          setTestCount(data.length);
         }
-      } catch (error) {
-        console.error("Failed to load streak:", error);
-      } finally {
-        setLoadingStreak(false);
+      } catch {
+        setTestCount(null);
       }
     };
+    fetchTestCount();
+  }, []);
 
-    if (user) {
-      loadStreak();
-    } else {
-      setLoadingStreak(false);
-    }
-  }, [user]);
+  const stats = [
+    {
+      icon: <BookOpen className="w-5 h-5" />,
+      value: testCount !== null ? `${testCount}+` : "...",
+      label: "Đề thi",
+    },
+
+    {
+      icon: <Brain className="w-5 h-5" />,
+      value: "AI",
+      label: "Giải thích chi tiết",
+    },
+    {
+      icon: <Trophy className="w-5 h-5" />,
+      value: "Miễn phí",
+      label: "Đăng ký & sử dụng",
+    },
+  ];
+
+  const features = [
+    {
+      icon: <FileText className="w-7 h-7" />,
+      title: "Luyện đề Full Test",
+      description:
+        "200 câu mỗi đề, đầy đủ 7 parts TOEIC, chấm điểm tự động sau khi nộp bài.",
+      href: "/practice",
+    },
+    {
+      icon: <Brain className="w-7 h-7" />,
+      title: "AI Giải thích Chi tiết",
+      description:
+        "Mỗi câu sai đều có giải thích rõ ràng từ AI — hiểu sâu, không chỉ nhớ đáp án.",
+      href: "/practice",
+    },
+    {
+      icon: <BarChart2 className="w-7 h-7" />,
+      title: "Theo dõi Tiến độ",
+      description:
+        "Xem lịch sử làm bài, điểm số theo từng part và streak học tập hằng ngày.",
+      href: "/practice",
+    },
+  ];
+
+  const steps = [
+    {
+      icon: <UserPlus className="w-6 h-6" />,
+      step: "01",
+      title: "Đăng ký miễn phí",
+      description: "Tạo tài khoản nhanh chóng, không cần thẻ tín dụng.",
+    },
+    {
+      icon: <ClipboardList className="w-6 h-6" />,
+      step: "02",
+      title: "Chọn đề và làm bài",
+      description: "Chọn từ kho đề thi đa dạng, thi thử như thi thật.",
+    },
+    {
+      icon: <Lightbulb className="w-6 h-6" />,
+      step: "03",
+      title: "Xem kết quả & AI giải thích",
+      description: "Phân tích chi tiết từng câu, nắm điểm yếu để cải thiện.",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300">
       {/* HEADER */}
       <PageHeader />
 
-      {/* HERO BANNER - SIMPLIFIED CENTERED LAYOUT */}
-      <section className="relative overflow-hidden">
-        <div className="relative max-w-4xl mx-auto px-4 py-20 md:py-32 flex flex-col items-center justify-center min-h-[600px]">
-          {/* MAIN HEADING */}
-          <div className="text-center space-y-4 mb-8 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold  leading-tight">
-              Luyện TOEIC hiệu quả
-            </h1>
-            <h2 className="text-4xl md:text-6xl font-bold b">
-              Đạt mục tiêu nhanh hơn
-            </h2>
-          </div>
+      {/* ── 1. HERO SECTION ── */}
+      <section className="max-w-4xl mx-auto px-4 pt-24 pb-20 text-center">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 border border-gray-200 dark:border-zinc-600 rounded-full px-4 py-1.5 text-sm text-gray-500 dark:text-gray-400 mb-8">
+          <Sparkles className="w-4 h-4" />
+          <span>Nền tảng luyện TOEIC thông minh</span>
+        </div>
 
-          {/* DESCRIPTION */}
-          <p className=" text-lg md:text-xl max-w-2xl text-center mb-12 leading-relaxed">
-            Luyện nghe 3 chế độ, luyện đề, học từ vựng — tất cả trong một nền
-            tảng.
-          </p>
+        {/* Heading */}
+        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
+          Luyện TOEIC hiệu quả
+        </h1>
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-500 dark:text-gray-400 mb-6">
+          Đạt mục tiêu điểm số nhanh hơn
+        </h2>
 
-          {/* CTA BUTTONS - CENTERED */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 ">
+        {/* Description */}
+        <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto mb-10">
+          Luyện đề full test, chấm điểm tự động và giải thích chi tiết từng câu
+          bằng AI.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link
+            href="/practice"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-all duration-200"
+          >
+            Bắt đầu luyện thi
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/practice"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200"
+          >
+            Xem danh sách đề
+          </Link>
+          {user?.role?.toLowerCase() === "admin" && (
             <Link
-              href="/practice"
-              className="group  border border-gray-200 dark:border-zinc-700 relative inline-flex items-center justify-center px-10 py-4 font-bold   rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200"
             >
-              <span className="relative z-10 flex items-center gap-2">
-                Tiếp tục học
-              </span>
+              Admin Panel
             </Link>
-
-            <Link
-              href="/tests"
-              className="px-10 border border-gray-200 dark:border-zinc-700  py-4 font-bold  backdrop-blur-md rounded-lg   shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 "
-            >
-              Làm bài test thứ
-            </Link>
-
-            {/* Admin Button - Visible only for admins */}
-            {user && user.role && user.role.toLowerCase() === "admin" && (
-              <Link
-                href="/admin"
-                className="px-10  border border-gray-200 dark:border-zinc-700 py-4 rounded-lg font-bold text-gray-900  hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-              >
-                Admin Panel
-              </Link>
-            )}
-          </div>
-
-          {/* FEATURES CHECKMARKS */}
-          <div className="flex flex-col sm:flex-row gap-8 justify-center text-white">
-            <div className="flex items-center gap-3">
-              <Check size={28} className="text-white" />
-              <span className="text-sm md:text-base">
-                Đăng ký miễn phí, bắt đầu ngay
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Check size={28} className="text-white" />
-              <span className="text-sm md:text-base">
-                Theo dõi tiến độ học tập
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Check size={28} className="text-white" />
-              <span className="text-sm md:text-base">
-                Giải thích chi tiết từng câu
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* QUICK ACCESS FEATURES - GRID LAYOUT */}
-      <section className="max-w-7xl mx-auto px-4 py-12 -mt-8 relative z-10">
-        <div className="flex items-center justify-center gap-6">
-          {quickFeatures.map((feature) => (
-            <FeatureCard key={feature.href} {...feature} />
+      {/* ── 2. STATS BAR ── */}
+      <section className="py-10 flex justify-center">
+        <div className="inline-flex divide-x divide-gray-200 dark:divide-zinc-700 border border-gray-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+          {stats.map((stat, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center text-center gap-1.5 px-10 py-6"
+            >
+              <div className="text-gray-400 dark:text-gray-500 mb-1">
+                {stat.icon}
+              </div>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stat.value}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {stat.label}
+              </span>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* PREMIUM SIGNUP SECTION */}
-      <section className=" py-20">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="relative rounded-3xl p-12 md:p-16 border border-gray-200 dark:border-zinc-700 text-center">
-            {/* Checkmark */}
-            <div className="flex justify-center mb-6">
-              <div className="flex items-center gap-2 text-green-500 dark:text-green-400 text-lg font-semibold">
-                <Check size={24} />
-                <span>Bắt đầu miễn phí</span>
-              </div>
-            </div>
+      {/* ── 3. FEATURE CARDS ── */}
+      <section className="max-w-5xl mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+            Tất cả những gì bạn cần
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Công cụ đầy đủ để luyện TOEIC hiệu quả nhất
+          </p>
+        </div>
 
-            {/* Title */}
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4"></h2>
-
-            {/* Subtitle */}
-            <p className="text-gray-600 dark:text-zinc-400 text-lg mb-12 max-w-2xl mx-auto">
-              Trải nghiệm đầy đủ các tính năng
-            </p>
-
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check
-                  size={24}
-                  className="text-green-500 dark:text-green-400 flex-shrink-0"
-                />
-                <span>Luyện tập ngữ pháp & từ vựng miễn phí</span>
-              </div>
-              <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check
-                  size={24}
-                  className="text-green-500 dark:text-green-400 flex-shrink-0"
-                />
-                <span>Giải thích chi tiết mỗi đáp án</span>
-              </div>
-              <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check
-                  size={24}
-                  className="text-green-500 dark:text-green-400 flex-shrink-0"
-                />
-                <span>Hỏi AI khi không hiểu</span>
-              </div>
-              <div className="flex items-center justify-center gap-3 text-gray-800 dark:text-white">
-                <Check
-                  size={24}
-                  className="text-green-500 dark:text-green-400 flex-shrink-0"
-                />
-                <span>Đăng nhập để lưu tiến độ & streak</span>
-              </div>
-            </div>
-
-            {/* CTA Button */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {features.map((feature, i) => (
             <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-600 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              key={i}
+              href={feature.href}
+              className="group flex flex-col gap-4 p-6 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:shadow-md dark:hover:shadow-zinc-800/50 hover:-translate-y-1 transition-all duration-200"
             >
-              Bắt đầu luyện tập ngay →
+              <div className="text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200">
+                {feature.icon}
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 4. HOW IT WORKS ── */}
+      <section className="border-t border-gray-200 dark:border-zinc-700">
+        <div className="max-w-5xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              Bắt đầu chỉ trong 3 bước
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400">
+              Đơn giản, nhanh chóng và hoàn toàn miễn phí
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-0">
+            {steps.map((step, i) => (
+              <div key={i} className="flex md:flex-1 items-center w-full">
+                {/* Step Card */}
+                <div className="flex-1 flex flex-col items-center text-center gap-3 px-4">
+                  <div className="w-12 h-12 rounded-xl border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    {step.icon}
+                  </div>
+                  <span className="text-xs font-mono text-gray-400 dark:text-gray-600">
+                    {step.step}
+                  </span>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-[180px]">
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Divider Arrow */}
+                {i < steps.length - 1 && (
+                  <ChevronRight className="hidden md:block w-5 h-5 text-gray-300 dark:text-zinc-700 flex-shrink-0" />
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS SECTION */}
-      <section className="py-20 bg-white dark:bg-zinc-900">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-16">
-            Cách hoạt động
+      {/* ── 5. CTA SECTION ── */}
+      <section className="border-t border-gray-200 dark:border-zinc-700">
+        <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            Sẵn sàng chinh phục TOEIC?
           </h2>
-
-          <div className="space-y-6">
-            {/* Step 1 */}
-            <div className="group relative  border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
-              <div className="flex gap-6">
-                <div className="shrink-0">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 text-white font-bold text-xl">
-                    01
-                  </div>
-                </div>
-                <div className="grow">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Chọn kỹ năng muốn luyện
-                  </h3>
-                  <p className="text-gray-600 dark:text-zinc-400">
-                    Ngữ pháp, luyện nghe, từ vựng, hoặc làm đề thi TOEIC
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="group relative  border border-gray-200 dark:border-zinc-700 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70">
-              <div className="flex gap-6">
-                <div className="shrink-0">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 text-white font-bold text-xl">
-                    02
-                  </div>
-                </div>
-                <div className="grow">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Làm bài và nhận phản hồi
-                  </h3>
-                  <p className="text-gray-600 dark:text-zinc-400">
-                    Bắt đầu làm bài và nhận phản hồi chi tiết cho từng câu trả
-                    lời
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">
+            Đăng ký miễn phí và bắt đầu luyện tập ngay hôm nay.
+          </p>
+          <Link
+            href="/practice"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-all duration-200"
+          >
+            Bắt đầu ngay
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
@@ -295,8 +277,6 @@ export default function HomePage() {
         links={[
           { label: "Trang chủ", href: "/" },
           { label: "Luyện đề", href: "/practice" },
-          // { label: "Từ vựng", href: "/vocabulary" },
-          // { label: "Đánh dấu", href: "/bookmarks" },
         ]}
       />
     </div>

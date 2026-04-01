@@ -260,10 +260,10 @@ export default function ExamPage() {
   // --- RENDER ---
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-zinc-700 mx-auto mb-4"></div>
-          <p className="text-blue-600 font-bold text-lg">Đang tải đề thi...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white mx-auto mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Đang tải đề thi...</p>
         </div>
       </div>
     );
@@ -292,7 +292,7 @@ export default function ExamPage() {
                 router.push("/");
               }
             }}
-            className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 font-medium flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium flex items-center gap-2 transition"
           >
             <svg
               className="w-5 h-5"
@@ -320,7 +320,7 @@ export default function ExamPage() {
               className={`lg:hidden px-3 py-1 rounded-full font-bold text-sm ${
                 timeLeft <= 300
                   ? "bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 animate-pulse"
-                  : "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400"
+                  : "bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300"
               }`}
             >
               {durationParam === "0" ? " Đã làm: " : " Còn lại: "}
@@ -331,14 +331,14 @@ export default function ExamPage() {
           {/* Right: Progress + Submit */}
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 text-sm text-gray-400">
-              <span className="font-bold text-blue-600">{answeredCount}</span>
+              <span className="font-bold text-gray-900 dark:text-white">{answeredCount}</span>
               <span>/</span>
               <span>{totalQuestions}</span>
             </div>
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+              className="bg-gray-900 dark:bg-white hover:opacity-90 text-white dark:text-gray-900 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
             >
               {submitting ? "Đang nộp..." : "Nộp bài"}
             </button>
@@ -349,7 +349,7 @@ export default function ExamPage() {
         <div className="w-full px-4 mt-2">
           <div className="h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-600 transition-all duration-300"
+              className="h-full bg-gray-900 dark:bg-white transition-all duration-300"
               style={{
                 width: `${
                   totalQuestions > 0
@@ -435,8 +435,8 @@ export default function ExamPage() {
                                   <span
                                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                       userAnswers[q.id]
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-zinc-700 text-gray-300"
+                                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                                        : "bg-zinc-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300"
                                     }`}
                                   >
                                     {q.questionNo}
@@ -454,7 +454,7 @@ export default function ExamPage() {
                                       }
                                       className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
-                                          ? "bg-blue-600 text-white border-blue-600"
+                                          ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
                                           : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
                                       }`}
                                     >
@@ -507,7 +507,7 @@ export default function ExamPage() {
                                   <span
                                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                       userAnswers[q.id]
-                                        ? "bg-blue-600 text-white"
+                                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                         : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                     }`}
                                   >
@@ -526,7 +526,7 @@ export default function ExamPage() {
                                       }
                                       className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
-                                          ? "bg-blue-600 text-white border-blue-600"
+                                          ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
                                           : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
                                       }`}
                                     >
@@ -621,7 +621,7 @@ export default function ExamPage() {
                                   <span
                                     className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                       userAnswers[q.id]
-                                        ? "bg-blue-600 text-white"
+                                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                         : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                     }`}
                                   >
@@ -676,7 +676,7 @@ export default function ExamPage() {
                               <span
                                 className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                   userAnswers[q.id]
-                                    ? "bg-blue-600 text-white"
+                                    ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                     : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
                                 }`}
                               >
@@ -764,7 +764,7 @@ export default function ExamPage() {
 
           <button
             onClick={handleSubmit}
-            className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700"
+            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded text-xs font-bold hover:opacity-80"
           >
             Nộp
           </button>
