@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, RotateCw, Gauge } from "lucide-react";
+import { useAudioContext } from "@/app/contexts/AudioContext";
 
 interface AudioPlayerProps {
   src: string;
@@ -22,6 +23,7 @@ export default function AudioPlayer({
   className = "",
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { registerAudioPlay } = useAudioContext();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -77,13 +79,16 @@ export default function AudioPlayer({
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
+        // Register this audio as the currently playing one (pauses others)
+        registerAudioPlay(audioRef);
         audioRef.current.play().catch((err) => {
           console.error(`[AudioPlayer] Play error for ${label}:`, err);
           setError(`Failed to play audio: ${err.message}`);
         });
+        setIsPlaying(true);
       }
-      setIsPlaying(!isPlaying);
     }
   };
 

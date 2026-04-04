@@ -363,6 +363,8 @@ namespace ToeicMaster.API.Controllers
                 TestId = attempt.TestId,
                 TestTitle = attempt.Test.Title,
                 TotalScore = attempt.TotalScore,
+                ListeningScore = attempt.ListeningScore ?? 0,
+                ReadingScore = attempt.ReadingScore ?? 0,
                 TotalQuestions = allQuestions.Count,
                 CompletedAt = attempt.CompletedAt,
                 Questions = allQuestions

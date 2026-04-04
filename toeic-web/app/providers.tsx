@@ -4,6 +4,7 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AudioProvider } from "./contexts/AudioContext";
 import { Toaster } from 'react-hot-toast';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -13,8 +14,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <GoogleOAuthProvider clientId={googleClientId}>
       <ThemeProvider>
         <AuthProvider>
-          <Toaster position="top-center" />
-          {children}
+          <AudioProvider>
+            <Toaster position="top-center" />
+            {children}
+          </AudioProvider>
         </AuthProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>

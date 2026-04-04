@@ -306,17 +306,17 @@ Hãy giải thích:
     public async Task<string?> TranslatePassageAsync(string passage)
     {
         var prompt =
-            $@"Bạn là dịch giả chuyên nghiệp. Dịch đoạn văn tiếng Anh dưới đây sang tiếng Việt.
+            $@"Bạn là dịch giả chuyên nghiệp. Dịch nội dung tiếng Anh dưới đây sang tiếng Việt.
+
+QUY TẮC XỬ LÝ BẢNG (QUAN TRỌNG NHẤT):
+- Nếu đầu vào chứa thẻ <table>, bạn PHẢI giữ nguyên cấu trúc bảng HTML (<table>, <tr>, <th>, <td>).
+- Chỉ dịch nội dung văn bản bên trong <th> và <td>, KHÔNG xóa hay thay thế cấu trúc bảng.
+- TUYỆT ĐỐI không biến bảng thành danh sách hay văn bản thuần.
+- Nếu vì lý do nào đó không thể giữ bảng HTML, hãy sử dụng định dạng: Cột1 | Cột2 | Cột3 cho mỗi hàng.
 
 YÊU CẦU ĐẦU RA:
-
-- Trả về văn bản thuần (plain text), giữ nguyên xuống dòng.
-- KHÔNG dùng Markdown (không dùng **, *, ##, v.v.).
-- CHỈ dùng các thẻ HTML sau:
-  1. <b>...</b> cho: nhãn email/memo (To, From, Subject...), tiêu đề bài báo, tiêu đề cột bảng, từ vựng in đậm.
-  2. <table>, <tr>, <th>, <td> — NẾU đoạn gốc chứa bảng HTML (<table>), hãy GIỮ NGUYÊN cấu trúc bảng đó và CHỈ DỊCH nội dung văn bản bên trong các thẻ <th> và <td>. Không được xóa hay thay thế bảng bằng văn bản thuần.
-  3. <br> để xuống dòng.
-- Mọi nội dung khác: văn bản thuần, không thẻ.
+- Giữ nguyên tất cả thẻ HTML đầu vào (<table>, <tr>, <th>, <td>, <b>, <br>, v.v.).
+- KHÔNG dùng Markdown (không dùng **, *, ##).
 - Chỉ trả về bản dịch, không giải thích thêm.
 
 Đoạn văn:

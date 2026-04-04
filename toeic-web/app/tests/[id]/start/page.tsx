@@ -33,6 +33,7 @@ export default function ExamPage() {
   const [currentQuestionId, setCurrentQuestionId] = useState<number | null>(
     null,
   );
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
@@ -150,7 +151,7 @@ export default function ExamPage() {
 
   // --- EFFECT 2: Timer Logic ---
   useEffect(() => {
-    if (loading) return; // Bỏ check timeLeft <= 0 ở đây để cho phép đếm lên từ 0
+    if (loading || isTimerPaused) return; // Skip if loading or paused
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
@@ -171,7 +172,7 @@ export default function ExamPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [loading, durationParam]);
+  }, [loading, durationParam, isTimerPaused]);
 
   // --- EFFECT 3: Auto Submit ---
   useEffect(() => {
@@ -255,6 +256,10 @@ export default function ExamPage() {
     if (!confirm(confirmMsg)) return;
 
     await handleForceSubmit();
+  };
+
+  const handleStopTimer = () => {
+    setIsTimerPaused(!isTimerPaused);
   };
 
   // --- RENDER ---
@@ -719,10 +724,12 @@ export default function ExamPage() {
               onScrollToQuestion={handleScrollToQuestion}
               onSubmit={handleSubmit}
               onClearAll={handleClearAllAnswers}
+              onStopTimer={handleStopTimer}
               isSubmitting={submitting}
               timeLeft={timeLeft}
               currentQuestionId={currentQuestionId}
               durationParam={durationParam}
+              isTimerPaused={isTimerPaused}
             />
           )}
         </div>
@@ -790,10 +797,12 @@ export default function ExamPage() {
               onScrollToQuestion={handleScrollToQuestion}
               onClearAll={handleClearAllAnswers}
               onSubmit={handleSubmit}
+              onStopTimer={handleStopTimer}
               isSubmitting={submitting}
               timeLeft={timeLeft}
               currentQuestionId={currentQuestionId}
-              // Add props to sidebar to make it simpler on mobile if needed
+              durationParam={durationParam}
+              isTimerPaused={isTimerPaused}
             />
           </div>
         </div>

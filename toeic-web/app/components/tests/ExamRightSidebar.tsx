@@ -1,15 +1,19 @@
 "use client";
 
+import { Send, Trash2, Pause, Play } from "lucide-react";
+
 interface Props {
   parts: any[];
   userAnswers: Record<number, string>;
   onScrollToQuestion: (id: number) => void;
   onSubmit: () => void;
   onClearAll: () => void;
+  onStopTimer: () => void;
   isSubmitting: boolean;
   timeLeft: number; // Nhận từ parent
   currentQuestionId: number | null; // Để highlight câu đang xem
   durationParam?: string | null;
+  isTimerPaused?: boolean;
 }
 
 export default function ExamRightSidebar({
@@ -18,10 +22,12 @@ export default function ExamRightSidebar({
   onScrollToQuestion,
   onSubmit,
   onClearAll,
+  onStopTimer,
   isSubmitting,
   timeLeft,
   currentQuestionId,
   durationParam,
+  isTimerPaused = false,
 }: Props) {
   const isUnlimited = durationParam === "0";
   // Format giây thành HH:MM:SS hoặc MM:SS
@@ -61,14 +67,37 @@ export default function ExamRightSidebar({
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border
+          className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border flex items-center justify-center gap-2
             ${
               isLowTime
                 ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
                 : "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-700"
             }`}
         >
+          <Send className="w-4 h-4" />
           {isSubmitting ? "Đang nộp..." : "Nộp bài"}
+        </button>
+
+        <button
+          onClick={onStopTimer}
+          className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border mt-2 flex items-center justify-center gap-2
+            ${
+              isTimerPaused
+                ? "bg-green-500 text-white border-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
+                : "bg-orange-500 text-white border-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700"
+            }`}
+        >
+          {isTimerPaused ? (
+            <>
+              <Play className="w-4 h-4" />
+              Tiếp tục
+            </>
+          ) : (
+            <>
+              <Pause className="w-4 h-4" />
+              Tạm dừng
+            </>
+          )}
         </button>
       </div>
 
@@ -78,9 +107,10 @@ export default function ExamRightSidebar({
             onClearAll();
           }
         }}
-        className="w-full py-2 rounded-lg font-bold transition-all duration-200 text-sm mb-4 uppercase
+        className="w-full py-2 rounded-lg font-bold transition-all duration-200 text-sm mb-4 uppercase flex items-center justify-center gap-2
           border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:border-red-400 dark:hover:border-red-500 hover:text-red-600 dark:hover:text-red-400"
       >
+        <Trash2 className="w-4 h-4" />
         Xóa tất cả
       </button>
 

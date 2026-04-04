@@ -21,6 +21,9 @@ import {
   Eye,
   Plus,
   BookOpen,
+  MoreVertical,
+  Zap,
+  Loader,
 } from "lucide-react";
 import VocabularyManagement from "../components/admin/VocabularyManagement";
 
@@ -38,6 +41,12 @@ export default function AdminPage() {
   const [questions, setQuestions] = useState<AdminQuestion[]>([]);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // AI Generation States
+  const [generatingTestId, setGeneratingTestId] = useState<number | null>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [selectedTestForAction, setSelectedTestForAction] = useState<number | null>(null);
+  const [actionType, setActionType] = useState<"explain" | "translate-transcripts" | "translate-passages" | null>(null);
 
   // Check admin access
   useEffect(() => {
@@ -45,6 +54,78 @@ export default function AdminPage() {
       router.push("/");
     }
   }, [user, router]);
+
+  // Handler functions for AI generation
+  const handleGenerateAction = async (testId: number, partNumber?: number) => {
+    setGeneratingTestId(testId);
+    try {
+      let response;
+      if (actionType === "explain") {
+        if (partNumber) {
+          response = await adminService.generateExplanationsForPart(testId, partNumber);
+        } else {
+          response = await adminService.generateExplanationsForTest(testId);
+        }
+      } else if (actionType === "translate-transcripts") {
+        if (partNumber) {
+          response = await adminService.translateTranscriptsForPart(testId, partNumber);
+        } else {
+          response = await adminService.translateTranscriptsForTest(testId);
+        }
+      } else if (actionType === "translate-passages") {
+        if (partNumber) {
+          response = await adminService.translatePassagesForPart(testId, partNumber);
+        } else {
+          response = await adminService.translatePassagesForTest(testId);
+        }
+      }
+      
+      if (response) {
+        // Show success alert with the message from backend
+        alert(`✅ ${response.message}`);
+      }
+    } catch (error: any) {
+      console.error("Error:", error);
+      alert(`❌ Có lỗi xảy ra: ${error.message || "Vui lòng thử lại."}`);
+    } finally {
+      setGeneratingTestId(null);
+      setShowActionModal(false);
+      setActionType(null);
+      setSelectedTestForAction(null);
+    }
+  };
+
+  const openActionModal = (testId: number, type: "explain" | "translate-transcripts" | "translate-passages") => {
+    setSelectedTestForAction(testId);
+    setActionType(type);
+    setShowActionModal(true);
+  };
+
+  const handleQuickGenerate = async (testId: number, type: "explain" | "translate-transcripts" | "translate-passages") => {
+    setGeneratingTestId(testId);
+    setActionType(type);
+    try {
+      let response;
+      if (type === "explain") {
+        response = await adminService.generateExplanationsForTest(testId);
+      } else if (type === "translate-transcripts") {
+        response = await adminService.translateTranscriptsForTest(testId);
+      } else if (type === "translate-passages") {
+        response = await adminService.translatePassagesForTest(testId);
+      }
+      
+      if (response) {
+        alert(`✅ ${response.message}`);
+      }
+    } catch (error: any) {
+      console.error("Error:", error);
+      alert(`❌ Có lỗi xảy ra: ${error.message || "Vui lòng thử lại."}`);
+    } finally {
+      setGeneratingTestId(null);
+      setActionType(null);
+      setSelectedTestForAction(null);
+    }
+  };
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -454,7 +535,7 @@ export default function AdminPage() {
                               {t.isActive ? "Hoạt động" : "Ẩn"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 flex gap-2">
+                          <td className="px-6 py-4 flex gap-2 relative">
                             <button
                               onClick={() => {
                                 setSelectedTestId(t.id);
@@ -464,11 +545,83 @@ export default function AdminPage() {
                             >
                               <Eye size={16} /> Xem câu hỏi
                             </button>
+                            
+                            {/* Dropdown Menu Button */}
+                            <div className="relative group">
+                              <button
+                                className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium hover:bg-green-200 dark:hover:bg-green-900/50 transition flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={generatingTestId === t.id}
+                              >
+                                {generatingTestId === t.id ? <Loader size={16} className="animate-spin" /> : <Zap size={16} />}
+                                AI
+                              </button>
+                              
+                              {/* Dropdown Menu */}
+                              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                                {/* Explanations */}
+                                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Tạo Giải Thích</p>
+                                  <button
+                                    onClick={() => handleQuickGenerate(t.id, "explain")}
+                                    disabled={generatingTestId === t.id}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition disabled:opacity-50"
+                                  >
+                                    Toàn bộ đề
+                                  </button>
+                                  <button
+                                    onClick={() => openActionModal(t.id, "explain")}
+                                    disabled={generatingTestId === t.id}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition disabled:opacity-50"
+                                  >
+                                    Chọn Part
+                                  </button>
+                                </div>
+
+                                {/* Transcripts */}
+                                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Dịch Âm Bản (Part 3/4)</p>
+                                  <button
+                                    onClick={() => handleQuickGenerate(t.id, "translate-transcripts")}
+                                    disabled={generatingTestId === t.id}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded transition disabled:opacity-50"
+                                  >
+                                    Toàn bộ đề
+                                  </button>
+                                  <button
+                                    onClick={() => openActionModal(t.id, "translate-transcripts")}
+                                    disabled={generatingTestId === t.id}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded transition disabled:opacity-50"
+                                  >
+                                    Chọn Part
+                                  </button>
+                                </div>
+
+                                {/* Passages */}
+                                <div className="px-4 py-2">
+                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Dịch Đoạn Văn (Part 6/7)</p>
+                                  <button
+                                    onClick={() => handleQuickGenerate(t.id, "translate-passages")}
+                                    disabled={generatingTestId === t.id}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded transition disabled:opacity-50"
+                                  >
+                                    Toàn bộ đề
+                                  </button>
+                                  <button
+                                    onClick={() => openActionModal(t.id, "translate-passages")}
+                                    disabled={generatingTestId === t.id}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded transition disabled:opacity-50"
+                                  >
+                                    Chọn Part
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
                             <button
                               onClick={() => handleDeleteTest(t.id)}
-                                className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center gap-1"
-                              >
-                                <Trash2 size={16} /> Xóa
+                              className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center gap-1"
+                            >
+                              <Trash2 size={16} /> Xóa
                             </button>
                           </td>
                         </tr>
@@ -568,6 +721,98 @@ export default function AdminPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* Part Selection Modal */}
+        {showActionModal && selectedTestForAction && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+                {actionType === "explain" && "Chọn Part - Tạo Giải Thích"}
+                {actionType === "translate-transcripts" && "Chọn Part - Dịch Âm Bản"}
+                {actionType === "translate-passages" && "Chọn Part - Dịch Đoạn Văn"}
+              </h3>
+              
+              <div className="space-y-2 mb-6">
+                {actionType === "explain" && (
+                  <>
+                    <button
+                      onClick={() => handleGenerateAction(selectedTestForAction)}
+                      disabled={generatingTestId === selectedTestForAction}
+                      className="w-full px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition font-medium disabled:opacity-50"
+                    >
+                      Toàn bộ đề
+                    </button>
+                    {[1, 2, 3, 4, 5, 6, 7].map((part) => (
+                      <button
+                        key={part}
+                        onClick={() => handleGenerateAction(selectedTestForAction, part)}
+                        disabled={generatingTestId === selectedTestForAction}
+                        className="w-full px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition font-medium disabled:opacity-50"
+                      >
+                        Part {part}
+                      </button>
+                    ))}
+                  </>
+                )}
+
+                {actionType === "translate-transcripts" && (
+                  <>
+                    <button
+                      onClick={() => handleGenerateAction(selectedTestForAction)}
+                      disabled={generatingTestId === selectedTestForAction}
+                      className="w-full px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition font-medium disabled:opacity-50"
+                    >
+                      Toàn bộ đề
+                    </button>
+                    {[3, 4].map((part) => (
+                      <button
+                        key={part}
+                        onClick={() => handleGenerateAction(selectedTestForAction, part)}
+                        disabled={generatingTestId === selectedTestForAction}
+                        className="w-full px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition font-medium disabled:opacity-50"
+                      >
+                        Part {part}
+                      </button>
+                    ))}
+                  </>
+                )}
+
+                {actionType === "translate-passages" && (
+                  <>
+                    <button
+                      onClick={() => handleGenerateAction(selectedTestForAction)}
+                      disabled={generatingTestId === selectedTestForAction}
+                      className="w-full px-4 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition font-medium disabled:opacity-50"
+                    >
+                      Toàn bộ đề
+                    </button>
+                    {[6, 7].map((part) => (
+                      <button
+                        key={part}
+                        onClick={() => handleGenerateAction(selectedTestForAction, part)}
+                        disabled={generatingTestId === selectedTestForAction}
+                        className="w-full px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/40 transition font-medium disabled:opacity-50"
+                      >
+                        Part {part}
+                      </button>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowActionModal(false);
+                  setActionType(null);
+                }}
+                disabled={generatingTestId === selectedTestForAction}
+                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium disabled:opacity-50"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
         )}
       </main>
     </div>

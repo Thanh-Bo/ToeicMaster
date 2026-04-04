@@ -67,4 +67,37 @@ export const adminService = {
 
     return response.data;
   },
+
+  // AI Explanations
+  generateExplanationsForTest: async (testId: number): Promise<{ message: string; totalUpdated: number; totalErrors: number; totalQuestions: number }> => {
+    const response = await axiosClient.post(`/admin/tests/${testId}/generate-explanations`);
+    return response.data;
+  },
+
+  generateExplanationsForPart: async (testId: number, partNumber: number): Promise<{ message: string; totalUpdated: number; totalErrors: number; totalQuestions: number }> => {
+    const response = await axiosClient.post(`/admin/tests/${testId}/parts/${partNumber}/generate-explanations`);
+    return response.data;
+  },
+
+  // AI Translations - Transcripts (Part 3/4)
+  translateTranscriptsForTest: async (testId: number): Promise<{ message: string; totalTranslated: number; totalErrors: number; totalGroups: number }> => {
+    const response = await axiosClient.post(`/admin/tests/${testId}/translate-transcripts`);
+    return response.data;
+  },
+
+  translateTranscriptsForPart: async (testId: number, partNumber: number): Promise<{ message: string; totalTranslated: number; totalErrors: number; totalGroups: number }> => {
+    const response = await axiosClient.post(`/admin/tests/${testId}/parts/${partNumber}/translate-transcripts`);
+    return response.data;
+  },
+
+  // AI Translations - Passages (Part 6/7)
+  translatePassagesForTest: async (testId: number): Promise<{ message: string; totalTranslated: number; totalErrors: number; totalGroups: number }> => {
+    const response = await axiosClient.post(`/admin/tests/${testId}/translate-passages`);
+    return response.data;
+  },
+
+  translatePassagesForPart: async (testId: number, partNumber: number): Promise<{ message: string; totalTranslated: number; totalErrors: number; totalGroups: number }> => {
+    const response = await axiosClient.post(`/admin/tests/${testId}/parts/${partNumber}/translate-passages`);
+    return response.data;
+  },
 };

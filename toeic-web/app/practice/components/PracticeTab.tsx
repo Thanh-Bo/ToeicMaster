@@ -113,14 +113,6 @@ export default function PracticeTab({
             className="w-full px-6 py-3 pl-12 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-gray-400 dark:focus:border-zinc-500 transition"
           />
         </div>
-
-        {/* Filter Button */}
-        <div className="relative">
-          <button className="flex items-center gap-2 px-4 py-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
-            <Filter className="w-5 h-5" />
-            Chưa làm
-          </button>
-        </div>
       </div>
 
       {/* Tests Grid */}

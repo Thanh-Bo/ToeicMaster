@@ -261,20 +261,30 @@ export default function ResultPage() {
   };
 
   // --- LOGIC: Dịch đoạn văn Part 6/7 ---
-  const handleTranslatePassage = async (group: PartGroup["groups"][0]) => {
-    if (translations[group.groupId]) return; // Đã dịch rồi, không gọi lại
+  const handleTranslatePassage = async (
+    group: PartGroup["groups"][0],
+    force = false,
+  ) => {
+    if (translations[group.groupId] && !force) return; // Đã dịch rồi, không gọi lại
     if (!group.groupContent) return;
+
+    // Xóa cache cũ nếu force re-translate
+    if (force) {
+      setTranslations((prev) => {
+        const next = { ...prev };
+        delete next[group.groupId];
+        return next;
+      });
+    }
 
     setLoadingTranslateIds((prev) => ({
       ...prev,
       [group.groupId]: true,
     }));
     try {
-      // 1. Strip HTML tags khỏi groupContent
-      let plainText = group.groupContent
-        .replace(/<[^>]*>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+      // 1. Giữ nguyên HTML (bao gồm <table>) để AI nhìn thấy cấu trúc bảng
+      //    Chỉ thay thế blank answers trong text nodes, không strip toàn bộ HTML
+      let htmlContent = group.groupContent;
 
       // 2. Thay thế mỗi blank "------- (N)" bằng đáp án đúng của câu hỏi N
       group.questions.forEach((q: any) => {
@@ -283,12 +293,12 @@ export default function ResultPage() {
           q.correctOption;
         // Tìm pattern ------- (questionNo) và thay bằng đáp án
         const regex = new RegExp(`-{3,}\\s*\\(${q.questionNo}\\)`, "g");
-        plainText = plainText.replace(regex, correctAnswer);
+        htmlContent = htmlContent.replace(regex, correctAnswer);
       });
 
-      // 3. Gọi API dịch và lưu vào DB
+      // 3. Gọi API dịch và lưu vào DB (gửi HTML thay vì plain text)
       const result = await testService.translatePassage(
-        plainText,
+        htmlContent,
         group.groupId,
         "content",
       );
@@ -596,7 +606,7 @@ export default function ResultPage() {
       </header>
 
       <div className="w-full mx-auto px-4 mt-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
             <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
               Tổng điểm
@@ -609,13 +619,27 @@ export default function ResultPage() {
             </p>
           </div>
           <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
+              Điểm số
+            </p>
+            <p className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="flex items-center gap-1">
+                <Headphones size={25} /> {result.listeningScore || 0}
+              </span>
+              <span className="text-gray-400 dark:text-gray-500">/</span>
+              <span className="flex items-center gap-1">
+                <BookOpen size={25} /> {result.readingScore || 0}
+              </span>
+            </p>
+          </div>
+          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
             <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
               <Headphones size={14} /> Listening
             </p>
             <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
               {listeningCorrect}
               <span className="text-lg text-gray-400 dark:text-gray-500">
-                /445
+                /{listeningQuestions.length}
               </span>
             </p>
           </div>
@@ -626,7 +650,7 @@ export default function ResultPage() {
             <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
               {readingCorrect}
               <span className="text-lg text-gray-400 dark:text-gray-500">
-                /445
+                /{readingQuestions.length}
               </span>
             </p>
           </div>
@@ -1046,7 +1070,7 @@ export default function ResultPage() {
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
                       <div className="flex flex-col lg:flex-row">
-                        <div className="lg:w-6/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6">
+                        <div className={`lg:w-6/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6 transition-all duration-300 ${translations[group.groupId] && !hiddenPassageTranslations.has(group.groupId) ? 'lg:max-h-[160vh]' : ''}`}>
                           <div className="lg:sticky lg:top-4 space-y-3">
                             <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                               <BookOpen size={16} /> Reading Passage
@@ -1065,7 +1089,7 @@ export default function ResultPage() {
                             )}
                             {group.groupContent && (
                               <div
-                                className="max-h-[40vh] overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
+                                className={`overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${translations[group.groupId] && !hiddenPassageTranslations.has(group.groupId) ? 'max-h-[50vh]' : 'max-h-[40vh]'}`}
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}
@@ -1106,31 +1130,41 @@ export default function ResultPage() {
                                         <Languages size={13} /> Bản dịch tiếng
                                         Việt
                                       </span>
-                                      <button
-                                        onClick={() =>
-                                          togglePassageTranslation(
-                                            group.groupId,
-                                          )
-                                        }
-                                        className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
-                                      >
-                                        {hiddenPassageTranslations.has(
-                                          group.groupId,
-                                        )
-                                          ? "Hiện"
-                                          : "Ẩn"}
-                                      </button>
-                                    </div>
+                                       <div className="flex items-center gap-2">
+                                         {group.groupContent?.includes('<table') &&
+                                           !translations[group.groupId]?.includes('<table') && (
+                                           <button
+                                             onClick={() => handleTranslatePassage(group, true)}
+                                             disabled={!!loadingTranslateIds[group.groupId]}
+                                             title="Dịch lại (bản dịch hiện tại không có bảng)"
+                                             className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-800 border border-amber-300 dark:border-amber-700 rounded-lg px-2 py-1 transition-colors disabled:opacity-50"
+                                           >
+                                             🔄 Dịch lại
+                                           </button>
+                                         )}
+                                         <button
+                                           onClick={() =>
+                                             togglePassageTranslation(
+                                               group.groupId,
+                                             )
+                                           }
+                                           className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                         >
+                                           {hiddenPassageTranslations.has(
+                                             group.groupId,
+                                           )
+                                             ? "Hiện"
+                                             : "Ẩn"}
+                                         </button>
+                                       </div>
+                                     </div>
                                     {!hiddenPassageTranslations.has(
                                       group.groupId,
                                     ) && (
                                       <div
-                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 whitespace-pre-line [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100 [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
+                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
                                         dangerouslySetInnerHTML={{
-                                          __html:
-                                            translations[
-                                              group.groupId
-                                            ]?.replace(/\n/g, "<br>") || "",
+                                          __html: translations[group.groupId] || "",
                                         }}
                                       ></div>
                                     )}

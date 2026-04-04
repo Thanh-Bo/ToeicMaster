@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
+using ToeicMaster.API.Services;
 
 namespace ToeicMaster.API.Controllers;
 
@@ -16,10 +17,12 @@ namespace ToeicMaster.API.Controllers;
 public class AdminManagementController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly AiExplanationService _aiService;
 
-    public AdminManagementController(AppDbContext context)
+    public AdminManagementController(AppDbContext context, AiExplanationService aiService)
     {
         _context = context;
+        _aiService = aiService;
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -529,6 +532,502 @@ public class AdminManagementController : ControllerBase
                 userGrowth,
                 attemptsTrend,
                 scoreDistribution,
+            }
+        );
+    }
+
+    // ==========================================
+    // AI EXPLANATION GENERATION APIs
+    // ==========================================
+
+    /// <summary>
+    /// Generate AI explanations for all questions in a test that don't have them yet
+    /// Only admin can trigger this (expensive operation)
+    /// </summary>
+    [HttpPost("tests/{testId}/generate-explanations")]
+    public async Task<IActionResult> GenerateExplanationsForTest(int testId)
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        // 1. Fetch all questions in this test that don't have explanations yet
+        var questions = await _context
+            .Questions.Include(q => q.Group)
+                .ThenInclude(g => g.Part)
+            .Include(q => q.Answers)
+            .Where(q =>
+                q.Group.Part.TestId == testId
+                && (q.ShortExplanation == null || q.FullExplanation == null)
+            )
+            .ToListAsync();
+
+        if (!questions.Any())
+            return Ok(
+                new
+                {
+                    message = "Tuyệt vời! Tất cả câu hỏi trong đề thi này đã có giải thích rồi.",
+                    totalUpdated = 0,
+                }
+            );
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        // 2. Generate explanations for each question
+        foreach (var question in questions)
+        {
+            try
+            {
+                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
+                    question,
+                    question.Answers.ToList()
+                );
+
+                question.ShortExplanation = shortExp;
+                question.FullExplanation = fullExp;
+                successCount++;
+
+                await _context.SaveChangesAsync();
+
+                // Clear change tracker to avoid conflicts in next iteration
+                _context.ChangeTracker.Clear();
+
+                // Rate limiting: wait 2 seconds between requests to avoid exceeding API limits
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                errorCount++;
+                // Clear change tracker on error as well
+                _context.ChangeTracker.Clear();
+                // Log error but continue with next question
+                System.Console.WriteLine($"Error generating explanation for question {question.Id}: {ex.Message}");
+            }
+        }
+
+        return Ok(
+            new
+            {
+                message = $"Đã cập nhật giải thích cho {successCount} câu hỏi ({errorCount} lỗi)",
+                testId = testId,
+                totalUpdated = successCount,
+                totalErrors = errorCount,
+                totalQuestions = questions.Count,
+            }
+        );
+    }
+
+    /// <summary>
+    /// Generate AI explanations for all questions in a specific part of a test
+    /// Only admin can trigger this
+    /// </summary>
+    [HttpPost("tests/{testId}/parts/{partNumber}/generate-explanations")]
+    public async Task<IActionResult> GenerateExplanationsForPart(int testId, int partNumber)
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        // 1. Fetch all questions in this part that don't have explanations yet
+        var questions = await _context
+            .Questions.Include(q => q.Group)
+                .ThenInclude(g => g.Part)
+            .Include(q => q.Answers)
+            .Where(q =>
+                q.Group.Part.TestId == testId
+                && q.Group.Part.PartNumber == partNumber
+                && (q.ShortExplanation == null || q.FullExplanation == null)
+            )
+            .ToListAsync();
+
+        if (!questions.Any())
+            return Ok(
+                new
+                {
+                    message = $"Tuyệt vời! Tất cả câu hỏi trong Part {partNumber} của đề thi này đã có giải thích rồi.",
+                    testId = testId,
+                    partNumber = partNumber,
+                    totalUpdated = 0,
+                }
+            );
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        // 2. Generate explanations for each question
+        foreach (var question in questions)
+        {
+            try
+            {
+                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
+                    question,
+                    question.Answers.ToList()
+                );
+
+                question.ShortExplanation = shortExp;
+                question.FullExplanation = fullExp;
+                successCount++;
+
+                await _context.SaveChangesAsync();
+
+                // Clear change tracker to avoid conflicts in next iteration
+                _context.ChangeTracker.Clear();
+
+                // Rate limiting: wait 2 seconds between requests to avoid exceeding API limits
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                errorCount++;
+                // Clear change tracker on error as well
+                _context.ChangeTracker.Clear();
+                // Log error but continue with next question
+                System.Console.WriteLine(
+                    $"Error generating explanation for question {question.Id}: {ex.Message}"
+                );
+            }
+        }
+
+        return Ok(
+            new
+            {
+                message = $"Đã cập nhật giải thích cho {successCount} câu hỏi ({errorCount} lỗi) trong Part {partNumber}",
+                testId = testId,
+                partNumber = partNumber,
+                totalUpdated = successCount,
+                totalErrors = errorCount,
+                totalQuestions = questions.Count,
+            }
+        );
+    }
+
+    // ==========================================
+    // AI TRANSLATION GENERATION APIs
+    // ==========================================
+
+    /// <summary>
+    /// Translate transcripts for Part 3/4 in an entire test
+    /// Only admin can trigger this
+    /// </summary>
+    [HttpPost("tests/{testId}/translate-transcripts")]
+    public async Task<IActionResult> TranslateTranscriptsForTest(int testId)
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        // 1. Find all QuestionGroups for Part 3/4 that don't have transcripts translated yet
+        var groups = await _context
+            .QuestionGroups.Include(qg => qg.Part)
+            .Where(qg =>
+                qg.Part.TestId == testId
+                && (qg.Part.PartNumber == 3 || qg.Part.PartNumber == 4)
+                && qg.Transcript != null
+                && string.IsNullOrEmpty(qg.TranscriptTranslation)
+            )
+            .ToListAsync();
+
+        if (!groups.Any())
+            return Ok(
+                new
+                {
+                    message = "Tuyệt vời! Tất cả Transcript trong đề này đã được dịch rồi.",
+                    testId = testId,
+                    totalTranslated = 0,
+                }
+            );
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        // 2. Translate each transcript
+        foreach (var group in groups)
+        {
+            try
+            {
+                var translation = await _aiService.TranslatePassageAsync(group.Transcript);
+
+                group.TranscriptTranslation = translation;
+                successCount++;
+
+                await _context.SaveChangesAsync();
+
+                // Clear change tracker to avoid conflicts
+                _context.ChangeTracker.Clear();
+
+                // Rate limiting: wait 2 seconds between requests
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                errorCount++;
+                // Clear change tracker on error as well
+                _context.ChangeTracker.Clear();
+                System.Console.WriteLine($"Error translating transcript for group {group.Id}: {ex.Message}");
+            }
+        }
+
+        return Ok(
+            new
+            {
+                message = $"Đã dịch {successCount} Transcript ({errorCount} lỗi)",
+                testId = testId,
+                totalTranslated = successCount,
+                totalErrors = errorCount,
+                totalGroups = groups.Count,
+            }
+        );
+    }
+
+    /// <summary>
+    /// Translate passages for Part 6/7 in an entire test
+    /// Only admin can trigger this
+    /// </summary>
+    [HttpPost("tests/{testId}/translate-passages")]
+    public async Task<IActionResult> TranslatePassagesForTest(int testId)
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        // 1. Find all QuestionGroups for Part 6/7 that don't have passages translated yet
+        var groups = await _context
+            .QuestionGroups.Include(qg => qg.Part)
+            .Where(qg =>
+                qg.Part.TestId == testId
+                && (qg.Part.PartNumber == 6 || qg.Part.PartNumber == 7)
+                && qg.TextContent != null
+                && string.IsNullOrEmpty(qg.TextContentTranslation)
+            )
+            .ToListAsync();
+
+        if (!groups.Any())
+            return Ok(
+                new
+                {
+                    message = "Tuyệt vời! Tất cả Passage trong đề này đã được dịch rồi.",
+                    testId = testId,
+                    totalTranslated = 0,
+                }
+            );
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        // 2. Translate each passage
+        foreach (var group in groups)
+        {
+            try
+            {
+                var translation = await _aiService.TranslatePassageAsync(group.TextContent);
+
+                group.TextContentTranslation = translation;
+                successCount++;
+
+                await _context.SaveChangesAsync();
+
+                // Clear change tracker to avoid conflicts
+                _context.ChangeTracker.Clear();
+
+                // Rate limiting: wait 2 seconds between requests
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                errorCount++;
+                // Clear change tracker on error as well
+                _context.ChangeTracker.Clear();
+                System.Console.WriteLine($"Error translating passage for group {group.Id}: {ex.Message}");
+            }
+        }
+
+        return Ok(
+            new
+            {
+                message = $"Đã dịch {successCount} Passage ({errorCount} lỗi)",
+                testId = testId,
+                totalTranslated = successCount,
+                totalErrors = errorCount,
+                totalGroups = groups.Count,
+            }
+        );
+    }
+
+    /// <summary>
+    /// Translate transcripts for a specific part (3 or 4)
+    /// Only admin can trigger this
+    /// </summary>
+    [HttpPost("tests/{testId}/parts/{partNumber}/translate-transcripts")]
+    public async Task<IActionResult> TranslateTranscriptsForPart(int testId, int partNumber)
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        if (partNumber != 3 && partNumber != 4)
+            return BadRequest("Part Transcript chỉ có ở Part 3 hoặc Part 4");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        // 1. Find all QuestionGroups for this part that don't have transcripts translated yet
+        var groups = await _context
+            .QuestionGroups.Include(qg => qg.Part)
+            .Where(qg =>
+                qg.Part.TestId == testId
+                && qg.Part.PartNumber == partNumber
+                && qg.Transcript != null
+                && string.IsNullOrEmpty(qg.TranscriptTranslation)
+            )
+            .ToListAsync();
+
+        if (!groups.Any())
+            return Ok(
+                new
+                {
+                    message =
+                        $"Tuyệt vời! Tất cả Transcript trong Part {partNumber} của đề này đã được dịch rồi.",
+                    testId = testId,
+                    partNumber = partNumber,
+                    totalTranslated = 0,
+                }
+            );
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        // 2. Translate each transcript
+        foreach (var group in groups)
+        {
+            try
+            {
+                var translation = await _aiService.TranslatePassageAsync(group.Transcript);
+
+                group.TranscriptTranslation = translation;
+                successCount++;
+
+                await _context.SaveChangesAsync();
+
+                // Clear change tracker to avoid conflicts
+                _context.ChangeTracker.Clear();
+
+                // Rate limiting: wait 2 seconds between requests
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                errorCount++;
+                // Clear change tracker on error as well
+                _context.ChangeTracker.Clear();
+                System.Console.WriteLine($"Error translating transcript for group {group.Id}: {ex.Message}");
+            }
+        }
+
+        return Ok(
+            new
+            {
+                message = $"Đã dịch {successCount} Transcript ({errorCount} lỗi) trong Part {partNumber}",
+                testId = testId,
+                partNumber = partNumber,
+                totalTranslated = successCount,
+                totalErrors = errorCount,
+                totalGroups = groups.Count,
+            }
+        );
+    }
+
+    /// <summary>
+    /// Translate passages for a specific part (6 or 7)
+    /// Only admin can trigger this
+    /// </summary>
+    [HttpPost("tests/{testId}/parts/{partNumber}/translate-passages")]
+    public async Task<IActionResult> TranslatePassagesForPart(int testId, int partNumber)
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        if (partNumber != 6 && partNumber != 7)
+            return BadRequest("Part Passage chỉ có ở Part 6 hoặc Part 7");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        // 1. Find all QuestionGroups for this part that don't have passages translated yet
+        var groups = await _context
+            .QuestionGroups.Include(qg => qg.Part)
+            .Where(qg =>
+                qg.Part.TestId == testId
+                && qg.Part.PartNumber == partNumber
+                && qg.TextContent != null
+                && string.IsNullOrEmpty(qg.TextContentTranslation)
+            )
+            .ToListAsync();
+
+        if (!groups.Any())
+            return Ok(
+                new
+                {
+                    message =
+                        $"Tuyệt vời! Tất cả Passage trong Part {partNumber} của đề này đã được dịch rồi.",
+                    testId = testId,
+                    partNumber = partNumber,
+                    totalTranslated = 0,
+                }
+            );
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        // 2. Translate each passage
+        foreach (var group in groups)
+        {
+            try
+            {
+                var translation = await _aiService.TranslatePassageAsync(group.TextContent);
+
+                group.TextContentTranslation = translation;
+                successCount++;
+
+                await _context.SaveChangesAsync();
+
+                // Clear change tracker to avoid conflicts
+                _context.ChangeTracker.Clear();
+
+                // Rate limiting: wait 2 seconds between requests
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                errorCount++;
+                // Clear change tracker on error as well
+                _context.ChangeTracker.Clear();
+                System.Console.WriteLine($"Error translating passage for group {group.Id}: {ex.Message}");
+            }
+        }
+
+        return Ok(
+            new
+            {
+                message = $"Đã dịch {successCount} Passage ({errorCount} lỗi) trong Part {partNumber}",
+                testId = testId,
+                partNumber = partNumber,
+                totalTranslated = successCount,
+                totalErrors = errorCount,
+                totalGroups = groups.Count,
             }
         );
     }
