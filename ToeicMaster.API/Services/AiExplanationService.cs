@@ -116,7 +116,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part {partNumber} ({(partNumber
 - Mỗi ý tối đa 2 dòng
 
 **JSON Output (2 trường):**
-- ""Short"": Định dạng HTML với <br>. Dòng 1 = ""Câu hỏi: "" + dịch câu hỏi. Dòng 2-5 = 4 đáp án, TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>...</span> để tô màu xanh lá. Dòng 6 = - Đáp án [X] vì... (có gạch đầu dòng). Tổng 6 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
+- ""Short"": Định dạng HTML với <br>. Dòng 1 = ""Câu hỏi: "" + dịch câu hỏi. Dòng 2-5 = 4 đáp án ĐÓ phải có format: A. answer<br>B. answer<br>C. answer<br>D. answer. TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>D. answer</span> (bọc cả chữ D. vào).
 - ""Full"": Giải thích chi tiết với HTML (<br>). KHÔNG dịch lại. KHÔNG dùng <b> in đậm. Chỉ có: - Vị trí: (ai nói, khi nào)<br>- Giải thích: (từ đồng nghĩa, paraphrase)<br>- Cảnh báo bẫy: (CHỌN 1 bẫy quan trọng nhất)
 
 ---
@@ -366,6 +366,65 @@ Các đáp án:
     }
 
     /// <summary>
+    /// Build prompt cho dịch transcript Part 3 (Conversations - Hội thoại)
+    /// </summary>
+    private string BuildPromptForPart3TranslateTranscript(string transcript)
+    {
+        return $@"Bạn là dịch giả chuyên nghiệp. Dịch hội thoại PART 3 sang tiếng Việt.
+
+**YÊU CẦU BẮT BUỘC:**
+
+1. **GIỮ NGUYÊN M: và W:** (hoặc Man:, Woman:, Narrator:)
+2. **SỬ DỤNG <br> ĐỂ TÁCH MỖI DÒNG NÓI** - TUYỆT ĐỐI PHẢI CÓ <br> SAU MỖI LỜI NÓI
+3. **MỖI DÒNG PHẢI CÓ FORMAT:** [Speaker]: [nội dung dịch]<br>
+
+**TRẢ VỀ JSON THUẦN (KHÔNG có markdown ```json) với 1 TRƯỜNG DUY NHẤT:**
+{{
+  ""Translations"": ""M: [tiếng Việt]<br>W: [tiếng Việt]<br>M: [tiếng Việt]<br>W: [tiếng Việt]<br>""
+}}
+
+**VÍ DỤ OUTPUT ĐÚNG:**
+{{
+  ""Translations"": ""M: Xin chào<br>W: Chào bạn<br>M: Bạn khỏe không?<br>W: Tôi khỏe, cảm ơn<br>""
+}}
+
+**TUYỆT ĐỐI KHÔNG:**
+❌ KHÔNG trả về plain text - PHẢI là JSON có trường ""Translations""
+❌ KHÔNG bỏ <br> giữa các dòng
+❌ KHÔNG kết hợp nhiều lời nói trên cùng 1 dòng
+❌ KHÔNG dùng markdown ```json bao quanh
+
+Transcript:
+{transcript}";
+    }
+
+    /// <summary>
+    /// Build prompt cho dịch transcript Part 4 (Talks - Bài nói)
+    /// </summary>
+    private string BuildPromptForPart4TranslateTranscript(string transcript)
+    {
+        return $@"Bạn là dịch giả chuyên nghiệp. Dịch bài nói PART 4 (Talks) tiếng Anh dưới đây sang tiếng Việt.
+
+OUTPUT FORMAT:
+- PHẢI là MỘT ĐOẠN VĂN LIỀN MẠCH (one continuous paragraph)
+- Mỗi speaker và nội dung của họ nối tiếp nhau thành một dòng duy nhất
+- OUTPUT LÀ PLAIN TEXT, KHÔNG CÓ HTML
+
+TUYỆT ĐỐI KHÔNG ĐƯỢC:
+❌ KHÔNG dùng <br> tags
+❌ KHÔNG dùng <table>, <tr>, <td> tags hay bất kỳ HTML nào
+❌ KHÔNG xuống dòng giữa các speaker
+❌ KHÔNG thêm line breaks
+
+Ví dụ OUTPUT (một dòng duy nhất):
+Narrator: Chào mừng quý khách. M: Xin chào, tôi muốn hỏi gì đó. W: Vâng, tôi sẽ giúp bạn. Narrator: Cảm ơn bạn.
+
+Transcript:
+{transcript}";
+
+    }
+
+    /// <summary>
     /// Build prompt cho dịch passage Part 6 (Email/Tài liệu ngắn)
     /// </summary>
     private string BuildPromptForPart6Translation(string passage)
@@ -430,14 +489,17 @@ Các đáp án:
     }
 
     /// <summary>
-    /// Dịch đoạn văn (đã điền sẵn đáp án đúng) sang tiếng Việt
+    /// Dịch đoạn văn hoặc transcript (đã điền sẵn đáp án đúng) sang tiếng Việt
     /// </summary>
     public async Task<string?> TranslatePassageAsync(string passage, int partNumber = 7)
     {
-        var prompt =
-            partNumber == 6
-                ? BuildPromptForPart6Translation(passage)
-                : BuildPromptForPart7Translation(passage);
+        var prompt = partNumber switch
+        {
+            3 => BuildPromptForPart3TranslateTranscript(passage),
+            4 => BuildPromptForPart4TranslateTranscript(passage),
+            6 => BuildPromptForPart6Translation(passage),
+            _ => BuildPromptForPart7Translation(passage),
+        };
 
         var requestBody = new
         {
@@ -459,13 +521,33 @@ Các đáp án:
         var responseString = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(responseString);
 
-        return doc
+        var textResult = doc
             .RootElement.GetProperty("candidates")[0]
             .GetProperty("content")
             .GetProperty("parts")[0]
             .GetProperty("text")
             .GetString()
             ?.Trim();
+
+        // Cắt bỏ phần ```json nếu có
+        textResult = textResult?.Replace("```json", "").Replace("```", "").Trim();
+
+        // Với Part 3, parse JSON để lấy trường Translations
+        if (partNumber == 3 && !string.IsNullOrEmpty(textResult))
+        {
+            try
+            {
+                var aiResponse = JsonSerializer.Deserialize<AiResponse>(textResult);
+                return aiResponse?.Translations;
+            }
+            catch
+            {
+                // Fallback: nếu không parse được, trả về raw text
+                return textResult;
+            }
+        }
+
+        return textResult;
     }
 }
 

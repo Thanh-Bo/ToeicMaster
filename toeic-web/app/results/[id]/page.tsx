@@ -494,18 +494,26 @@ export default function ResultPage() {
   const formatTranscriptTranslationHTML = (text: string) => {
     if (!text || text.trim().length === 0) return "";
 
-    return text
+    // Normalize: replace <br> with newlines for consistent processing
+    // Remove any double newlines or extra whitespace
+    const normalizedText = text
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/\n\s*\n/g, "\n")
+      .trim();
+
+    return normalizedText
       .split("\n")
       .filter((line) => line.trim())
       .map((line) => {
         const trimmed = line.trim();
-        const match = trimmed.match(/^(W|M|Man|Woman|Narrator)\s*:\s*(.*)/i);
+        const match = trimmed.match(/^(W\d?|M\d?|Man|Woman|Nam|Nữ|Narrator)\s*:\s*(.*)/i);
         if (match) {
           const label = match[1];
           const content = match[2];
-          return `<div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: start; margin-bottom: 0.5rem;"><span style="font-weight: bold; color: inherit; white-space: nowrap;">${label}:</span><span style="word-break: break-word; overflow-wrap: break-word;">${content}</span></div>`;
+          // Removed margin-bottom - use gap for spacing only
+          return `<div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: start;"><span style="font-weight: bold; color: inherit; white-space: nowrap;">${label}:</span><span style="word-break: break-word; overflow-wrap: break-word;">${content}</span></div>`;
         }
-        return `<p style="margin: 0.5rem 0; padding: 0;">${trimmed}</p>`;
+        return `<p style="margin: 0; padding: 0;">${trimmed}</p>`;
       })
       .join("");
   };
