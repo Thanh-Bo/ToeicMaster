@@ -38,12 +38,14 @@ export const testService = {
   translatePassage: async (
     passage: string,
     groupId?: number,
-    type?: "content" | "transcript"
+    type?: "content" | "transcript",
+    partNumber?: number,
   ): Promise<{ translation: string }> => {
     const response = await axiosClient.post("/Tests/translate-passage", {
       passage,
       groupId,
       type,
+      partNumber,
     });
     return response.data;
   },

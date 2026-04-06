@@ -510,7 +510,7 @@ namespace ToeicMaster.API.Controllers
 
             try
             {
-                var translation = await _aiService.TranslatePassageAsync(request.Passage);
+                var translation = await _aiService.TranslatePassageAsync(request.Passage, request.PartNumber ?? 7);
 
                 // Nếu client gửi groupId và type thì lưu ngay vào DB
                 if (request.GroupId.HasValue && !string.IsNullOrEmpty(request.Type))
@@ -545,24 +545,29 @@ namespace ToeicMaster.API.Controllers
                 return Unauthorized();
             var userId = int.Parse(userIdStr);
 
-            var attempts = await _efContext
-                .TestAttempts.Include(a => a.Test)
+            var attempts = (await _efContext
+                .TestAttempts
+                .Include(a => a.Test)
+                .Include(a => a.UserAnswers)
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.CompletedAt)
+                .ToListAsync())
                 .Select(a => new HistoryItemDto
                 {
                     AttemptId = a.Id,
+                    AttemptGuid = a.AttemptGuid,
                     TestId = a.TestId,
                     TestTitle = a.Test.Title,
                     TotalScore = a.TotalScore,
                     TotalQuestions = a.Test.TotalQuestions ?? 200,
+                    CorrectAnswers = a.UserAnswers.Count(ua => ua.IsCorrect),
                     ListeningScore = a.ListeningScore,
                     ReadingScore = a.ReadingScore,
                     StartedAt = a.StartedAt,
                     CompletedAt = a.CompletedAt,
                     Status = a.Status ?? "COMPLETED",
                 })
-                .ToListAsync();
+                .ToList();
 
             return Ok(new { success = true, data = attempts });
         }
@@ -720,10 +725,12 @@ namespace ToeicMaster.API.Controllers
 public class HistoryItemDto
 {
     public int AttemptId { get; set; }
+    public Guid AttemptGuid { get; set; }
     public int TestId { get; set; }
     public string TestTitle { get; set; } = "";
     public int TotalScore { get; set; }
     public int TotalQuestions { get; set; }
+    public int CorrectAnswers { get; set; }
     public int? ListeningScore { get; set; }
     public int? ReadingScore { get; set; }
     public DateTime StartedAt { get; set; }
@@ -736,4 +743,5 @@ public class TranslatePassageRequest
     public string Passage { get; set; } = "";
     public int? GroupId { get; set; }   // ID of the QuestionGroup to save the translation to
     public string? Type { get; set; }   // "content" (Part 6/7) or "transcript" (Part 3/4)
+    public int? PartNumber { get; set; } // Part number to select correct AI prompt (6 or 7)
 }

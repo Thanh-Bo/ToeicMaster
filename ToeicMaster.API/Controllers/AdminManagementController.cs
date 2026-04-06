@@ -362,7 +362,7 @@ public class AdminManagementController : ControllerBase
             {
                 testId = test.Id,
                 isActive = test.IsActive,
-                message = test.IsActive.Value ? "Đã kích hoạt bài test" : "Đã ẩn bài test",
+                message = test.IsActive ?? false ? "Đã kích hoạt bài test" : "Đã ẩn bài test",
             }
         );
     }
@@ -755,14 +755,22 @@ public class AdminManagementController : ControllerBase
         {
             try
             {
-                var translation = await _aiService.TranslatePassageAsync(group.Transcript);
+                var translation = await _aiService.TranslatePassageAsync(group.Transcript ?? "");
 
-                group.TranscriptTranslation = translation;
-                successCount++;
+                // Only update if translation actually succeeded (not null/empty)
+                if (!string.IsNullOrEmpty(translation))
+                {
+                    group.TranscriptTranslation = translation;
+                    await _context.SaveChangesAsync();
+                    successCount++;
+                }
+                else
+                {
+                    errorCount++;
+                    System.Console.WriteLine($"Empty translation for group {group.Id}");
+                }
 
-                await _context.SaveChangesAsync();
-
-                // Clear change tracker to avoid conflicts
+                // Clear change tracker AFTER successful save
                 _context.ChangeTracker.Clear();
 
                 // Rate limiting: wait 2 seconds between requests
@@ -832,14 +840,22 @@ public class AdminManagementController : ControllerBase
         {
             try
             {
-                var translation = await _aiService.TranslatePassageAsync(group.TextContent);
+                var translation = await _aiService.TranslatePassageAsync(group.TextContent ?? "");
 
-                group.TextContentTranslation = translation;
-                successCount++;
+                // Only update if translation actually succeeded (not null/empty)
+                if (!string.IsNullOrEmpty(translation))
+                {
+                    group.TextContentTranslation = translation;
+                    await _context.SaveChangesAsync();
+                    successCount++;
+                }
+                else
+                {
+                    errorCount++;
+                    System.Console.WriteLine($"Empty translation for group {group.Id}");
+                }
 
-                await _context.SaveChangesAsync();
-
-                // Clear change tracker to avoid conflicts
+                // Clear change tracker AFTER successful save
                 _context.ChangeTracker.Clear();
 
                 // Rate limiting: wait 2 seconds between requests
@@ -914,14 +930,22 @@ public class AdminManagementController : ControllerBase
         {
             try
             {
-                var translation = await _aiService.TranslatePassageAsync(group.Transcript);
+                var translation = await _aiService.TranslatePassageAsync(group.Transcript ?? "");
 
-                group.TranscriptTranslation = translation;
-                successCount++;
+                // Only update if translation actually succeeded (not null/empty)
+                if (!string.IsNullOrEmpty(translation))
+                {
+                    group.TranscriptTranslation = translation;
+                    await _context.SaveChangesAsync();
+                    successCount++;
+                }
+                else
+                {
+                    errorCount++;
+                    System.Console.WriteLine($"Empty translation for group {group.Id}");
+                }
 
-                await _context.SaveChangesAsync();
-
-                // Clear change tracker to avoid conflicts
+                // Clear change tracker AFTER successful save
                 _context.ChangeTracker.Clear();
 
                 // Rate limiting: wait 2 seconds between requests
@@ -997,14 +1021,22 @@ public class AdminManagementController : ControllerBase
         {
             try
             {
-                var translation = await _aiService.TranslatePassageAsync(group.TextContent);
+                var translation = await _aiService.TranslatePassageAsync(group.TextContent ?? "");
 
-                group.TextContentTranslation = translation;
-                successCount++;
+                // Only update if translation actually succeeded (not null/empty)
+                if (!string.IsNullOrEmpty(translation))
+                {
+                    group.TextContentTranslation = translation;
+                    await _context.SaveChangesAsync();
+                    successCount++;
+                }
+                else
+                {
+                    errorCount++;
+                    System.Console.WriteLine($"Empty translation for group {group.Id}");
+                }
 
-                await _context.SaveChangesAsync();
-
-                // Clear change tracker to avoid conflicts
+                // Clear change tracker AFTER successful save
                 _context.ChangeTracker.Clear();
 
                 // Rate limiting: wait 2 seconds between requests

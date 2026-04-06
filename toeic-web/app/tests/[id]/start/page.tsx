@@ -268,7 +268,9 @@ export default function ExamPage() {
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Đang tải đề thi...</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            Đang tải đề thi...
+          </p>
         </div>
       </div>
     );
@@ -336,7 +338,9 @@ export default function ExamPage() {
           {/* Right: Progress + Submit */}
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 text-sm text-gray-400">
-              <span className="font-bold text-gray-900 dark:text-white">{answeredCount}</span>
+              <span className="font-bold text-gray-900 dark:text-white">
+                {answeredCount}
+              </span>
               <span>/</span>
               <span>{totalQuestions}</span>
             </div>
@@ -594,7 +598,7 @@ export default function ExamPage() {
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="whitespace-pre-wrap max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white [&_*]:text-gray-900 dark:[&_*]:text-white [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
+                                      className="whitespace-pre-wrap reading-content max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white **:text-gray-900 dark:**:text-white [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
@@ -632,9 +636,13 @@ export default function ExamPage() {
                                   >
                                     {q.questionNo}
                                   </span>
-                                  <p className="font-medium text-gray-900 dark:text-white pt-1">
-                                    {q.content}
-                                  </p>
+                                  <div className="font-medium text-gray-900 dark:text-white pt-1">
+                                    <div
+                                      dangerouslySetInnerHTML={{
+                                        __html: q.content,
+                                      }}
+                                    />
+                                  </div>
                                 </div>
                                 <div className="space-y-2 ml-11">
                                   {q.answers.map((ans) => (
@@ -687,9 +695,13 @@ export default function ExamPage() {
                               >
                                 {q.questionNo}
                               </span>
-                              <p className="font-medium text-gray-900 dark:text-white text-lg pt-1">
-                                {q.content}
-                              </p>
+                              <div className="font-medium text-gray-900 dark:text-white text-lg pt-1">
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: q.content,
+                                  }}
+                                />
+                              </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-11">
                               {q.answers.map((ans) => (

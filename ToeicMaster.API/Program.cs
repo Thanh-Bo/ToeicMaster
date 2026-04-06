@@ -10,7 +10,11 @@ using ToeicMaster.API.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Đăng ký các dịch vụ (Services)
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // B. Đăng ký DB Context cho Entity Framework 
 builder.Services.AddDbContext<AppDbContext>(options =>

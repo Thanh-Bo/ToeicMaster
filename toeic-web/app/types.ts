@@ -96,10 +96,12 @@ export interface DashboardStats {
 
 export interface TestHistoryItem {
   attemptId: number;
+  attemptGuid?: string;
   testId: number;
   testTitle: string;
   totalScore: number;
   totalQuestions: number;
+  correctAnswers: number;
   listeningScore: number | null;
   readingScore: number | null;
   startedAt: string;

@@ -13,6 +13,11 @@ import {
   Languages,
   Loader2,
   FileText,
+  Bookmark,
+  Tag,
+  Sparkles,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
@@ -22,6 +27,7 @@ import { CommentSection } from "@/app/components/comments/CommentSection";
 import ResultQuestionItem from "@/app/components/results/ResultQuestionItem";
 import BookmarkNoteModal from "@/app/components/boomarks/BookmarkNoteModal";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
+import { AnswerOptionResult } from "@/app/components/results/AnswerOptionResult";
 
 const BASE_URL = "http://localhost:5298";
 
@@ -63,6 +69,7 @@ export default function ResultPage() {
     null,
   );
   const [smartDefaultNote, setSmartDefaultNote] = useState("");
+  const [showResultSidebar, setShowResultSidebar] = useState(false);
 
   // Passage translation state (keyed by groupId)
   const [translations, setTranslations] = useState<Record<number, string>>({});
@@ -263,6 +270,7 @@ export default function ResultPage() {
   // --- LOGIC: Dịch đoạn văn Part 6/7 ---
   const handleTranslatePassage = async (
     group: PartGroup["groups"][0],
+    partNumber: number,
     force = false,
   ) => {
     if (translations[group.groupId] && !force) return; // Đã dịch rồi, không gọi lại
@@ -301,6 +309,7 @@ export default function ResultPage() {
         htmlContent,
         group.groupId,
         "content",
+        partNumber,
       );
       setTranslations((prev) => ({
         ...prev,
@@ -592,7 +601,7 @@ export default function ResultPage() {
             <span className="text-gray-500 dark:text-gray-500 flex items-center gap-1">
               <Circle size={14} /> {skippedCount} bỏ qua
             </span>
-            <div className="flex-1 h-2 bg-gray-300 dark:bg-zinc-900 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-gray-300 dark:bg-gray-400 rounded-full overflow-hidden">
               <div
                 className="h-full bg-linear-to-r from-green-500 to-emerald-500"
                 style={{ width: `${percentage}%` }}
@@ -601,6 +610,18 @@ export default function ResultPage() {
             <span className="font-bold text-gray-900 dark:text-white">
               {percentage}%
             </span>
+            <button
+              onClick={() => setShowResultSidebar(!showResultSidebar)}
+              className="hidden lg:flex items-center gap-2 bg-blue-500 dark:bg-blue-700 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors font-bold shadow-md ml-auto"
+              title="Hiện/Ẩn tóm tắt kết quả"
+            >
+              <BarChart3 size={18} />
+              <span className="text-sm">
+                <span>{correctCount}</span>
+                <span>/</span>
+                <span>{totalQuestions}</span>
+              </span>
+            </button>
           </div>
         </div>
       </header>
@@ -666,7 +687,7 @@ export default function ResultPage() {
       </div>
 
       <div className=" px-4 mt-8 flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-5/6 space-y-10">
+        <div className="w-full space-y-10">
           {partGroups.map((part) => (
             <div key={part.partNumber} className="mb-10">
               <div className="flex items-center gap-4 mb-6">
@@ -855,9 +876,9 @@ export default function ResultPage() {
                                   />
                                 )}
                                 {group.transcript && (
-                                  <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-4">
                                     <div className="flex items-center justify-between mb-3">
-                                      <span className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                      <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                                         <FileText className="w-4 h-4" />
                                         Transcript
                                       </span>
@@ -865,7 +886,7 @@ export default function ResultPage() {
                                         onClick={() =>
                                           toggleTranscript(group.groupId)
                                         }
-                                        className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                        className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                                       >
                                         {hiddenTranscripts.has(group.groupId)
                                           ? "Hiện"
@@ -873,7 +894,7 @@ export default function ResultPage() {
                                       </button>
                                     </div>
                                     {!hiddenTranscripts.has(group.groupId) && (
-                                      <div className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed space-y-2">
+                                      <div className="text-base text-gray-800 dark:text-gray-200 leading-relaxed space-y-2">
                                         {group.transcript
                                           .split(
                                             /(?=(?:W\d?|M\d?|Man|Woman|Narrator)\s*:)/gi,
@@ -907,7 +928,7 @@ export default function ResultPage() {
 
                                 {/* Separate card: Dịch transcript */}
                                 {group.transcript && (
-                                  <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800 p-4">
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
                                         <Languages className="w-4 h-4" />
@@ -922,12 +943,12 @@ export default function ResultPage() {
                                               group.groupId,
                                             )
                                           }
-                                          className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                                          className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border border-purple-300 dark:border-purple-700 transition-colors ${
                                             hiddenTranscriptTranslations.has(
                                               group.groupId,
                                             )
-                                              ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/60"
-                                              : "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/60"
+                                              ? "text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40"
+                                              : "text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40"
                                           }`}
                                         >
                                           {hiddenTranscriptTranslations.has(
@@ -948,7 +969,7 @@ export default function ResultPage() {
                                             group.groupId
                                           ]
                                         }
-                                        className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                        className="flex items-center gap-2 text-base font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                                       >
                                         {!!loadingTranscriptTranslateIds[
                                           group.groupId
@@ -972,7 +993,7 @@ export default function ResultPage() {
                                         group.groupId,
                                       ) && (
                                         <div
-                                          className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-sm text-gray-700 dark:text-gray-300 leading-6"
+                                          className="max-h-[30vh] space-y-1.5 overflow-y-auto custom-scrollbar text-base text-gray-700 dark:text-gray-300 leading-6"
                                           dangerouslySetInnerHTML={{
                                             __html:
                                               formatTranscriptTranslationHTML(
@@ -1036,25 +1057,165 @@ export default function ResultPage() {
               {part.partNumber === 5 && (
                 <div className="space-y-4">
                   {part.groups.map((group) => (
-                    <div
-                      key={group.groupId}
-                      className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
-                    >
+                    <div key={group.groupId}>
                       {group.questions.map((q) => (
-                        <div key={q.questionId} id={`question-${q.questionId}`}>
-                          <ResultQuestionItem
-                            q={q}
-                            currentQuestionId={currentQuestionId}
-                            isBookmarked={bookmarkedQuestions.has(q.questionId)}
-                            isBookmarkLoading={bookmarkLoading === q.questionId}
-                            isExplainLoading={loadingExplainIds.has(
-                              q.questionId,
-                            )}
-                            // Truyền các hàm xử lý xuống
-                            onToggleBookmark={() => handleClickBookmark(q)}
-                            onViewExplanation={handleViewExplanation}
-                            onToggleDetail={handleToggleDetail}
-                          />
+                        <div
+                          key={q.questionId}
+                          id={`question-${q.questionId}`}
+                          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
+                        >
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-0">
+                            {/* LEFT: Câu hỏi + Đáp án */}
+                            <div className="p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-700">
+                              <div className="flex gap-3 mb-4">
+                                <span
+                                  className={`shrink-0 w-10 h-10 font-bold rounded-full flex items-center justify-center text-sm shadow-sm
+                                    ${
+                                      q.isCorrect
+                                        ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700"
+                                        : q.userSelected
+                                        ? "bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 border-2 border-red-300 dark:border-red-700"
+                                        : "bg-gray-300 dark:bg-zinc-600 text-gray-600 dark:text-gray-300 border-2 border-gray-300 dark:border-zinc-600"
+                                    }`}
+                                >
+                                  {q.questionNo}
+                                </span>
+                                <div className="flex-1 pt-1">
+                                  <p className="font-medium text-gray-900 dark:text-white text-lg leading-relaxed">
+                                    {q.content}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Đáp án */}
+                              <div className="space-y-2 ml-12">
+                                {["A", "B", "C", "D"].map((label) => (
+                                  <AnswerOptionResult
+                                    key={label}
+                                    q={q}
+                                    label={label}
+                                    content={
+                                      q.answers && Array.isArray(q.answers)
+                                        ? q.answers.find(
+                                            (a: any) => a.label === label,
+                                          )?.content || ""
+                                        : q[`option${label}`] || ""
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* RIGHT: Sticky - Nút + Giải thích */}
+                            <div className="p-6 lg:sticky lg:top-4 lg:max-h-[90vh] overflow-y-auto custom-scrollbar">
+                              {/* Nút Bookmark + Xem giải thích */}
+                              <div className="flex flex-wrap gap-3 mb-6">
+                                {/* Nút Bookmark */}
+                                <button
+                                  onClick={() => handleClickBookmark(q)}
+                                  disabled={bookmarkLoading === q.questionId}
+                                  className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors
+                                      ${
+                                        bookmarkedQuestions.has(q.questionId)
+                                          ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300"
+                                          : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
+                                      }`}
+                                >
+                                  {bookmarkLoading === q.questionId ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : bookmarkedQuestions.has(q.questionId) ? (
+                                    <>
+                                      <Bookmark size={16} /> Đã lưu
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Tag size={16} /> Đánh dấu
+                                    </>
+                                  )}
+                                </button>
+
+                                {/* Nút Xem giải thích */}
+                                <button
+                                  onClick={() =>
+                                    handleViewExplanation(q.questionId)
+                                  }
+                                  className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors 
+                                      ${
+                                        q.isExplanationOpen
+                                          ? "bg-red-600 hover:bg-red-700 text-white"
+                                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                                      }`}
+                                >
+                                  {loadingExplainIds.has(q.questionId) ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Phân tích...
+                                    </>
+                                  ) : q.isExplanationOpen ? (
+                                    <>
+                                      <X size={16} /> Đóng
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles size={16} /> Giải thích
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Phần giải thích */}
+                              {q.isExplanationOpen && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
+                                  {q.shortExplanation && (
+                                    <div>
+                                      <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                        <Languages size={14} /> Dịch câu hỏi
+                                      </h4>
+                                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
+                                        <div
+                                          dangerouslySetInnerHTML={{
+                                            __html: q.shortExplanation,
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {q.fullExplanation && (
+                                    <div className="border-t border-blue-200 dark:border-blue-800 pt-3">
+                                      <button
+                                        onClick={() =>
+                                          handleToggleDetail(q.questionId)
+                                        }
+                                        className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1 hover:text-blue-800 dark:hover:text-blue-300"
+                                      >
+                                        {q.isDetailOpen ? (
+                                          <>
+                                            <ChevronUp size={14} /> Ẩn chi tiết
+                                          </>
+                                        ) : (
+                                          <>
+                                            <ChevronDown size={14} /> Xem chi
+                                            tiết
+                                          </>
+                                        )}
+                                      </button>
+
+                                      {q.isDetailOpen && (
+                                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert  [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
+                                          <div
+                                            dangerouslySetInnerHTML={{
+                                              __html: q.fullExplanation,
+                                            }}
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1070,7 +1231,14 @@ export default function ResultPage() {
                       className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden"
                     >
                       <div className="flex flex-col lg:flex-row">
-                        <div className={`lg:w-6/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6 transition-all duration-300 ${translations[group.groupId] && !hiddenPassageTranslations.has(group.groupId) ? 'lg:max-h-[160vh]' : ''}`}>
+                        <div
+                          className={`lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6 transition-all duration-300 ${
+                            translations[group.groupId] &&
+                            !hiddenPassageTranslations.has(group.groupId)
+                              ? "lg:max-h-[160vh]"
+                              : ""
+                          }`}
+                        >
                           <div className="lg:sticky lg:top-4 space-y-3">
                             <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                               <BookOpen size={16} /> Reading Passage
@@ -1089,7 +1257,12 @@ export default function ResultPage() {
                             )}
                             {group.groupContent && (
                               <div
-                                className={`overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${translations[group.groupId] && !hiddenPassageTranslations.has(group.groupId) ? 'max-h-[50vh]' : 'max-h-[40vh]'}`}
+                                className={`reading-content text-base overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${
+                                  translations[group.groupId] &&
+                                  !hiddenPassageTranslations.has(group.groupId)
+                                    ? "max-h-[70vh]"
+                                    : "max-h-[60vh]"
+                                }`}
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}
@@ -1102,7 +1275,10 @@ export default function ResultPage() {
                                 {!translations[group.groupId] ? (
                                   <button
                                     onClick={() =>
-                                      handleTranslatePassage(group)
+                                      handleTranslatePassage(
+                                        group,
+                                        part.partNumber,
+                                      )
                                     }
                                     disabled={
                                       !!loadingTranslateIds[group.groupId]
@@ -1130,41 +1306,31 @@ export default function ResultPage() {
                                         <Languages size={13} /> Bản dịch tiếng
                                         Việt
                                       </span>
-                                       <div className="flex items-center gap-2">
-                                         {group.groupContent?.includes('<table') &&
-                                           !translations[group.groupId]?.includes('<table') && (
-                                           <button
-                                             onClick={() => handleTranslatePassage(group, true)}
-                                             disabled={!!loadingTranslateIds[group.groupId]}
-                                             title="Dịch lại (bản dịch hiện tại không có bảng)"
-                                             className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-800 border border-amber-300 dark:border-amber-700 rounded-lg px-2 py-1 transition-colors disabled:opacity-50"
-                                           >
-                                             🔄 Dịch lại
-                                           </button>
-                                         )}
-                                         <button
-                                           onClick={() =>
-                                             togglePassageTranslation(
-                                               group.groupId,
-                                             )
-                                           }
-                                           className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
-                                         >
-                                           {hiddenPassageTranslations.has(
-                                             group.groupId,
-                                           )
-                                             ? "Hiện"
-                                             : "Ẩn"}
-                                         </button>
-                                       </div>
-                                     </div>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() =>
+                                            togglePassageTranslation(
+                                              group.groupId,
+                                            )
+                                          }
+                                          className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                        >
+                                          {hiddenPassageTranslations.has(
+                                            group.groupId,
+                                          )
+                                            ? "Hiện"
+                                            : "Ẩn"}
+                                        </button>
+                                      </div>
+                                    </div>
                                     {!hiddenPassageTranslations.has(
                                       group.groupId,
                                     ) && (
                                       <div
-                                        className="max-h-[35vh] overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
+                                        className="max-h-[55vh]  text-base reading-content overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 [&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
                                         dangerouslySetInnerHTML={{
-                                          __html: translations[group.groupId] || "",
+                                          __html:
+                                            translations[group.groupId] || "",
                                         }}
                                       ></div>
                                     )}
@@ -1175,7 +1341,14 @@ export default function ResultPage() {
                           </div>
                         </div>
 
-                        <div className="lg:w-4/10 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600 overflow-y-auto max-h-[80vh] custom-scrollbar">
+                        <div
+                          className={`lg:w-5/10 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600 overflow-y-auto custom-scrollbar transition-all duration-300 ${
+                            translations[group.groupId] &&
+                            !hiddenPassageTranslations.has(group.groupId)
+                              ? "max-h-[100vh]"
+                              : "max-h-[80vh]"
+                          }`}
+                        >
                           {group.questions.map((q) => (
                             <div
                               key={q.questionId}
@@ -1216,17 +1389,44 @@ export default function ResultPage() {
           )}
         </div>
 
-        <div className="hidden lg:block lg:w-1/6">
-          <ResultRightSidebar
-            parts={partGroups}
-            timeTaken={actualTimeTaken}
-            questions={result.questions || []}
-            totalScore={result.totalScore}
-            totalQuestions={totalQuestions}
-            onScrollToQuestion={handleScrollToQuestion}
-            currentQuestionId={currentQuestionId}
-          />
+        {/* Sidebar toggle panel - Slide từ phải */}
+        <div
+          className={`fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl border-l border-gray-200 dark:border-zinc-700 z-40 transform transition-transform duration-300 overflow-y-auto custom-scrollbar ${
+            showResultSidebar ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {/* Close button */}
+          <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 p-4 flex items-center justify-between">
+            <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <BarChart3 size={18} /> Tóm tắt
+            </h3>
+            <button
+              onClick={() => setShowResultSidebar(false)}
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="p-4">
+            <ResultRightSidebar
+              parts={partGroups}
+              timeTaken={actualTimeTaken}
+              questions={result.questions || []}
+              totalScore={result.totalScore}
+              totalQuestions={totalQuestions}
+              onScrollToQuestion={handleScrollToQuestion}
+              currentQuestionId={currentQuestionId}
+            />
+          </div>
         </div>
+
+        {/* Overlay backdrop */}
+        {showResultSidebar && (
+          <div
+            className="fixed inset-0 bg-black/20 z-30"
+            onClick={() => setShowResultSidebar(false)}
+          />
+        )}
       </div>
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 shadow-lg z-50">

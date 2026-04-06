@@ -100,14 +100,14 @@ html.dark .prose {
 }
 
 .prose p,
-.prose span,
+.prose span:not(.highlight-correct),
 .prose div {
   color: #1f2937 !important; /* gray-800 - dễ đọc hơn */
   opacity: 1 !important;
 }
 
 html.dark .prose p,
-html.dark .prose span,
+html.dark .prose span:not(.highlight-correct),
 html.dark .prose div {
   color: #e2e8f0 !important; /* gray-200 cho dark mode */
   opacity: 1 !important;
@@ -225,4 +225,23 @@ html.dark .prose div {
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+/* Highlight correct answer in explanation */
+.highlight-correct {
+  color: #16a34a !important; /* green-600 - dùng !important để override prose */
+ 
+}
+
+.dark .highlight-correct {
+  color: #4ade80 !important; /* green-400 */
+  
+}
+
+/* Tăng khoảng cách sau thẻ <br> trong khu vực nội dung bài đọc */
+.reading-content br,
+.prose br {
+  display: block;
+  margin-bottom: 0.5rem;
+  content: "";
 }

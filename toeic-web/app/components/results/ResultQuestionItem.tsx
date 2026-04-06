@@ -9,6 +9,8 @@ import {
   Check,
   ChevronUp,
   ChevronDown,
+  Languages,
+  AlertCircle,
 } from "lucide-react";
 import { AnswerOptionResult } from "./AnswerOptionResult";
 
@@ -71,19 +73,26 @@ export default function ResultQuestionItem({
           {q.questionNo}
         </span>
         <div className="flex-1 pt-1">
-          {partNum === 1 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-sm italic">
-              Chọn đáp án mô tả đúng bức tranh
-            </p>
-          ) : partNum === 2 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-sm italic">
-              Chọn câu trả lời phù hợp nhất
-            </p>
-          ) : (
-            <p className="font-medium text-gray-900 dark:text-white text-lg leading-relaxed">
-              {q.content}
-            </p>
-          )}
+          <div className="flex items-center gap-2 mb-2">
+            {partNum === 1 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+                Chọn đáp án mô tả đúng bức tranh
+              </p>
+            ) : partNum === 2 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+                Chọn câu trả lời phù hợp nhất
+              </p>
+            ) : (
+              <p className="font-medium text-gray-900 dark:text-white text-lg leading-relaxed">
+                {q.content}
+              </p>
+            )}
+            {!q.userSelected && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 whitespace-nowrap">
+                <AlertCircle size={14} /> Not Answered
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -203,16 +212,13 @@ export default function ResultQuestionItem({
 
       {/* --- KHU VỰC HIỂN THỊ GIẢI THÍCH --- */}
       {q.isExplanationOpen && (
-        <div className="ml-12 mt-4  p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 animate-fadeIn relative">
+        <div className=" bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-12 mt-4  p-5 rounded-xl animate-fadeIn relative">
           {/* GIẢI THÍCH NGẮN */}
           {q.shortExplanation && (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-blue-600 dark:bg-blue-700 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                  Gợi ý
-                </span>
-                <h4 className="font-bold text-zinc-900 dark:text-zinc-300 text-sm">
-                  Giải thích ngắn
+                <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Languages size={14} /> Dịch câu hỏi
                 </h4>
               </div>
               <p
@@ -222,39 +228,33 @@ export default function ResultQuestionItem({
             </div>
           )}
 
-          {/* Nút Xem Chi Tiết */}
-          <div className="flex items-center justify-center my-4 relative">
-            <div
-              className="absolute inset-0 flex items-center"
-              aria-hidden="true"
-            >
-              <div className="w-full border-t border-zinc-300 dark:border-zinc-700"></div>
-            </div>
-            <div className="relative flex justify-center">
+          {/* Nút Xem Chi Tiết & GIẢI THÍCH CHI TIẾT */}
+          {q.fullExplanation && (
+            <div className="border-t border-blue-200 dark:border-blue-800 pt-3">
               <button
                 onClick={() => onToggleDetail(q.questionId)}
-                className="bg-white dark:bg-zinc-700 border border-zinc-400 dark:border-zinc-700 text-gray-900 dark:text-gray-100 text-xs font-bold px-4 py-1.5 rounded-full transition-all flex items-center gap-1 shadow-xs"
+                className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1 hover:text-blue-800 dark:hover:text-blue-300"
               >
                 {q.isDetailOpen ? (
                   <>
-                    Thu gọn chi tiết <ChevronUp size={14} />
+                    <ChevronUp size={14} /> Ẩn chi tiết
                   </>
                 ) : (
                   <>
-                    Xem giải thích chi tiết (Premium) <ChevronDown size={14} />
+                    <ChevronDown size={14} /> Xem chi tiết
                   </>
                 )}
               </button>
-            </div>
-          </div>
 
-          {/* GIẢI THÍCH CHI TIẾT */}
-          {q.isDetailOpen && q.fullExplanation && (
-            <div className="animate-fadeIn">
-              <div
-                className="max-w-none text-gray-700 dark:text-white leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: q.fullExplanation }}
-              />
+              {q.isDetailOpen && (
+                <div className="text-base text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: q.fullExplanation,
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
