@@ -35,6 +35,30 @@ namespace ToeicMaster.API.Controllers
             _cache.Remove(cacheKey);
         }
 
+        // Helper method để tạo đường dẫn folder phân cấp theo năm
+        // Ví dụ: "ets-2024-test-1" -> "ets-2024/ets-2024-test-1"
+        // Ví dụ: "ets-2026-test-3" -> "ets-2026/ets-2026-test-3"
+        private string GetHierarchicalTestFolderName(string testSlug)
+        {
+            if (string.IsNullOrEmpty(testSlug))
+                return "unknown";
+
+            // Extract year from slug like "ets-2024-test-1" or "ets-2026-test-10"
+            // Pattern: look for "ets-YYYY" or "test-YYYY" etc.
+            var match = System.Text.RegularExpressions.Regex.Match(testSlug, @"(ets|test)-(\d{4})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            
+            if (match.Success)
+            {
+                // Extract the year prefix (e.g., "ets-2024")
+                string yearPrefix = match.Value;
+                // Return hierarchical path: "ets-2024/ets-2024-test-1"
+                return $"{yearPrefix}/{testSlug}";
+            }
+
+            // Fallback: if no year pattern found, just return the slug
+            return testSlug;
+        }
+
         // =============================================
         // IMPORT PART 5 - Incomplete Sentences
         // =============================================
@@ -305,7 +329,7 @@ namespace ToeicMaster.API.Controllers
             if (test == null)
                 return NotFound("Không tìm thấy Test.");
 
-            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string testFolderName = GetHierarchicalTestFolderName(test.Slug ?? $"test-{test.Id}");
             string imageFolderPath = $"images/{testFolderName}/part7";
 
             try
@@ -466,7 +490,7 @@ namespace ToeicMaster.API.Controllers
             if (test == null)
                 return NotFound("Không tìm thấy Test.");
 
-            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string testFolderName = GetHierarchicalTestFolderName(test.Slug ?? $"test-{test.Id}");
             string audioFolderPath = $"audios/{testFolderName}/part1";
             string imageFolderPath = $"images/{testFolderName}/part1";
 
@@ -660,7 +684,7 @@ namespace ToeicMaster.API.Controllers
             if (test == null)
                 return NotFound("Không tìm thấy Test.");
 
-            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string testFolderName = GetHierarchicalTestFolderName(test.Slug ?? $"test-{test.Id}");
             string audioFolderPath = $"audios/{testFolderName}/part2";
 
             try
@@ -818,7 +842,7 @@ namespace ToeicMaster.API.Controllers
             if (test == null)
                 return NotFound("Không tìm thấy Test với ID này.");
 
-            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string testFolderName = GetHierarchicalTestFolderName(test.Slug ?? $"test-{test.Id}");
             string audioFolderPath = $"audios/{testFolderName}/part3";
             string imageFolderPath = $"images/{testFolderName}/part3";
 
@@ -1041,7 +1065,7 @@ namespace ToeicMaster.API.Controllers
             if (test == null)
                 return NotFound("Không tìm thấy Test với ID này.");
 
-            string testFolderName = test.Slug ?? $"test-{test.Id}";
+            string testFolderName = GetHierarchicalTestFolderName(test.Slug ?? $"test-{test.Id}");
             string audioFolderPath = $"audios/{testFolderName}/part4";
             string imageFolderPath = $"images/{testFolderName}/part4";
 

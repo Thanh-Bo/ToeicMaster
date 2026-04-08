@@ -271,7 +271,7 @@ namespace ToeicMaster.API.Controllers
                 var groups = await _efContext
                     .QuestionGroups.Where(qg => partIds.Contains(qg.PartId))
                     .ToListAsync();
-                // _efContext.QuestionGroups.RemoveRange(groups);
+                _efContext.QuestionGroups.RemoveRange(groups);
 
                 // Xóa Parts
                 var parts = await _efContext.Parts.Where(p => p.TestId == testId).ToListAsync();
@@ -294,7 +294,6 @@ namespace ToeicMaster.API.Controllers
                 }
                 // ==========================================
 
-                _efContext.QuestionGroups.RemoveRange(groups);
                 // Xóa Test
                 _efContext.Tests.Remove(test);
 

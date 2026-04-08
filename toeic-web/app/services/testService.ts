@@ -7,7 +7,8 @@ export type { TestHistoryItem };
 export const testService = {
   // 1. Lấy danh sách đề (Cho trang chủ)
   getList: () => {
-    return axiosClient.get("/tests");
+    // Fetch all tests by setting a high limit
+    return axiosClient.get("/tests?limit=100");
   },
 
   // 2. Lấy chi tiết đề (Cho trang thi)
