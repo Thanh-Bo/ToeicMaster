@@ -111,16 +111,16 @@ export default function HomePage() {
       {/* ── 1. HERO SECTION ── */}
       <section className="max-w-4xl mx-auto px-4 pt-24 pb-20 text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 border border-gray-200 dark:border-zinc-600 rounded-full px-4 py-1.5 text-sm text-gray-500 dark:text-gray-400 mb-8">
+        <div className="inline-flex items-center gap-2 border border-blue-200 dark:border-blue-900 rounded-full px-4 py-1.5 text-sm text-blue-500 dark:text-blue-400 mb-8 bg-blue-50 dark:bg-blue-950/30">
           <Sparkles className="w-4 h-4" />
           <span>Nền tảng luyện TOEIC thông minh</span>
         </div>
 
         {/* Heading */}
-        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
+        <h1 className="text-5xl md:text-7xl font-bold text-blue-500 dark:text-blue-400 leading-tight mb-4">
           Luyện TOEIC hiệu quả
         </h1>
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-500 dark:text-gray-400 mb-6">
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-400 mb-6">
           Đạt mục tiêu điểm số nhanh hơn
         </h2>
 
@@ -134,14 +134,14 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/practice"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 hover:-translate-y-1 active:scale-95"
           >
             Bắt đầu luyện thi
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           <Link
             href="/practice"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg font-semibold border border-blue-300 dark:border-blue-700 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 hover:shadow-md"
           >
             Xem danh sách đề
           </Link>
@@ -158,16 +158,16 @@ export default function HomePage() {
 
       {/* ── 2. STATS BAR ── */}
       <section className="py-10 flex justify-center">
-        <div className="inline-flex divide-x divide-gray-200 dark:divide-zinc-700 border border-gray-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+        <div className="inline-flex divide-x divide-gray-200 dark:divide-zinc-700 border-2 border-gray-200 dark:border-zinc-700 rounded-xl overflow-hidden">
           {stats.map((stat, i) => (
             <div
               key={i}
               className="flex flex-col items-center text-center gap-1.5 px-10 py-6"
             >
-              <div className="text-gray-400 dark:text-gray-500 mb-1">
+              <div className="text-gray-900 dark:text-gray-400 mb-1">
                 {stat.icon}
               </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <span className="text-2xl font-bold text-gray-900 dark:text-gray-400">
                 {stat.value}
               </span>
               <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -179,11 +179,12 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. FEATURE CARDS ── */}
-      <section className="max-w-5xl mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
-            Tất cả những gì bạn cần
-          </h2>
+      <section className="w-full border-t-2 border-b-2 border-gray-200 dark:border-zinc-800">
+        <div className="max-w-5xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-400 mb-3">
+              Tất cả những gì bạn cần
+            </h2>
           <p className="text-gray-500 dark:text-gray-400">
             Công cụ đầy đủ để luyện TOEIC hiệu quả nhất
           </p>
@@ -194,13 +195,13 @@ export default function HomePage() {
             <Link
               key={i}
               href={feature.href}
-              className="group flex flex-col gap-4 p-6 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:shadow-md dark:hover:shadow-zinc-800/50 hover:-translate-y-1 transition-all duration-200"
+              className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
             >
-              <div className="text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200">
+              <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200">
                 {feature.icon}
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-1 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 inline-block">
                   {feature.title}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -210,10 +211,11 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+        </div>
       </section>
 
       {/* ── 4. HOW IT WORKS ── */}
-      <section className="border-t border-gray-200 dark:border-zinc-700">
+      <section className="border-t border-gray-200 dark:border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
@@ -228,14 +230,16 @@ export default function HomePage() {
             {steps.map((step, i) => (
               <div key={i} className="flex md:flex-1 items-center w-full">
                 {/* Step Card */}
-                <div className="flex-1 flex flex-col items-center text-center gap-3 px-4">
-                  <div className="w-12 h-12 rounded-xl border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                    {step.icon}
+                <div className="flex-1 flex flex-col items-center text-center gap-3 px-4 group hover:scale-105 transition-transform duration-200">
+                  <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow duration-200 border border-blue-600 dark:border-blue-900">
+                    <div className="text-white">
+                      {step.icon}
+                    </div>
                   </div>
-                  <span className="text-xs font-mono text-gray-400 dark:text-gray-600">
+                  <span className="text-lg font-mono font-bold text-blue-500 dark:text-blue-400">
                     {step.step}
                   </span>
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
                     {step.title}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-[180px]">
@@ -245,7 +249,7 @@ export default function HomePage() {
 
                 {/* Divider Arrow */}
                 {i < steps.length - 1 && (
-                  <ChevronRight className="hidden md:block w-5 h-5 text-gray-300 dark:text-zinc-700 flex-shrink-0" />
+                  <ChevronRight className="hidden md:block w-5 h-5 text-blue-400 dark:text-blue-700 flex-shrink-0 animate-pulse" />
                 )}
               </div>
             ))}
@@ -254,7 +258,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 5. CTA SECTION ── */}
-      <section className="border-t border-gray-200 dark:border-zinc-700">
+      <section className="border-t border-gray-200 dark:border-zinc-800">
         <div className="max-w-2xl mx-auto px-4 py-20 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Sẵn sàng chinh phục TOEIC?
@@ -264,7 +268,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/practice"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
           >
             Bắt đầu ngay
             <ArrowRight className="w-4 h-4" />

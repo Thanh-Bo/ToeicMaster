@@ -41,6 +41,7 @@ export default function AdminPage() {
   const [questions, setQuestions] = useState<AdminQuestion[]>([]);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedYearFilter, setSelectedYearFilter] = useState<string>("all");
   
   // AI Generation States - track each action type independently
   const [processingActions, setProcessingActions] = useState({
@@ -49,6 +50,8 @@ export default function AdminPage() {
     passages: false,
   });
   const [selectedTestForAction, setSelectedTestForAction] = useState<number | null>(null);
+  const [backgroundTasks, setBackgroundTasks] = useState<{[key: string]: boolean}>({});
+  const [notifications, setNotifications] = useState<Array<{id: string; message: string; type: 'info' | 'success' | 'error'}>>([]);
 
   // Check admin access
   useEffect(() => {
@@ -57,43 +60,118 @@ export default function AdminPage() {
     }
   }, [user, router]);
 
-  // Handler functions for AI generation
-  const handleGenerateAction = async (testId: number, type: string, partNumber?: number) => {
-    // Set the specific action type as processing
-    setProcessingActions(prev => ({ ...prev, [type]: true }));
-    try {
-      let response;
-      if (type === "explain") {
-        if (partNumber) {
-          response = await adminService.generateExplanationsForPart(testId, partNumber);
-        } else {
-          response = await adminService.generateExplanationsForTest(testId);
-        }
-      } else if (type === "translate-transcripts") {
-        if (partNumber) {
-          response = await adminService.translateTranscriptsForPart(testId, partNumber);
-        } else {
-          response = await adminService.translateTranscriptsForTest(testId);
-        }
-      } else if (type === "translate-passages") {
-        if (partNumber) {
-          response = await adminService.translatePassagesForPart(testId, partNumber);
-        } else {
-          response = await adminService.translatePassagesForTest(testId);
-        }
+  // Notification helper
+  const addNotification = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { id, message, type }]);
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
+  };
+
+  // Extract year from test title (e.g., "ETS 2024 Test 1" -> "2024")
+  const extractYear = (title: string): string | null => {
+    const match = title.match(/(\d{4})/);
+    return match ? match[1] : null;
+  };
+
+  // Get grouped tests by year with counts
+  const getYearFilters = () => {
+    const yearMap: { [key: string]: number } = { all: tests.length };
+    
+    tests.forEach(test => {
+      const year = extractYear(test.title);
+      if (year) {
+        yearMap[year] = (yearMap[year] || 0) + 1;
       }
-      
-      if (response) {
-        // Show success alert with the message from backend
-        alert(`✅ ${response.message}`);
+    });
+
+    return Object.entries(yearMap)
+      .sort(([keyA], [keyB]) => {
+        if (keyA === 'all') return -1;
+        return parseInt(keyB) - parseInt(keyA);
+      })
+      .map(([year, count]) => ({ year, count }));
+  };
+
+  // Fire-and-forget API call for background processing with polling
+  const triggerBackgroundTask = (testId: number, type: string, partNumber?: number) => {
+    const taskKey = `${type}-${testId}-${partNumber || 'all'}`;
+    setBackgroundTasks(prev => ({ ...prev, [taskKey]: true }));
+
+    let taskId: string = "";
+
+    // Fire the request without awaiting it
+    (async () => {
+      try {
+        let response;
+        if (type === "explain") {
+          if (partNumber) {
+            response = await adminService.generateExplanationsForPart(testId, partNumber);
+          } else {
+            response = await adminService.generateExplanationsForTest(testId);
+          }
+        } else if (type === "translate-transcripts") {
+          if (partNumber) {
+            response = await adminService.translateTranscriptsForPart(testId, partNumber);
+          } else {
+            response = await adminService.translateTranscriptsForTest(testId);
+          }
+        } else if (type === "translate-passages") {
+          if (partNumber) {
+            response = await adminService.translatePassagesForPart(testId, partNumber);
+          } else {
+            response = await adminService.translatePassagesForTest(testId);
+          }
+        }
+
+        if (response && response.taskId) {
+          taskId = response.taskId;
+          
+          // Start polling for task completion
+          const pollInterval = setInterval(async () => {
+            try {
+              const status = await adminService.getTaskStatus(taskId);
+              
+              if (status.isComplete) {
+                clearInterval(pollInterval);
+                
+                // Task completed - update notification
+                const completedMessage = 
+                  type === "explain" ? `✅ Hoàn thành! ${status.completedItems} câu hỏi có giải thích` :
+                  type === "translate-transcripts" ? `✅ Hoàn thành! ${status.completedItems} Transcript đã dịch` :
+                  `✅ Hoàn thành! ${status.completedItems} Passage đã dịch`;
+                
+                addNotification(completedMessage, 'success');
+                
+                // Refresh the data after completion
+                await loadTests();
+                if (selectedTestId) {
+                  await loadQuestions(selectedTestId);
+                }
+                
+                setBackgroundTasks(prev => ({ ...prev, [taskKey]: false }));
+              }
+            } catch (error) {
+              console.error("Error polling task status:", error);
+            }
+          }, 2000); // Poll every 2 seconds
+        } else {
+          addNotification(response?.message || "Started processing", 'info');
+        }
+      } catch (error: any) {
+        console.error("Background task error:", error);
+        addNotification(`❌ Lỗi: ${error.message || "Vui lòng thử lại."}`, 'error');
+        setBackgroundTasks(prev => ({ ...prev, [taskKey]: false }));
       }
-    } catch (error: any) {
-      console.error("Error:", error);
-      alert(`❌ Có lỗi xảy ra: ${error.message || "Vui lòng thử lại."}`);
-    } finally {
-      // Clear the specific action type from processing
-      setProcessingActions(prev => ({ ...prev, [type]: false }));
-    }
+    })();
+  };
+
+  // Handler functions for AI generation - FIRE AND FORGET
+  const handleGenerateAction = (testId: number, type: string, partNumber?: number) => {
+    addNotification(`🚀 Bắt đầu xử lý...`, 'info');
+    triggerBackgroundTask(testId, type, partNumber);
   };
 
   const openActionTab = (testId: number) => {
@@ -101,27 +179,9 @@ export default function AdminPage() {
     setActiveTab("test-actions");
   };
 
-  const handleQuickGenerate = async (testId: number, type: "explain" | "translate-transcripts" | "translate-passages") => {
-    setProcessingActions(prev => ({ ...prev, [type]: true }));
-    try {
-      let response;
-      if (type === "explain") {
-        response = await adminService.generateExplanationsForTest(testId);
-      } else if (type === "translate-transcripts") {
-        response = await adminService.translateTranscriptsForTest(testId);
-      } else if (type === "translate-passages") {
-        response = await adminService.translatePassagesForTest(testId);
-      }
-      
-      if (response) {
-        alert(`✅ ${response.message}`);
-      }
-    } catch (error: any) {
-      console.error("Error:", error);
-      alert(`❌ Có lỗi xảy ra: ${error.message || "Vui lòng thử lại."}`);
-    } finally {
-      setProcessingActions(prev => ({ ...prev, [type]: false }));
-    }
+  const handleQuickGenerate = (testId: number, type: "explain" | "translate-transcripts" | "translate-passages") => {
+    addNotification(`🚀 Bắt đầu xử lý...`, 'info');
+    triggerBackgroundTask(testId, type);
   };
 
   const loadDashboard = useCallback(async () => {
@@ -211,9 +271,18 @@ export default function AdminPage() {
       u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredTests = tests.filter((t) =>
-    t.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTests = tests.filter((t) => {
+    // Filter by search term
+    const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by year
+    if (selectedYearFilter === "all") {
+      return matchesSearch;
+    } else {
+      const testYear = extractYear(t.title);
+      return matchesSearch && testYear === selectedYearFilter;
+    }
+  });
 
   // Check if user is admin (case-insensitive)
   const isAdmin = user && user.role && user.role.toLowerCase() === "admin";
@@ -300,6 +369,22 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <main className="ml-64 p-8">
+        {/* Notifications */}
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 space-y-2 z-50 max-w-md">
+          {notifications.map(notif => (
+            <div
+              key={notif.id}
+              className={`p-4 rounded-lg shadow-lg animate-pulse ${
+                notif.type === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                notif.type === 'error' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200' :
+                'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
+              }`}
+            >
+              {notif.message}
+            </div>
+          ))}
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -492,6 +577,23 @@ export default function AdminPage() {
             {/* Tests Tab */}
             {activeTab === "tests" && (
               <div className="space-y-4">
+                {/* Year Filter Tabs */}
+                <div className="flex gap-2 flex-wrap pb-4 border-b border-gray-200 dark:border-gray-700">
+                  {getYearFilters().map(({ year, count }) => (
+                    <button
+                      key={year}
+                      onClick={() => setSelectedYearFilter(year)}
+                      className={`px-4 py-2 rounded-full font-medium transition ${
+                        selectedYearFilter === year
+                          ? "bg-blue-600 text-white dark:bg-blue-600"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {year === 'all' ? `Tất cả (${count})` : `${year} (${count})`}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex justify-end">
                   <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium flex items-center gap-2">
                     <Plus size={18} /> Thêm đề thi mới

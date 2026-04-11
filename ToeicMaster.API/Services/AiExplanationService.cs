@@ -269,7 +269,7 @@ Các đáp án:
         );
 
         var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
 
         var response = await _httpClient.PostAsync(url, jsonContent);
 
@@ -332,7 +332,7 @@ Các đáp án:
         );
 
         var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
 
         var response = await _httpClient.PostAsync(url, jsonContent);
 
@@ -512,7 +512,7 @@ Transcript:
             "application/json"
         );
         var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
 
         var response = await _httpClient.PostAsync(url, jsonContent);
         if (!response.IsSuccessStatusCode)

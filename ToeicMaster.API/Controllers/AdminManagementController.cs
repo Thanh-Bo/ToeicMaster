@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,28 @@ public class AdminManagementController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly AiExplanationService _aiService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    
+    // Static dictionary to track background task status across requests
+    private static readonly ConcurrentDictionary<string, TaskStatus> TaskStatusTracker = new();
 
-    public AdminManagementController(AppDbContext context, AiExplanationService aiService)
+    public AdminManagementController(AppDbContext context, AiExplanationService aiService, IServiceScopeFactory serviceScopeFactory)
     {
         _context = context;
         _aiService = aiService;
+        _serviceScopeFactory = serviceScopeFactory;
+    }
+    
+    // Task status tracking DTO
+    private class TaskStatus
+    {
+        public string TaskId { get; set; }
+        public string Status { get; set; } // "processing" or "completed"
+        public int TotalItems { get; set; }
+        public int CompletedItems { get; set; }
+        public int ErrorItems { get; set; }
+        public DateTime StartedAt { get; set; }
+        public DateTime? CompletedAt { get; set; }
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -32,6 +50,36 @@ public class AdminManagementController : ControllerBase
         var userId = GetUserId();
         var user = await _context.Users.FindAsync(userId);
         return user?.Role == "Admin";
+    }
+
+    // ==========================================
+    // TASK STATUS TRACKING APIs
+    // ==========================================
+
+    /// <summary>
+    /// Poll background task status
+    /// </summary>
+    [HttpGet("tasks/{taskId}")]
+    public IActionResult GetTaskStatus(string taskId)
+    {
+        if (TaskStatusTracker.TryGetValue(taskId, out var status))
+        {
+            return Ok(new
+            {
+                taskId = status.TaskId,
+                status = status.Status,
+                totalItems = status.TotalItems,
+                completedItems = status.CompletedItems,
+                errorItems = status.ErrorItems,
+                progress = status.TotalItems > 0 ? (status.CompletedItems * 100 / status.TotalItems) : 0,
+                startedAt = status.StartedAt,
+                completedAt = status.CompletedAt,
+                isComplete = status.Status == "completed"
+            });
+        }
+
+        // Task not found or expired (cleanup after 5 minutes)
+        return NotFound(new { message = "Không tìm thấy task hoặc đã hết hạn" });
     }
 
     // ==========================================
@@ -543,6 +591,7 @@ public class AdminManagementController : ControllerBase
     /// <summary>
     /// Generate AI explanations for all questions in a test that don't have them yet
     /// Only admin can trigger this (expensive operation)
+    /// Processes questions in parallel batches with rate limiting
     /// </summary>
     [HttpPost("tests/{testId}/generate-explanations")]
     public async Task<IActionResult> GenerateExplanationsForTest(int testId)
@@ -570,60 +619,227 @@ public class AdminManagementController : ControllerBase
                 new
                 {
                     message = "Tuyệt vời! Tất cả câu hỏi trong đề thi này đã có giải thích rồi.",
+                    taskId = "",
                     totalUpdated = 0,
                 }
             );
 
-        int successCount = 0;
-        int errorCount = 0;
-
-        // 2. Generate explanations for each question
-        foreach (var question in questions)
+        // Generate unique task ID
+        var taskId = $"explain_test_{testId}_{DateTime.UtcNow.Ticks}";
+        var totalQuestions = questions.Count;
+        
+        // Initialize task status tracking
+        TaskStatusTracker.TryAdd(taskId, new TaskStatus
         {
-            try
-            {
-                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
-                    question,
-                    question.Answers.ToList()
-                );
+            TaskId = taskId,
+            Status = "processing",
+            TotalItems = totalQuestions,
+            CompletedItems = 0,
+            ErrorItems = 0,
+            StartedAt = DateTime.UtcNow
+        });
+        
+        // Fire-and-forget background processing
+        _ = ProcessExplanationsInParallel(questions, testId, taskId);
 
-                question.ShortExplanation = shortExp;
-                question.FullExplanation = fullExp;
-                successCount++;
-
-                await _context.SaveChangesAsync();
-
-                // Clear change tracker to avoid conflicts in next iteration
-                _context.ChangeTracker.Clear();
-
-                // Rate limiting: wait 2 seconds between requests to avoid exceeding API limits
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
-                // Clear change tracker on error as well
-                _context.ChangeTracker.Clear();
-                // Log error but continue with next question
-                System.Console.WriteLine($"Error generating explanation for question {question.Id}: {ex.Message}");
-            }
-        }
-
-        return Ok(
+        return Accepted(
             new
             {
-                message = $"Đã cập nhật giải thích cho {successCount} câu hỏi ({errorCount} lỗi)",
+                message = $"Bắt đầu xử lý {totalQuestions} câu hỏi...",
+                taskId = taskId,
                 testId = testId,
-                totalUpdated = successCount,
-                totalErrors = errorCount,
-                totalQuestions = questions.Count,
+                totalQuestions = totalQuestions,
+                status = "processing"
             }
         );
+    }
+
+    private async Task ProcessExplanationsInParallel(List<Question> questions, int testId, string taskId)
+    {
+        int successCount = 0;
+        int errorCount = 0;
+        const int batchSize = 5; // Process 5 questions in parallel
+        const int delayBetweenBatches = 1000; // 1 second between batches
+
+        try
+        {
+            // Process in batches
+            for (int i = 0; i < questions.Count; i += batchSize)
+            {
+                var batch = questions.Skip(i).Take(batchSize).ToList();
+                
+                // Create tasks for all questions in this batch
+                var tasks = batch.Select(async question =>
+                {
+                    // Create a separate scope and context for this task
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var contextForTask = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        try
+                        {
+                            var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
+                                question,
+                                question.Answers.ToList()
+                            );
+
+                            // ✅ FIX: Re-attach entity to new context before updating
+                            var trackedQuestion = await contextForTask.Questions.FindAsync(question.Id);
+                            if (trackedQuestion != null)
+                            {
+                                trackedQuestion.ShortExplanation = shortExp;
+                                trackedQuestion.FullExplanation = fullExp;
+                                
+                                // Save with task-specific context
+                                await contextForTask.SaveChangesAsync();
+                                contextForTask.ChangeTracker.Clear();
+                                
+                                // Update task status
+                                if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                {
+                                    status.CompletedItems++;
+                                }
+                                
+                                return true;
+                            }
+                            return false;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Error generating explanation for question {question.Id}: {ex.Message}");
+                            contextForTask.ChangeTracker.Clear();
+                            
+                            // Update error count
+                            if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                            {
+                                status.ErrorItems++;
+                            }
+                            return false;
+                        }
+                    }
+                }).ToList();
+
+                // Wait for all tasks in this batch to complete
+                var results = await Task.WhenAll(tasks);
+                successCount += results.Count(r => r);
+                errorCount += results.Count(r => !r);
+
+                // Delay between batches to respect API rate limits
+                if (i + batchSize < questions.Count)
+                {
+                    await Task.Delay(delayBetweenBatches);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error in parallel processing: {ex.Message}");
+        }
+
+        // Mark task as completed
+        if (TaskStatusTracker.TryGetValue(taskId, out var taskStatus))
+        {
+            taskStatus.Status = "completed";
+            taskStatus.CompletedAt = DateTime.UtcNow;
+        }
+
+        System.Console.WriteLine($"Background task completed for test {testId}: {successCount} success, {errorCount} errors");
+    }
+
+    private async Task ProcessExplanationsInParallel(List<Question> questions, int testId, int partNumber, string taskId)
+    {
+        int successCount = 0;
+        int errorCount = 0;
+        const int batchSize = 5; // Process 5 questions in parallel
+        const int delayBetweenBatches = 1000; // 1 second between batches
+
+        try
+        {
+            // Process in batches
+            for (int i = 0; i < questions.Count; i += batchSize)
+            {
+                var batch = questions.Skip(i).Take(batchSize).ToList();
+                
+                // Create tasks for all questions in this batch
+                var tasks = batch.Select(async question =>
+                {
+                    // Create a separate scope and context for this task
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var contextForTask = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        try
+                        {
+                            var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
+                                question,
+                                question.Answers.ToList()
+                            );
+
+                            // ✅ FIX: Re-attach entity to new context before updating
+                            var trackedQuestion = await contextForTask.Questions.FindAsync(question.Id);
+                            if (trackedQuestion != null)
+                            {
+                                trackedQuestion.ShortExplanation = shortExp;
+                                trackedQuestion.FullExplanation = fullExp;
+                                
+                                // Save with task-specific context
+                                await contextForTask.SaveChangesAsync();
+                                contextForTask.ChangeTracker.Clear();
+                                
+                                // Update task status
+                                if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                {
+                                    status.CompletedItems++;
+                                }
+                                
+                                return true;
+                            }
+                            return false;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Error generating explanation for question {question.Id}: {ex.Message}");
+                            contextForTask.ChangeTracker.Clear();
+                            
+                            // Update error count
+                            if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                            {
+                                status.ErrorItems++;
+                            }
+                            return false;
+                        }
+                    }
+                }).ToList();
+
+                // Wait for all tasks in this batch to complete
+                var results = await Task.WhenAll(tasks);
+                successCount += results.Count(r => r);
+                errorCount += results.Count(r => !r);
+
+                // Delay between batches to respect API rate limits
+                if (i + batchSize < questions.Count)
+                {
+                    await Task.Delay(delayBetweenBatches);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error in parallel processing: {ex.Message}");
+        }
+
+        // Mark task as completed
+        if (TaskStatusTracker.TryGetValue(taskId, out var taskStatus))
+        {
+            taskStatus.Status = "completed";
+            taskStatus.CompletedAt = DateTime.UtcNow;
+        }
+
+        System.Console.WriteLine($"Background task completed for test {testId}, part {partNumber}: {successCount} success, {errorCount} errors");
     }
 
     /// <summary>
     /// Generate AI explanations for all questions in a specific part of a test
     /// Only admin can trigger this
+    /// Processes questions in parallel batches
     /// </summary>
     [HttpPost("tests/{testId}/parts/{partNumber}/generate-explanations")]
     public async Task<IActionResult> GenerateExplanationsForPart(int testId, int partNumber)
@@ -652,58 +868,40 @@ public class AdminManagementController : ControllerBase
                 new
                 {
                     message = $"Tuyệt vời! Tất cả câu hỏi trong Part {partNumber} của đề thi này đã có giải thích rồi.",
+                    taskId = "",
                     testId = testId,
                     partNumber = partNumber,
                     totalUpdated = 0,
                 }
             );
 
-        int successCount = 0;
-        int errorCount = 0;
-
-        // 2. Generate explanations for each question
-        foreach (var question in questions)
+        // Generate unique task ID
+        var taskId = $"explain_test_{testId}_part_{partNumber}_{DateTime.UtcNow.Ticks}";
+        var totalQuestions = questions.Count;
+        
+        // Initialize task status tracking
+        TaskStatusTracker.TryAdd(taskId, new TaskStatus
         {
-            try
-            {
-                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
-                    question,
-                    question.Answers.ToList()
-                );
+            TaskId = taskId,
+            Status = "processing",
+            TotalItems = totalQuestions,
+            CompletedItems = 0,
+            ErrorItems = 0,
+            StartedAt = DateTime.UtcNow
+        });
+        
+        // Return immediately to frontend - start background processing
+        _ = ProcessExplanationsInParallel(questions, testId, partNumber, taskId);
 
-                question.ShortExplanation = shortExp;
-                question.FullExplanation = fullExp;
-                successCount++;
-
-                await _context.SaveChangesAsync();
-
-                // Clear change tracker to avoid conflicts in next iteration
-                _context.ChangeTracker.Clear();
-
-                // Rate limiting: wait 2 seconds between requests to avoid exceeding API limits
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
-                // Clear change tracker on error as well
-                _context.ChangeTracker.Clear();
-                // Log error but continue with next question
-                System.Console.WriteLine(
-                    $"Error generating explanation for question {question.Id}: {ex.Message}"
-                );
-            }
-        }
-
-        return Ok(
+        return Accepted(
             new
             {
-                message = $"Đã cập nhật giải thích cho {successCount} câu hỏi ({errorCount} lỗi) trong Part {partNumber}",
+                message = $"Bắt đầu xử lý {totalQuestions} câu hỏi trong Part {partNumber}...",
+                taskId = taskId,
                 testId = testId,
                 partNumber = partNumber,
-                totalUpdated = successCount,
-                totalErrors = errorCount,
-                totalQuestions = questions.Count,
+                totalQuestions = totalQuestions,
+                status = "processing"
             }
         );
     }
@@ -715,6 +913,7 @@ public class AdminManagementController : ControllerBase
     /// <summary>
     /// Translate transcripts for Part 3/4 in an entire test
     /// Only admin can trigger this
+    /// Processes groups in parallel batches
     /// </summary>
     [HttpPost("tests/{testId}/translate-transcripts")]
     public async Task<IActionResult> TranslateTranscriptsForTest(int testId)
@@ -742,64 +941,236 @@ public class AdminManagementController : ControllerBase
                 new
                 {
                     message = "Tuyệt vời! Tất cả Transcript trong đề này đã được dịch rồi.",
+                    taskId = "",
                     testId = testId,
                     totalTranslated = 0,
                 }
             );
 
-        int successCount = 0;
-        int errorCount = 0;
-
-        // 2. Translate each transcript
-        foreach (var group in groups)
+        // Generate unique task ID
+        var taskId = $"translate_transcript_test_{testId}_{DateTime.UtcNow.Ticks}";
+        var totalGroups = groups.Count;
+        
+        // Initialize task status tracking
+        TaskStatusTracker.TryAdd(taskId, new TaskStatus
         {
-            try
-            {
-                var translation = await _aiService.TranslatePassageAsync(group.Transcript ?? "");
+            TaskId = taskId,
+            Status = "processing",
+            TotalItems = totalGroups,
+            CompletedItems = 0,
+            ErrorItems = 0,
+            StartedAt = DateTime.UtcNow
+        });
+        
+        // Return immediately to frontend - start background processing
+        _ = ProcessTranscriptTranslationsInParallel(groups, testId, taskId);
 
-                // Only update if translation actually succeeded (not null/empty)
-                if (!string.IsNullOrEmpty(translation))
-                {
-                    group.TranscriptTranslation = translation;
-                    await _context.SaveChangesAsync();
-                    successCount++;
-                }
-                else
-                {
-                    errorCount++;
-                    System.Console.WriteLine($"Empty translation for group {group.Id}");
-                }
-
-                // Clear change tracker AFTER successful save
-                _context.ChangeTracker.Clear();
-
-                // Rate limiting: wait 2 seconds between requests
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
-                // Clear change tracker on error as well
-                _context.ChangeTracker.Clear();
-                System.Console.WriteLine($"Error translating transcript for group {group.Id}: {ex.Message}");
-            }
-        }
-
-        return Ok(
+        return Accepted(
             new
             {
-                message = $"Đã dịch {successCount} Transcript ({errorCount} lỗi)",
+                message = $"Bắt đầu dịch {totalGroups} Transcript...",
+                taskId = taskId,
                 testId = testId,
-                totalTranslated = successCount,
-                totalErrors = errorCount,
-                totalGroups = groups.Count,
+                totalGroups = totalGroups,
+                status = "processing"
             }
         );
+    }
+
+    private async Task ProcessTranscriptTranslationsInParallel(List<QuestionGroup> groups, int testId, string taskId)
+    {
+        int successCount = 0;
+        int errorCount = 0;
+        const int batchSize = 3; // Process 3 groups in parallel (translations may be slower)
+        const int delayBetweenBatches = 1000; // 1 second between batches
+
+        try
+        {
+            // Process in batches
+            for (int i = 0; i < groups.Count; i += batchSize)
+            {
+                var batch = groups.Skip(i).Take(batchSize).ToList();
+                
+                // Create tasks for all groups in this batch
+                var tasks = batch.Select(async group =>
+                {
+                    // Create a separate scope and context for this task
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var contextForTask = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        try
+                        {
+                            var translation = await _aiService.TranslatePassageAsync(group.Transcript ?? "");
+
+                            if (!string.IsNullOrEmpty(translation))
+                            {
+                                // ✅ FIX: Re-attach entity to new context before updating
+                                var trackedGroup = await contextForTask.QuestionGroups.FindAsync(group.Id);
+                                if (trackedGroup != null)
+                                {
+                                    trackedGroup.TranscriptTranslation = translation;
+                                    await contextForTask.SaveChangesAsync();
+                                    contextForTask.ChangeTracker.Clear();
+                                    
+                                    // Update task status
+                                    if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                    {
+                                        status.CompletedItems++;
+                                    }
+                                    return true;
+                                }
+                                return false;
+                            }
+                            else
+                            {
+                                System.Console.WriteLine($"Empty translation for group {group.Id}");
+                                if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                {
+                                    status.ErrorItems++;
+                                }
+                                return false;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Error translating transcript for group {group.Id}: {ex.Message}");
+                            contextForTask.ChangeTracker.Clear();
+                            
+                            if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                            {
+                                status.ErrorItems++;
+                            }
+                            return false;
+                        }
+                    }
+                }).ToList();
+
+                // Wait for all tasks in this batch to complete
+                var results = await Task.WhenAll(tasks);
+                successCount += results.Count(r => r);
+                errorCount += results.Count(r => !r);
+
+                // Delay between batches to respect API rate limits
+                if (i + batchSize < groups.Count)
+                {
+                    await Task.Delay(delayBetweenBatches);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error in parallel transcript processing: {ex.Message}");
+        }
+
+        // Mark task as completed
+        if (TaskStatusTracker.TryGetValue(taskId, out var taskStatus))
+        {
+            taskStatus.Status = "completed";
+            taskStatus.CompletedAt = DateTime.UtcNow;
+        }
+
+        System.Console.WriteLine($"Background task completed for test {testId}: {successCount} transcripts translated, {errorCount} errors");
+    }
+
+    private async Task ProcessTranscriptTranslationsInParallel(List<QuestionGroup> groups, int testId, int partNumber, string taskId)
+    {
+        int successCount = 0;
+        int errorCount = 0;
+        const int batchSize = 3; // Process 3 groups in parallel
+        const int delayBetweenBatches = 1000; // 1 second between batches
+
+        try
+        {
+            // Process in batches
+            for (int i = 0; i < groups.Count; i += batchSize)
+            {
+                var batch = groups.Skip(i).Take(batchSize).ToList();
+                
+                // Create tasks for all groups in this batch
+                var tasks = batch.Select(async group =>
+                {
+                    // Create a separate scope and context for this task
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var contextForTask = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        try
+                        {
+                            var translation = await _aiService.TranslatePassageAsync(group.Transcript ?? "");
+
+                            if (!string.IsNullOrEmpty(translation))
+                            {
+                                // ✅ FIX: Re-attach entity to new context before updating
+                                var trackedGroup = await contextForTask.QuestionGroups.FindAsync(group.Id);
+                                if (trackedGroup != null)
+                                {
+                                    trackedGroup.TranscriptTranslation = translation;
+                                    await contextForTask.SaveChangesAsync();
+                                    contextForTask.ChangeTracker.Clear();
+                                    
+                                    // Update task status
+                                    if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                    {
+                                        status.CompletedItems++;
+                                    }
+                                    return true;
+                                }
+                                return false;
+                            }
+                            else
+                            {
+                                System.Console.WriteLine($"Empty translation for group {group.Id}");
+                                if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                {
+                                    status.ErrorItems++;
+                                }
+                                return false;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Error translating transcript for group {group.Id}: {ex.Message}");
+                            contextForTask.ChangeTracker.Clear();
+                            
+                            if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                            {
+                                status.ErrorItems++;
+                            }
+                            return false;
+                        }
+                    }
+                }).ToList();
+
+                // Wait for all tasks in this batch to complete
+                var results = await Task.WhenAll(tasks);
+                successCount += results.Count(r => r);
+                errorCount += results.Count(r => !r);
+
+                // Delay between batches to respect API rate limits
+                if (i + batchSize < groups.Count)
+                {
+                    await Task.Delay(delayBetweenBatches);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error in parallel transcript processing: {ex.Message}");
+        }
+
+        // Mark task as completed
+        if (TaskStatusTracker.TryGetValue(taskId, out var taskStatus))
+        {
+            taskStatus.Status = "completed";
+            taskStatus.CompletedAt = DateTime.UtcNow;
+        }
+
+        System.Console.WriteLine($"Background task completed for test {testId}, part {partNumber}: {successCount} transcripts translated, {errorCount} errors");
     }
 
     /// <summary>
     /// Translate passages for Part 6/7 in an entire test
     /// Only admin can trigger this
+    /// Processes groups in parallel batches
     /// </summary>
     [HttpPost("tests/{testId}/translate-passages")]
     public async Task<IActionResult> TranslatePassagesForTest(int testId)
@@ -827,64 +1198,142 @@ public class AdminManagementController : ControllerBase
                 new
                 {
                     message = "Tuyệt vời! Tất cả Passage trong đề này đã được dịch rồi.",
+                    taskId = "",
                     testId = testId,
                     totalTranslated = 0,
                 }
             );
 
-        int successCount = 0;
-        int errorCount = 0;
-
-        // 2. Translate each passage
-        foreach (var group in groups)
+        // Generate unique task ID
+        var taskId = $"translate_passage_test_{testId}_{DateTime.UtcNow.Ticks}";
+        var totalGroups = groups.Count;
+        
+        // Initialize task status tracking
+        TaskStatusTracker.TryAdd(taskId, new TaskStatus
         {
-            try
-            {
-                var translation = await _aiService.TranslatePassageAsync(group.TextContent ?? "");
+            TaskId = taskId,
+            Status = "processing",
+            TotalItems = totalGroups,
+            CompletedItems = 0,
+            ErrorItems = 0,
+            StartedAt = DateTime.UtcNow
+        });
+        
+        // Return immediately to frontend - start background processing
+        _ = ProcessPassageTranslationsInParallel(groups, testId, taskId);
 
-                // Only update if translation actually succeeded (not null/empty)
-                if (!string.IsNullOrEmpty(translation))
-                {
-                    group.TextContentTranslation = translation;
-                    await _context.SaveChangesAsync();
-                    successCount++;
-                }
-                else
-                {
-                    errorCount++;
-                    System.Console.WriteLine($"Empty translation for group {group.Id}");
-                }
-
-                // Clear change tracker AFTER successful save
-                _context.ChangeTracker.Clear();
-
-                // Rate limiting: wait 2 seconds between requests
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
-                // Clear change tracker on error as well
-                _context.ChangeTracker.Clear();
-                System.Console.WriteLine($"Error translating passage for group {group.Id}: {ex.Message}");
-            }
-        }
-
-        return Ok(
+        return Accepted(
             new
             {
-                message = $"Đã dịch {successCount} Passage ({errorCount} lỗi)",
+                message = $"Bắt đầu dịch {totalGroups} Passage...",
+                taskId = taskId,
                 testId = testId,
-                totalTranslated = successCount,
-                totalErrors = errorCount,
-                totalGroups = groups.Count,
+                totalGroups = totalGroups,
+                status = "processing"
             }
         );
     }
 
+    private async Task ProcessPassageTranslationsInParallel(List<QuestionGroup> groups, int testId, string taskId)
+    {
+        int successCount = 0;
+        int errorCount = 0;
+        const int batchSize = 3; // Process 3 groups in parallel
+        const int delayBetweenBatches = 1000; // 1 second between batches
+
+        try
+        {
+            // Process in batches
+            for (int i = 0; i < groups.Count; i += batchSize)
+            {
+                var batch = groups.Skip(i).Take(batchSize).ToList();
+                
+                // Create tasks for all groups in this batch
+                var tasks = batch.Select(async group =>
+                {
+                    // Create a separate scope and context for this task
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var contextForTask = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        try
+                        {
+                            var translation = await _aiService.TranslatePassageAsync(group.TextContent ?? "");
+
+                            if (!string.IsNullOrEmpty(translation))
+                            {
+                                // ✅ FIX: Re-attach entity to new context before updating
+                                var trackedGroup = await contextForTask.QuestionGroups.FindAsync(group.Id);
+                                if (trackedGroup != null)
+                                {
+                                    trackedGroup.TextContentTranslation = translation;
+                                    await contextForTask.SaveChangesAsync();
+                                    contextForTask.ChangeTracker.Clear();
+                                    
+                                    // Update task status
+                                    if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                    {
+                                        status.CompletedItems++;
+                                    }
+                                    return true;
+                                }
+                                return false;
+                            }
+                            else
+                            {
+                                System.Console.WriteLine($"Empty translation for group {group.Id}");
+                                if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                {
+                                    status.ErrorItems++;
+                                }
+                                return false;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Error translating passage for group {group.Id}: {ex.Message}");
+                            contextForTask.ChangeTracker.Clear();
+                            
+                            if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                            {
+                                status.ErrorItems++;
+                            }
+                            return false;
+                        }
+                    }
+                }).ToList();
+
+                // Wait for all tasks in this batch to complete
+                var results = await Task.WhenAll(tasks);
+                successCount += results.Count(r => r);
+                errorCount += results.Count(r => !r);
+
+                // Delay between batches to respect API rate limits
+                if (i + batchSize < groups.Count)
+                {
+                    await Task.Delay(delayBetweenBatches);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error in parallel passage processing: {ex.Message}");
+        }
+
+        // Mark task as completed
+        if (TaskStatusTracker.TryGetValue(taskId, out var taskStatus))
+        {
+            taskStatus.Status = "completed";
+            taskStatus.CompletedAt = DateTime.UtcNow;
+        }
+
+        System.Console.WriteLine($"Background task completed for test {testId}: {successCount} passages translated, {errorCount} errors");
+    }
+
+
     /// <summary>
     /// Translate transcripts for a specific part (3 or 4)
     /// Only admin can trigger this
+    /// Processes groups in parallel batches
     /// </summary>
     [HttpPost("tests/{testId}/parts/{partNumber}/translate-transcripts")]
     public async Task<IActionResult> TranslateTranscriptsForPart(int testId, int partNumber)
@@ -916,59 +1365,40 @@ public class AdminManagementController : ControllerBase
                 {
                     message =
                         $"Tuyệt vời! Tất cả Transcript trong Part {partNumber} của đề này đã được dịch rồi.",
+                    taskId = "",
                     testId = testId,
                     partNumber = partNumber,
                     totalTranslated = 0,
                 }
             );
 
-        int successCount = 0;
-        int errorCount = 0;
-
-        // 2. Translate each transcript
-        foreach (var group in groups)
+        // Generate unique task ID
+        var taskId = $"translate_transcript_test_{testId}_part_{partNumber}_{DateTime.UtcNow.Ticks}";
+        var totalGroups = groups.Count;
+        
+        // Initialize task status tracking
+        TaskStatusTracker.TryAdd(taskId, new TaskStatus
         {
-            try
-            {
-                var translation = await _aiService.TranslatePassageAsync(group.Transcript ?? "");
+            TaskId = taskId,
+            Status = "processing",
+            TotalItems = totalGroups,
+            CompletedItems = 0,
+            ErrorItems = 0,
+            StartedAt = DateTime.UtcNow
+        });
+        
+        // Return immediately to frontend - start background processing
+        _ = ProcessTranscriptTranslationsInParallel(groups, testId, partNumber, taskId);
 
-                // Only update if translation actually succeeded (not null/empty)
-                if (!string.IsNullOrEmpty(translation))
-                {
-                    group.TranscriptTranslation = translation;
-                    await _context.SaveChangesAsync();
-                    successCount++;
-                }
-                else
-                {
-                    errorCount++;
-                    System.Console.WriteLine($"Empty translation for group {group.Id}");
-                }
-
-                // Clear change tracker AFTER successful save
-                _context.ChangeTracker.Clear();
-
-                // Rate limiting: wait 2 seconds between requests
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
-                // Clear change tracker on error as well
-                _context.ChangeTracker.Clear();
-                System.Console.WriteLine($"Error translating transcript for group {group.Id}: {ex.Message}");
-            }
-        }
-
-        return Ok(
+        return Accepted(
             new
             {
-                message = $"Đã dịch {successCount} Transcript ({errorCount} lỗi) trong Part {partNumber}",
+                message = $"Bắt đầu dịch {totalGroups} Transcript trong Part {partNumber}...",
+                taskId = taskId,
                 testId = testId,
                 partNumber = partNumber,
-                totalTranslated = successCount,
-                totalErrors = errorCount,
-                totalGroups = groups.Count,
+                totalGroups = totalGroups,
+                status = "processing"
             }
         );
     }
@@ -976,6 +1406,7 @@ public class AdminManagementController : ControllerBase
     /// <summary>
     /// Translate passages for a specific part (6 or 7)
     /// Only admin can trigger this
+    /// Processes groups in parallel batches
     /// </summary>
     [HttpPost("tests/{testId}/parts/{partNumber}/translate-passages")]
     public async Task<IActionResult> TranslatePassagesForPart(int testId, int partNumber)
@@ -1007,61 +1438,137 @@ public class AdminManagementController : ControllerBase
                 {
                     message =
                         $"Tuyệt vời! Tất cả Passage trong Part {partNumber} của đề này đã được dịch rồi.",
+                    taskId = "",
                     testId = testId,
                     partNumber = partNumber,
                     totalTranslated = 0,
                 }
             );
 
-        int successCount = 0;
-        int errorCount = 0;
-
-        // 2. Translate each passage
-        foreach (var group in groups)
+        // Generate unique task ID
+        var taskId = $"translate_passage_test_{testId}_part_{partNumber}_{DateTime.UtcNow.Ticks}";
+        var totalGroups = groups.Count;
+        
+        // Initialize task status tracking
+        TaskStatusTracker.TryAdd(taskId, new TaskStatus
         {
-            try
-            {
-                var translation = await _aiService.TranslatePassageAsync(group.TextContent ?? "");
+            TaskId = taskId,
+            Status = "processing",
+            TotalItems = totalGroups,
+            CompletedItems = 0,
+            ErrorItems = 0,
+            StartedAt = DateTime.UtcNow
+        });
+        
+        // Return immediately to frontend - start background processing
+        _ = ProcessPassageTranslationsInParallel(groups, testId, partNumber, taskId);
 
-                // Only update if translation actually succeeded (not null/empty)
-                if (!string.IsNullOrEmpty(translation))
-                {
-                    group.TextContentTranslation = translation;
-                    await _context.SaveChangesAsync();
-                    successCount++;
-                }
-                else
-                {
-                    errorCount++;
-                    System.Console.WriteLine($"Empty translation for group {group.Id}");
-                }
-
-                // Clear change tracker AFTER successful save
-                _context.ChangeTracker.Clear();
-
-                // Rate limiting: wait 2 seconds between requests
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
-                // Clear change tracker on error as well
-                _context.ChangeTracker.Clear();
-                System.Console.WriteLine($"Error translating passage for group {group.Id}: {ex.Message}");
-            }
-        }
-
-        return Ok(
+        return Accepted(
             new
             {
-                message = $"Đã dịch {successCount} Passage ({errorCount} lỗi) trong Part {partNumber}",
+                message = $"Bắt đầu dịch {totalGroups} Passage trong Part {partNumber}...",
+                taskId = taskId,
                 testId = testId,
                 partNumber = partNumber,
-                totalTranslated = successCount,
-                totalErrors = errorCount,
-                totalGroups = groups.Count,
+                totalGroups = totalGroups,
+                status = "processing"
             }
         );
+    }
+
+    private async Task ProcessPassageTranslationsInParallel(List<QuestionGroup> groups, int testId, int partNumber, string taskId)
+    {
+        int successCount = 0;
+        int errorCount = 0;
+        const int batchSize = 3; // Process 3 groups in parallel
+        const int delayBetweenBatches = 1000; // 1 second between batches
+
+        try
+        {
+            // Process in batches
+            for (int i = 0; i < groups.Count; i += batchSize)
+            {
+                var batch = groups.Skip(i).Take(batchSize).ToList();
+                
+                // Create tasks for all groups in this batch
+                var tasks = batch.Select(async group =>
+                {
+                    // Create a separate scope and context for this task
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var contextForTask = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        try
+                        {
+                            var translation = await _aiService.TranslatePassageAsync(group.TextContent ?? "");
+
+                            if (!string.IsNullOrEmpty(translation))
+                            {
+                                // ✅ FIX: Re-attach entity to new context before updating
+                                var trackedGroup = await contextForTask.QuestionGroups.FindAsync(group.Id);
+                                if (trackedGroup != null)
+                                {
+                                    trackedGroup.TextContentTranslation = translation;
+                                    await contextForTask.SaveChangesAsync();
+                                    contextForTask.ChangeTracker.Clear();
+                                    
+                                    // Update task status
+                                    if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                    {
+                                        status.CompletedItems++;
+                                    }
+                                    return true;
+                                }
+                                return false;
+                            }
+                            else
+                            {
+                                System.Console.WriteLine($"Empty translation for group {group.Id}");
+                                if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                                {
+                                    status.ErrorItems++;
+                                }
+                                return false;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Error translating passage for group {group.Id}: {ex.Message}");
+                            contextForTask.ChangeTracker.Clear();
+                            
+                            if (TaskStatusTracker.TryGetValue(taskId, out var status))
+                            {
+                                status.ErrorItems++;
+                            }
+                            return false;
+                        }
+                    }
+                }).ToList();
+
+                // Wait for all tasks in this batch to complete
+                var results = await Task.WhenAll(tasks);
+                successCount += results.Count(r => r);
+                errorCount += results.Count(r => !r);
+
+                // Delay between batches to respect API rate limits
+                if (i + batchSize < groups.Count)
+                {
+                    await Task.Delay(delayBetweenBatches);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error in parallel passage processing: {ex.Message}");
+        }
+
+        // Mark task as completed
+        if (TaskStatusTracker.TryGetValue(taskId, out var taskStatus))
+        {
+            taskStatus.Status = "completed";
+            taskStatus.CompletedAt = DateTime.UtcNow;
+        }
+
+        System.Console.WriteLine($"Background task completed for test {testId}, part {partNumber}: {successCount} passages translated, {errorCount} errors");
     }
 }
 
