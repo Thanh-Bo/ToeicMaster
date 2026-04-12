@@ -48,7 +48,7 @@ export default function HomePage() {
 
     {
       icon: <Brain className="w-5 h-5" />,
-      value: "AI",
+      value: "Giải thích",
       label: "Giải thích chi tiết",
     },
     {
@@ -68,9 +68,9 @@ export default function HomePage() {
     },
     {
       icon: <Brain className="w-7 h-7" />,
-      title: "AI Giải thích Chi tiết",
+      title: "Giải thích Chi tiết",
       description:
-        "Mỗi câu sai đều có giải thích rõ ràng từ AI — hiểu sâu, không chỉ nhớ đáp án.",
+        "Mỗi câu sai đều có giải thích rõ ràng  — hiểu sâu, không chỉ nhớ đáp án.",
       href: "/practice",
     },
     {
@@ -98,7 +98,7 @@ export default function HomePage() {
     {
       icon: <Lightbulb className="w-6 h-6" />,
       step: "03",
-      title: "Xem kết quả & AI giải thích",
+      title: "Xem kết quả & Giải thích",
       description: "Phân tích chi tiết từng câu, nắm điểm yếu để cải thiện.",
     },
   ];
@@ -126,8 +126,7 @@ export default function HomePage() {
 
         {/* Description */}
         <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto mb-10">
-          Luyện đề full test, chấm điểm tự động và giải thích chi tiết từng câu
-          bằng AI.
+          Luyện đề full test, chấm điểm tự động và giải thích chi tiết từng câu.
         </p>
 
         {/* CTA Buttons */}

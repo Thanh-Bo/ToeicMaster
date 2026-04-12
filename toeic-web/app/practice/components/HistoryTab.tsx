@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Target, TrendingUp, FileText, Search, Eye, Clock } from "lucide-react";
+import { BookOpen, Target, TrendingUp, FileText, Search, Eye, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { TestHistoryItem } from "@/app/types";
 import { testService } from "@/app/services/testService";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function HistoryTab() {
   const [history, setHistory] = useState<TestHistoryItem[]>([]);
@@ -13,6 +15,7 @@ export default function HistoryTab() {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,6 +37,10 @@ export default function HistoryTab() {
     };
     fetchHistory();
   }, [router]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -78,6 +85,11 @@ export default function HistoryTab() {
         default: return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
       }
     });
+
+  const totalPages = Math.ceil(filteredAndSortedHistory.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedHistory = filteredAndSortedHistory.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-8">
@@ -165,7 +177,7 @@ export default function HistoryTab() {
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white">Chi tiết các lần làm bài</h2>
               </div>
               <div className="divide-y divide-gray-100 dark:divide-zinc-800">
-                {filteredAndSortedHistory.map((item, index) => {
+                {paginatedHistory.map((item, index) => {
                   const pct = item.totalQuestions > 0 ? Math.round((item.correctAnswers / item.totalQuestions) * 100) : 0;
                   const strokeColor = getScoreStrokeColor(pct);
                   const circumference = 2 * Math.PI * 36;
@@ -178,7 +190,7 @@ export default function HistoryTab() {
                         {/* Left - Test Info */}
                         <div className="flex items-start gap-4 flex-1">
                           <div className="w-10 h-10 rounded-lg border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-sm flex-shrink-0">
-                            {index + 1}
+                            {startIndex + index + 1}
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-900 dark:text-white">{item.testTitle}</h3>
@@ -226,6 +238,46 @@ export default function HistoryTab() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-zinc-700 flex items-center justify-between">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Hiển thị <span className="font-semibold">{startIndex + 1}</span> - <span className="font-semibold">{Math.min(endIndex, filteredAndSortedHistory.length)}</span> trên <span className="font-semibold">{filteredAndSortedHistory.length}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                          currentPage === page
+                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                            : 'border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           )}

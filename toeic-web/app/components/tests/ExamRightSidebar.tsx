@@ -46,7 +46,7 @@ export default function ExamRightSidebar({
     <div className="sticky top-20 dark:text-white text-zinc-600 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-y-auto max-h-[calc(100vh-5rem)] custom-scrollbar">
       <div className="p-5">
       {/* 1. ĐỒNG HỒ & NỘP BÀI */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-2">
         {isUnlimited ? "Thời gian làm bài:" : "Thời gian còn lại:"}
 
         <div

@@ -18,7 +18,7 @@ interface TestSummary {
 }
 
 interface PracticeTabProps {
-  tests: TestSummary[];
+      tests: TestSummary[];
   loading: boolean;
   error: string;
   searchQuery: string;
@@ -65,7 +65,7 @@ export default function PracticeTab({
           onClick={() => onPrefixChange("all")}
           className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${
             filterPrefix === "all"
-              ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+              ? "bg-blue-500 dark:bg-blue-500  text-white dark:text-white"
               : "border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800"
           }`}
         >
@@ -79,7 +79,7 @@ export default function PracticeTab({
             onClick={() => onPrefixChange(prefix)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${
               filterPrefix === prefix
-                ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                ? "bg-blue-500 dark:bg-blue-500 text-white dark:text-white"
                 : "border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800"
             }`}
           >
@@ -143,7 +143,7 @@ export default function PracticeTab({
           {filteredTests.map((test) => (
             <div
               key={test.id}
-              className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl p-6 hover:shadow-md dark:hover:shadow-zinc-800/50 hover:scale-105 transition-all duration-200 group"
+              className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 hover:shadow-md dark:hover:shadow-zinc-800/50 hover:scale-105 transition-all duration-200 group"
             >
               {/* Title */}
               <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
@@ -165,7 +165,7 @@ export default function PracticeTab({
               {/* CTA Button */}
               <Link
                 href={`/tests/${test.testGuid}`}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-all duration-200"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm bg-blue-500 dark:bg-blue-500 text-white dark:text-white hover:opacity-90 transition-all duration-200"
               >
                 <Play className="w-4 h-4" />
                 Luyện tập

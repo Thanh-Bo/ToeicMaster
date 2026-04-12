@@ -28,6 +28,17 @@ export const authService = {
     return axiosClient.put("/auth/update-profile", data);
   },
 
+  // Hàm upload avatar
+  updateAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosClient.post("/auth/upload-avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
   // Hàm đổi mật khẩu
   changePassword: (data: { currentPassword: string; newPassword: string }) => {
     return axiosClient.post("/auth/change-password", data);

@@ -58,18 +58,21 @@ public class StatisticsController : ControllerBase
             })
             .FirstOrDefaultAsync();
 
-        // Thống kê practice
-        var practiceStats = await _context.PracticeSessions
-            .Where(ps => ps.UserId == userId && ps.Status == "completed" && ps.CompletedAt >= startDate)
-            .GroupBy(ps => 1)
+        // Thống kê practice (từ UserAnswers + tổng thời gian từ TestAttempts)
+        var practiceStats = await _context.UserAnswers
+            .Where(ua => ua.Attempt.UserId == userId && ua.Attempt.CompletedAt >= startDate)
+            .GroupBy(ua => 1)
             .Select(g => new
             {
-                TotalSessions = g.Count(),
-                TotalQuestions = g.Sum(ps => ps.TotalQuestions),
-                TotalCorrect = g.Sum(ps => ps.CorrectAnswers),
-                TotalTime = g.Sum(ps => ps.TimeSpentSeconds)
+                TotalSessions = g.Select(ua => ua.Attempt.Id).Distinct().Count(),
+                TotalQuestions = g.Count(),
+                TotalCorrect = g.Count(ua => ua.IsCorrect)
             })
             .FirstOrDefaultAsync();
+
+        var totalPracticeTimeSeconds = await _context.TestAttempts
+            .Where(ta => ta.UserId == userId && ta.CompletedAt >= startDate)
+            .SumAsync(ta => ta.TimeTaken);
 
         // Bookmarks count (không filter)
         var bookmarksCount = await _context.Bookmarks
@@ -105,7 +108,7 @@ public class StatisticsController : ControllerBase
                 accuracy = practiceStats?.TotalQuestions > 0 
                     ? Math.Round((double)(practiceStats?.TotalCorrect ?? 0) / (practiceStats?.TotalQuestions ?? 1) * 100, 1) 
                     : 0,
-                totalTimeMinutes = Math.Round((practiceStats?.TotalTime ?? 0) / 60.0, 1)
+                totalTimeMinutes = Math.Round(totalPracticeTimeSeconds / 60.0, 1)
             },
             bookmarks = bookmarksCount,
             vocabulary = new
@@ -113,7 +116,7 @@ public class StatisticsController : ControllerBase
                 learned = vocabStats?.TotalLearned ?? 0,
                 mastered = vocabStats?.Mastered ?? 0
             },
-            totalLearningTimeMinutes = Math.Round((practiceStats?.TotalTime ?? 0) / 60.0, 1)
+            totalLearningTimeMinutes = Math.Round(totalPracticeTimeSeconds / 60.0, 1)
         };
 
         return Ok(result);

@@ -21,12 +21,14 @@ namespace ToeicMaster.API.Controllers
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
+        private readonly BlobService _blobService;
 
-        public AuthController(AppDbContext context, IConfiguration configuration , IEmailService emailService)
+        public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService, BlobService blobService)
         {
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
+            _blobService = blobService;
         }
 
         // 1. REGISTER
@@ -85,6 +87,12 @@ namespace ToeicMaster.API.Controllers
 
                     };
                     _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    // Update avatar from Google if user already exists
+                    user.AvatarUrl = payload.Picture;
                     await _context.SaveChangesAsync();
                 }
 
@@ -245,6 +253,7 @@ namespace ToeicMaster.API.Controllers
                 id = user.Id,
                 fullName = user.FullName,
                 email = user.Email,
+                avatarUrl = user.AvatarUrl,
                 role = user.Role ?? "User",
                 balance = user.Balance,
                 isPremium = user.IsPremium,
@@ -312,6 +321,54 @@ namespace ToeicMaster.API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Đổi mật khẩu thành công!" });
+        }
+
+        // 7. UPLOAD AVATAR
+        [Authorize]
+        [HttpPost("upload-avatar")]
+        public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+
+            var userId = int.Parse(userIdStr);
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null) return NotFound();
+
+            // Validate file
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Vui lòng chọn ảnh." });
+
+            // Check file type (only image)
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp", "image/gif" };
+            if (!allowedTypes.Contains(file.ContentType))
+                return BadRequest(new { message = "Chỉ hỗ trợ ảnh (JPEG, PNG, WEBP, GIF)." });
+
+            // Check file size (max 5MB)
+            if (file.Length > 5 * 1024 * 1024)
+                return BadRequest(new { message = "Ảnh không được vượt quá 5MB." });
+
+            try
+            {
+                // Upload to Azure Blob Storage
+                string folderPath = $"avatars/{userId}";
+                string avatarUrl = await _blobService.UploadFileAsync(file, folderPath);
+
+                // Update user avatar
+                user.AvatarUrl = avatarUrl;
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Cập nhật avatar thành công!",
+                    avatarUrl = user.AvatarUrl
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi upload ảnh: " + ex.Message });
+            }
         }
 
         // --- PRIVATE HELPER METHODS ---

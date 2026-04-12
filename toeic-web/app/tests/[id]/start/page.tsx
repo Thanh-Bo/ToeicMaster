@@ -294,9 +294,12 @@ export default function ExamPage() {
                 const confirmExit = window.confirm(
                   "Bạn chưa nộp bài. Dữ liệu sẽ được lưu. Bạn có chắc chắn muốn thoát?",
                 );
-                if (confirmExit) router.push("/");
-              } else {
-                router.push("/");
+                if (confirmExit) router.push("/practice");
+              } else if (Object.keys(userAnswers).length <= 0 ) {
+                const confirmExit = window.confirm(
+                  "Bạn chưa nộp bài . Bạn có chắc chắn muốn thoát?",
+                );
+                if (confirmExit) router.push("/practice");
               }
             }}
             className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium flex items-center gap-2 transition"

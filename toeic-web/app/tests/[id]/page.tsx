@@ -6,6 +6,7 @@ import { testService } from "@/app/services/testService";
 import { CommentSection } from "@/app/components/comments/CommentSection";
 import Link from "next/link";
 import { ArrowLeft, Clock, CheckSquare, Square, Check } from "lucide-react";
+import { PageHeader } from "@/app/components";
 
 const PARTS = [
   { id: 1, name: "Part 1: Photographs" },
@@ -22,7 +23,7 @@ const DURATIONS = [
   { label: "60 phút", value: 60 },
   { label: "30 phút", value: 30 },
   { label: "Không giới hạn", value: 0 },
-];
+];  
 
 export default function TestOverviewPage() {
   const params = useParams();
@@ -85,8 +86,9 @@ export default function TestOverviewPage() {
     );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 px-4 py-10">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 ">
+      <PageHeader />
+      <div className="max-w-3xl mx-auto space-y-6 px-4 py-10">
         {/* Header Card */}
         <div className="border border-gray-200 dark:border-zinc-700 rounded-2xl overflow-hidden">
           {/* Top bar */}
@@ -137,8 +139,8 @@ export default function TestOverviewPage() {
                       key={part.id}
                       className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                         checked
-                          ? "border-gray-900 dark:border-white bg-gray-50 dark:bg-zinc-800"
-                          : "border-gray-200 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500"
+                          ? "border-gray-400 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
+                          : "border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
                       <input
@@ -150,7 +152,7 @@ export default function TestOverviewPage() {
                       <span
                         className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all ${
                           checked
-                            ? "bg-gray-900 dark:bg-white"
+                            ? "bg-blue-500 dark:bg-blue-500"
                             : "border border-gray-300 dark:border-zinc-600"
                         }`}
                       >
@@ -190,7 +192,7 @@ export default function TestOverviewPage() {
                     onClick={() => setDuration(d.value)}
                     className={`p-3 rounded-xl border text-sm font-medium transition-all ${
                       duration === d.value
-                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
+                        ? "bg-blue-500 dark:bg-blue-500 text-white dark:text-white border-white dark:border-white"
                         : "border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white"
                     }`}
                   >
@@ -203,7 +205,7 @@ export default function TestOverviewPage() {
             {/* Start Button */}
             <button
               onClick={handleStart}
-              className="w-full bg-gray-900 dark:bg-white hover:opacity-90 text-white dark:text-gray-900 font-semibold py-4 rounded-xl text-base transition-all hover:scale-[1.01] active:scale-95"
+              className="w-full bg-blue-500 dark:bg-blue-500 hover:opacity-90 text-white dark:text-white font-semibold py-4 rounded-xl text-base transition-all hover:scale-[1.01] active:scale-95"
             >
               BẮT ĐẦU LÀM BÀI
             </button>

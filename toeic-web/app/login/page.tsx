@@ -194,7 +194,7 @@ function LoginForm() {
 
         {/* Footer */}
         <p className="text-center mt-6 text-gray-400 dark:text-gray-500 text-xs">
-          © 2025 TOEIC Master. All rights reserved.
+          © 2026 TOEIC Master. All rights reserved.
         </p>
       </div>
     </div>

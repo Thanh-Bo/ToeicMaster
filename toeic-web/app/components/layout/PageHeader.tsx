@@ -100,7 +100,7 @@ export default function PageHeader({
 
         {/* Right: Actions */}
         {user ? (
-          <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="flex items-center gap-8 flex-shrink-0">
             {/* <button
               onClick={handleUpgradeClick}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-sm"
@@ -114,9 +114,19 @@ export default function PageHeader({
             {/* User Profile */}
             <Link
               href="/profile"
-              className="flex items-center justify-center w-9 h-9 bg-gray-900 dark:bg-white rounded-full text-white dark:text-gray-900 font-bold text-sm hover:opacity-80 transition"
+              className="flex items-center justify-center w-9 h-9 rounded-full text-white dark:text-gray-900 font-bold text-sm hover:opacity-80 transition overflow-hidden"
             >
-              {user.fullName?.charAt(0)?.toUpperCase() || "U"}
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName}
+                  className="w-9 h-9 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-9 h-9 bg-gray-900 dark:bg-white rounded-full flex items-center justify-center">
+                  {user.fullName?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+              )}
             </Link>
 
             {/* Logout Button */}
@@ -129,23 +139,31 @@ export default function PageHeader({
                 <LogOut className="w-5 h-5" />
               </button>
               {showLogoutConfirm && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg p-3 z-50 animate-fade-in">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 font-medium text-center">
-                    Xác nhận đăng xuất?
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowLogoutConfirm(false)}
-                      className="flex-1 py-1.5 text-xs border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex-1 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg transition font-semibold"
-                    >
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-sm mx-4 border border-gray-200 dark:border-zinc-700">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
                       Đăng xuất
-                    </button>
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                      Bạn có chắc chắn muốn đăng xuất?
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowLogoutConfirm(false)}
+                        className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowLogoutConfirm(false);
+                          logout();
+                        }}
+                        className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 dark:hover:bg-red-600 transition"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
