@@ -16,6 +16,7 @@ import {
   LogOut,
   GraduationCap,
   Crown,
+  MessageCircle,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -26,6 +27,15 @@ const ThemeToggle = dynamic(
   {
     ssr: false,
     loading: () => <div className="w-9 h-9" />, // Placeholder while loading
+  },
+);
+
+// Load FeedbackModal dynamically
+const FeedbackModal = dynamic(
+  () => import("../feedback/FeedbackModal").then((mod) => mod.default),
+  {
+    ssr: false,
+    loading: () => null,
   },
 );
 
@@ -60,6 +70,7 @@ export default function PageHeader({
   const router = useRouter();
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleUpgradeClick = () => {
     router.push("/subscription");
@@ -109,6 +120,17 @@ export default function PageHeader({
               Nâng cấp PRO
             </button> */}
             <ThemeToggle />
+
+            {/* Feedback Button */}
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition"
+              title="Gửi ý kiến"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </button>
+            {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
+
             {/* Notification Bell */}
 
             {/* User Profile */}

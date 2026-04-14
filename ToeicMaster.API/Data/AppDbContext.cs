@@ -59,6 +59,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<QuestionVocabAnswer> QuestionVocabAnswer { get; set; }
 
+    public virtual DbSet<UserFeedback> UserFeedbacks { get; set; }
+
   
 
 
@@ -443,7 +445,57 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        
+        // UserFeedback Configuration
+        modelBuilder.Entity<UserFeedback>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("UserFeedbacks");
+
+            entity.Property(e => e.FeedbackType)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(e => e.Content)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(e => e.Email)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.CurrentPage)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.UserAgent)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.ScreenshotUrl)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValue("pending");
+
+            entity.Property(e => e.AdminResponse)
+                .HasColumnType("nvarchar(max)");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(d => d.RespondedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.RespondedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.Priority);
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }

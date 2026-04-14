@@ -1,6 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const FeedbackSection = dynamic(
+  () => import("../feedback/FeedbackSection").then((mod) => mod.default),
+  {
+    ssr: false,
+  },
+);
 
 interface FooterLink {
   label: string;
@@ -30,8 +38,9 @@ export default function Footer({
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
-           
-            <span className="text-xl font-bold text-gray-900 dark:text-white">TOEIC Master</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              TOEIC Master
+            </span>
           </div>
 
           {/* Links */}
@@ -45,6 +54,9 @@ export default function Footer({
                 {link.label}
               </Link>
             ))}
+            <div className="border-gray-200 dark:border-zinc-700">
+              <FeedbackSection />
+            </div>
           </div>
         </div>
 

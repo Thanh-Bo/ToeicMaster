@@ -29,6 +29,7 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ToeicScoreService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddHttpClient<AiExplanationService>();
 
