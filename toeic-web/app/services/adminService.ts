@@ -11,9 +11,14 @@ export const adminService = {
   },
 
   // Users
-  getUsers: async (): Promise<AdminUser[]> => {
-    const response = await axiosClient.get<{ items: AdminUser[] }>("/admin/users");
-    return response.data.items || [];
+  getUsers: async (page: number = 1, pageSize: number = 10): Promise<{ items: AdminUser[], total: number }> => {
+    const response = await axiosClient.get<{ items: AdminUser[], total: number }>(("/admin/users"), {
+      params: { page, pageSize }
+    });
+    return {
+      items: response.data.items || [],
+      total: response.data.total || 0
+    };
   },
 
   toggleUserStatus: async (userId: number): Promise<void> => {

@@ -30,6 +30,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ToeicScoreService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IGrammarService, GrammarService>();
 
 builder.Services.AddHttpClient<AiExplanationService>();
 

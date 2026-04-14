@@ -42,6 +42,9 @@ export default function AdminPage() {
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYearFilter, setSelectedYearFilter] = useState<string>("all");
+  const [currentUsersPage, setCurrentUsersPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const usersPerPage = 10;
   
   // AI Generation States - track each action type independently
   const [processingActions, setProcessingActions] = useState({
@@ -193,14 +196,15 @@ export default function AdminPage() {
     }
   }, []);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (page: number = 1) => {
     try {
-      const users = await adminService.getUsers();
-      setUsers(users);
+      const response = await adminService.getUsers(page, usersPerPage);
+      setUsers(response.items);
+      setTotalUsers(response.total);
     } catch (error) {
       console.error("Failed to load users:", error);
     }
-  }, []);
+  }, [usersPerPage]);
 
   const loadTests = useCallback(async () => {
     try {
@@ -228,7 +232,7 @@ export default function AdminPage() {
           await loadDashboard();
           break;
         case "users":
-          await loadUsers();
+          await loadUsers(currentUsersPage);
           break;
         case "tests":
           await loadTests();
@@ -242,7 +246,7 @@ export default function AdminPage() {
       setLoading(false);
     };
     loadData();
-  }, [activeTab, selectedTestId, loadDashboard, loadUsers, loadTests, loadQuestions]);
+  }, [activeTab, currentUsersPage, selectedTestId, loadDashboard, loadUsers, loadTests, loadQuestions]);
 
   const handleToggleUserStatus = async (userId: number) => {
     try {
@@ -270,6 +274,11 @@ export default function AdminPage() {
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentUsersPage(1);
+  }, [searchTerm]);
 
   const filteredTests = tests.filter((t) => {
     // Filter by search term
@@ -451,7 +460,16 @@ export default function AdminPage() {
             {activeTab === "dashboard" && <DashboardTab stats={stats} />}
 
             {/* Users Tab */}
-            {activeTab === "users" && <UsersTab filteredUsers={filteredUsers} onToggleStatus={handleToggleUserStatus} />}
+            {activeTab === "users" && (
+              <UsersTab
+                filteredUsers={filteredUsers}
+                onToggleStatus={handleToggleUserStatus}
+                currentPage={currentUsersPage}
+                onPageChange={setCurrentUsersPage}
+                totalUsers={totalUsers}
+                usersPerPage={usersPerPage}
+              />
+            )}
 
             {/* Tests Tab */}
             {activeTab === "tests" && (

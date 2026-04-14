@@ -1,4 +1,4 @@
-IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -568,11 +568,144 @@ COMMIT;
 GO
 
 BEGIN TRANSACTION;
-ALTER TABLE [QuestionGroups] ADD [TextContentTranslation] nvarchar(max) NULL;
-ALTER TABLE [QuestionGroups] ADD [TranscriptTranslation] nvarchar(max) NULL;
+ALTER TABLE [QuestionGroups] ADD [AudioDuration] int NULL;
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20260320_AddTranslationColumns', N'10.0.1');
+VALUES (N'20260317122537_AddAudioDurationToQuestionGroup', N'10.0.1');
 
 COMMIT;
 GO
+
+BEGIN TRANSACTION;
+ALTER TABLE [TestAttempts] ADD [AttemptGuid] uniqueidentifier NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+
+UPDATE TestAttempts SET AttemptGuid = NEWID()
+
+CREATE TABLE [QuestionVocab] (
+    [Id] int NOT NULL IDENTITY,
+    [TopicId] int NOT NULL,
+    [QuestionNo] int NOT NULL,
+    [Content] nvarchar(max) NULL,
+    [CorrectOption] nvarchar(5) NULL,
+    [ShortExplanation] nvarchar(max) NULL,
+    [LongExplanation] nvarchar(max) NULL,
+    CONSTRAINT [PK_QuestionVocab] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_QuestionVocab_Topics_TopicId] FOREIGN KEY ([TopicId]) REFERENCES [Topics] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [QuestionVocabAnswer] (
+    [Id] int NOT NULL IDENTITY,
+    [QuestionVocabId] int NOT NULL,
+    [Label] nvarchar(5) NULL,
+    [Content] nvarchar(max) NULL,
+    [IsCorrect] bit NOT NULL,
+    CONSTRAINT [PK_QuestionVocabAnswer] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_QuestionVocabAnswer_QuestionVocab_QuestionVocabId] FOREIGN KEY ([QuestionVocabId]) REFERENCES [QuestionVocab] ([Id]) ON DELETE CASCADE
+);
+
+CREATE INDEX [IX_QuestionVocab_TopicId] ON [QuestionVocab] ([TopicId]);
+
+CREATE INDEX [IX_QuestionVocabAnswer_QuestionVocabId] ON [QuestionVocabAnswer] ([QuestionVocabId]);
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260325043958_AddAttemptGuidAndVocabFeatures', N'10.0.1');
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+CREATE TABLE [GrammarTopics] (
+    [Id] int NOT NULL IDENTITY,
+    [Title] nvarchar(max) NOT NULL,
+    [Description] nvarchar(max) NULL,
+    [ImageUrl] nvarchar(max) NULL,
+    [Level] nvarchar(max) NOT NULL,
+    [LevelRange] nvarchar(max) NOT NULL,
+    [Category] nvarchar(max) NOT NULL,
+    CONSTRAINT [PK_GrammarTopics] PRIMARY KEY ([Id])
+);
+
+CREATE TABLE [Grammars] (
+    [Id] int NOT NULL IDENTITY,
+    [TopicId] int NOT NULL,
+    [RuleName] nvarchar(max) NOT NULL,
+    [Structure] nvarchar(max) NULL,
+    [Meaning] nvarchar(max) NOT NULL,
+    [Example] nvarchar(max) NULL,
+    [ExampleTranslation] nvarchar(max) NULL,
+    [AudioUrl] nvarchar(max) NULL,
+    [ImageUrl] nvarchar(max) NULL,
+    [CommonMistakes] nvarchar(max) NULL,
+    [Difficulty] int NOT NULL,
+    [CreatedAt] datetime2 NOT NULL DEFAULT ((getdate())),
+    CONSTRAINT [PK_Grammars] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Grammars_GrammarTopics_TopicId] FOREIGN KEY ([TopicId]) REFERENCES [GrammarTopics] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [GrammarExamples] (
+    [Id] int NOT NULL IDENTITY,
+    [GrammarId] int NOT NULL,
+    [Sentence] nvarchar(max) NOT NULL,
+    [Translation] nvarchar(max) NULL,
+    [Context] nvarchar(max) NULL,
+    [AudioUrl] nvarchar(max) NULL,
+    CONSTRAINT [PK_GrammarExamples] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_GrammarExamples_Grammars_GrammarId] FOREIGN KEY ([GrammarId]) REFERENCES [Grammars] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [UserGrammars] (
+    [Id] int NOT NULL IDENTITY,
+    [UserId] int NOT NULL,
+    [GrammarId] int NOT NULL,
+    [Status] int NOT NULL,
+    [CorrectStreak] int NOT NULL,
+    [ReviewCount] int NOT NULL,
+    [NextReviewAt] datetime2 NULL,
+    [LastReviewedAt] datetime2 NULL,
+    [Level] int NOT NULL DEFAULT 0,
+    [CreatedAt] datetime2 NOT NULL DEFAULT ((getdate())),
+    CONSTRAINT [PK_UserGrammars] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_UserGrammars_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_UserGrammars_Grammars_GrammarId] FOREIGN KEY ([GrammarId]) REFERENCES [Grammars] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [QuestionGrammar] (
+    [Id] int NOT NULL IDENTITY,
+    [TopicId] int NOT NULL,
+    [QuestionNo] int NOT NULL,
+    [Content] nvarchar(max) NULL,
+    [CorrectOption] nvarchar(5) NULL,
+    [ShortExplanation] nvarchar(max) NULL,
+    [LongExplanation] nvarchar(max) NULL,
+    CONSTRAINT [PK_QuestionGrammar] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_QuestionGrammar_GrammarTopics_TopicId] FOREIGN KEY ([TopicId]) REFERENCES [GrammarTopics] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [QuestionGrammarAnswer] (
+    [Id] int NOT NULL IDENTITY,
+    [QuestionGrammarId] int NOT NULL,
+    [Label] nvarchar(5) NULL,
+    [Content] nvarchar(max) NULL,
+    [IsCorrect] bit NOT NULL,
+    CONSTRAINT [PK_QuestionGrammarAnswer] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_QuestionGrammarAnswer_QuestionGrammar_QuestionGrammarId] FOREIGN KEY ([QuestionGrammarId]) REFERENCES [QuestionGrammar] ([Id]) ON DELETE CASCADE
+);
+
+CREATE INDEX [IX_Grammars_TopicId] ON [Grammars] ([TopicId]);
+
+CREATE INDEX [IX_GrammarExamples_GrammarId] ON [GrammarExamples] ([GrammarId]);
+
+CREATE UNIQUE INDEX [IX_UserGrammars_UserId_GrammarId] ON [UserGrammars] ([UserId], [GrammarId]);
+
+CREATE INDEX [IX_UserGrammars_GrammarId] ON [UserGrammars] ([GrammarId]);
+
+CREATE INDEX [IX_QuestionGrammar_TopicId] ON [QuestionGrammar] ([TopicId]);
+
+CREATE INDEX [IX_QuestionGrammarAnswer_QuestionGrammarId] ON [QuestionGrammarAnswer] ([QuestionGrammarId]);
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260414_AddGrammarFeature', N'10.0.1');
+
+COMMIT;
+GO
+

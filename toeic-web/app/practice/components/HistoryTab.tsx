@@ -131,7 +131,7 @@ export default function HistoryTab() {
 
           {/* Search & Sort */}
           <div className="rounded-xl border border-gray-200 dark:border-zinc-700 p-4">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
               <div className="flex-1">
                 <input
                   type="text"
@@ -154,6 +154,59 @@ export default function HistoryTab() {
                 </select>
               </div>
             </div>
+
+            {/* Pagination Controls - Top Right */}
+            {filteredAndSortedHistory.length > 0 && (
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-200 dark:border-zinc-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mr-2">
+                  Trang <span className="font-semibold">{currentPage}</span> của <span className="font-semibold">{totalPages}</span>
+                </p>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-2 py-1 rounded-lg text-sm font-medium transition ${
+                          currentPage === page
+                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                            : 'border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            
             {searchQuery && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
                 Tìm thấy <span className="font-semibold text-gray-700 dark:text-gray-300">{filteredAndSortedHistory.length}</span> kết quả
@@ -240,44 +293,11 @@ export default function HistoryTab() {
                 })}
               </div>
 
-              {/* Pagination Controls */}
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-zinc-700 flex items-center justify-between">
+              {/* Bottom Info */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-zinc-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Hiển thị <span className="font-semibold">{startIndex + 1}</span> - <span className="font-semibold">{Math.min(endIndex, filteredAndSortedHistory.length)}</span> trên <span className="font-semibold">{filteredAndSortedHistory.length}</span>
                 </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                          currentPage === page
-                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                            : 'border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
             </div>
           )}

@@ -459,4 +459,104 @@ export interface CreateCommentPayload {
 export interface UpdateCommentPayload {
   content: string;
 }
- 
+
+// ==========================================
+// GRAMMAR TYPES
+// ==========================================
+
+export enum GrammarStatus {
+  New = 0,        // Chưa học
+  Learning = 1,   // Đang học
+  Mastered = 3,   // Đã thuộc
+}
+
+export interface GrammarExample {
+  id: number;
+  grammarId: number;
+  sentence: string;
+  translation?: string;
+  context?: string;
+  audioUrl?: string;
+}
+
+export interface Grammar {
+  id: number;
+  topicId: number;
+  ruleName: string;
+  structure?: string; // e.g., "Subject + have/has + V3"
+  meaning: string;
+  example?: string;
+  exampleTranslation?: string;
+  audioUrl?: string;
+  imageUrl?: string;
+  commonMistakes?: string;
+  difficulty: number; // 1-5
+  topicTitle?: string;
+  level?: number; // SRS Level (0-5)
+  nextReviewAt?: string | Date;
+  grammarExamples: GrammarExample[];
+  status?: GrammarStatus;
+  isBookmarked?: boolean;
+}
+
+export interface GrammarTopic {
+  id: number;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  level: string; // "TOEIC 150-300", "Intermediate"
+  levelRange: string;
+  category: string; // "Tenses", "Clauses", "Prepositions"
+  totalRules: number;
+  learnedRules: number;
+  currentLevel: number; // 0-5
+  nextReviewAt?: string;
+  canReviewNow: boolean;
+  timeUntilReady: string; // "2d 3h"
+  ruleCounts: Record<number, number>; // { 0: 5, 1: 3, 2: 2 }
+}
+
+export interface QuestionGrammarAnswer {
+  id: number;
+  questionGrammarId: number;
+  label: string; // A, B, C, D
+  content: string;
+  isCorrect: boolean;
+}
+
+export interface QuestionGrammar {
+  id: number;
+  topicId: number;
+  questionNo: number;
+  content: string; // Question with blank
+  correctOption: string; // A, B, C, D
+  shortExplanation?: string;
+  longExplanation?: string;
+  answers: QuestionGrammarAnswer[];
+}
+
+export interface UserGrammarProgress {
+  id: number;
+  userId: number;
+  grammarId: number;
+  status: GrammarStatus;
+  correctStreak: number;
+  reviewCount: number;
+  nextReviewAt?: string | Date;
+  lastReviewedAt?: string | Date;
+  level: number; // 0-5
+  createdAt: string;
+  grammar?: Grammar;
+}
+
+export interface GrammarTestAnswerRequest {
+  grammarId: number;
+  isCorrect: boolean;
+}
+
+export interface GrammarTestResult {
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  message: string;
+}

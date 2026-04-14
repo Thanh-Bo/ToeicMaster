@@ -61,6 +61,19 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<UserFeedback> UserFeedbacks { get; set; }
 
+    // Grammar feature
+    public virtual DbSet<GrammarTopic> GrammarTopics { get; set; }
+
+    public virtual DbSet<Grammar> Grammars { get; set; }
+
+    public virtual DbSet<GrammarExample> GrammarExamples { get; set; }
+
+    public virtual DbSet<UserGrammar> UserGrammars { get; set; }
+
+    public virtual DbSet<QuestionGrammar> QuestionGrammars { get; set; }
+
+    public virtual DbSet<QuestionGrammarAnswer> QuestionGrammarAnswers { get; set; }
+
   
 
 

@@ -120,7 +120,7 @@ export default function HomePage() {
         <h1 className="text-5xl md:text-7xl font-bold text-blue-500 dark:text-blue-400 leading-tight mb-4">
           Luyện TOEIC hiệu quả
         </h1>
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-400 mb-6">
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white mb-6">
           Đạt mục tiêu điểm số nhanh hơn
         </h2>
 
@@ -163,10 +163,10 @@ export default function HomePage() {
               key={i}
               className="flex flex-col items-center text-center gap-1.5 px-10 py-6"
             >
-              <div className="text-gray-900 dark:text-gray-400 mb-1">
+              <div className="text-gray-900 dark:text-white mb-1">
                 {stat.icon}
               </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-gray-400">
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 {stat.value}
               </span>
               <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -181,7 +181,7 @@ export default function HomePage() {
       <section className="w-full border-t-2 border-b-2 border-gray-200 dark:border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-400 mb-3">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               Tất cả những gì bạn cần
             </h2>
           <p className="text-gray-500 dark:text-gray-400">
@@ -196,24 +196,90 @@ export default function HomePage() {
               href={feature.href}
               className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
             >
-              <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200">
-                {feature.icon}
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-1 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 inline-block">
+              {/* Icon and Title in same row */}
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0">
+                  {feature.icon}
+                </div>
+                <h3 className=" font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 pt-1">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                  {feature.description}
-                </p>
               </div>
+              {/* Description */}
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                {feature.description}
+              </p>
             </Link>
           ))}
         </div>
         </div>
       </section>
 
-      {/* ── 4. HOW IT WORKS ── */}
+      {/* ── 4. GRAMMAR SECTION ── */}
+      {/* DISABLED: Grammar section
+      <section className="bg-blue-50 dark:bg-blue-950/20 border-t-2 border-b-2 border-gray-200 dark:border-zinc-800">
+        <div className="max-w-5xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              Nắm vững Ngữ Pháp Tiếng Anh
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Học quy tắc ngữ pháp bằng hệ thống lặp lại ngắt quãng (SRS)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            // Grammar Feature 1
+            <Link
+              href="/grammar"
+              className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors duration-200 flex-shrink-0">
+                  <Brain className="w-7 h-7" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                  Hệ thống SRS
+                </h3>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Ôn tập quy tắc đúng lúc với hệ thống lặp lại ngắt quãng, giúp ghi nhớ lâu dài.
+              </p>
+            </Link>
+
+            // Grammar Feature 2
+            <Link
+              href="/grammar"
+              className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors duration-200 flex-shrink-0">
+                  <BookOpen className="w-7 h-7" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                  Bài kiểm tra
+                </h3>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Làm bài kiểm tra từng chủ đề để kiểm tra hiểu biết và cải thiện kỹ năng.
+              </p>
+            </Link>
+          </div>
+
+          <div className="text-center">
+            <Link
+              href="/grammar"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 hover:-translate-y-1 active:scale-95"
+            >
+              Bắt đầu học Ngữ Pháp
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+      */}
+
+      {/* ── 5. HOW IT WORKS ── */}
       <section className="border-t border-gray-200 dark:border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
@@ -280,6 +346,7 @@ export default function HomePage() {
         links={[
           { label: "Trang chủ", href: "/" },
           { label: "Luyện đề", href: "/practice" },
+          { label: "Ngữ Pháp", href: "/grammar" },
         ]}
       />
     </div>
