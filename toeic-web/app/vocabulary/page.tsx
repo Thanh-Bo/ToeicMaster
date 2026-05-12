@@ -7,6 +7,7 @@ import { Loader, ArrowLeft, Book, X } from "lucide-react";
 import { vocabularyService } from "../services/vocabularyService";
 import TopicCard from "../components/vocabulary/TopicCard";
 import { VocabularyTopic } from "../types";
+import { PageHeader } from "../components";
 
 export default function VocabularyPage() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function VocabularyPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800">
+       <PageHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Button */}
         <button
@@ -65,7 +67,7 @@ export default function VocabularyPage() {
         {/* Hero Section */}
         <div className="mb-12">
           <div className="flex items-start gap-4 mb-4">
-            <div className="text-6xl">📚</div>
+            
             <div className="flex-1">
               <h1 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
                 Từ Vựng TOEIC

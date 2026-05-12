@@ -30,6 +30,16 @@ public class Grammar
 
     public int Difficulty { get; set; } // 1-5 scale
 
+    public string? NegativeExample { get; set; } // What NOT to do
+
+    public string? NegativeExampleTranslation { get; set; } // Vietnamese translation of negative example
+
+    public string? TestTip { get; set; } // TOEIC test strategy/tip
+
+    public int? Frequency { get; set; } // 1-10 scale for importance in TOEIC
+
+    public string? RelatedRuleIds { get; set; } // JSON string: "[1,5,12]"
+
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual GrammarTopic? Topic { get; set; }

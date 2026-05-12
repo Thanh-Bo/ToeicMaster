@@ -491,6 +491,11 @@ export interface Grammar {
   imageUrl?: string;
   commonMistakes?: string;
   difficulty: number; // 1-5
+  negativeExample?: string; // What NOT to do
+  negativeExampleTranslation?: string; // Vietnamese translation of negative example
+  testTip?: string; // TOEIC test strategy/tip
+  frequency?: number; // 1-10 scale for importance in TOEIC
+  relatedRuleIds?: string; // JSON string: "[1,5,12]"
   topicTitle?: string;
   level?: number; // SRS Level (0-5)
   nextReviewAt?: string | Date;
@@ -527,11 +532,14 @@ export interface QuestionGrammarAnswer {
 export interface QuestionGrammar {
   id: number;
   topicId: number;
+  ruleId: number; // Link to Grammar Rule
+  grammarId?: number; // Link to Grammar (Layer 3) - optional for backward compatibility
   questionNo: number;
   content: string; // Question with blank
   correctOption: string; // A, B, C, D
   shortExplanation?: string;
   longExplanation?: string;
+  mode?: string; // easy, medium, hard
   answers: QuestionGrammarAnswer[];
 }
 

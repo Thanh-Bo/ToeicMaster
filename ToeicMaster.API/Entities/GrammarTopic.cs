@@ -6,6 +6,8 @@ public class GrammarTopic
 {
     public int Id { get; set; }
 
+    public int GroupId { get; set; } // Foreign Key to GrammarGroup
+
     [Required]
     public string Title { get; set; } = null!; // Ví dụ: "Present Perfect Tense"
 
@@ -21,6 +23,9 @@ public class GrammarTopic
 
     // Category: "Tenses", "Voice", "Mood", "Clauses", etc.
     public string Category { get; set; } = null!;
+
+    // Navigation Properties
+    public virtual GrammarGroup? Group { get; set; }
 
     // Quan hệ 1-n với Grammars
     public virtual ICollection<Grammar> Grammars { get; set; } = new List<Grammar>();

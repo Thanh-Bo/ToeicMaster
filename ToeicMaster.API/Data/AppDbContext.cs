@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using ToeicMaster.API.Entities;
@@ -39,7 +39,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<UserAnswer> UserAnswers { get; set; }
+    public virtual DbSet<UserAnswer>    UserAnswers { get; set; }
 
     public virtual DbSet<Bookmark> Bookmarks { get; set; }
 
@@ -62,6 +62,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<UserFeedback> UserFeedbacks { get; set; }
 
     // Grammar feature
+    public virtual DbSet<GrammarGroup> GrammarGroups { get; set; }
+
     public virtual DbSet<GrammarTopic> GrammarTopics { get; set; }
 
     public virtual DbSet<Grammar> Grammars { get; set; }
@@ -73,6 +75,10 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<QuestionGrammar> QuestionGrammars { get; set; }
 
     public virtual DbSet<QuestionGrammarAnswer> QuestionGrammarAnswers { get; set; }
+
+    // Progress tracking
+    public virtual DbSet<GrammarStudySession> GrammarStudySessions { get; set; }
+    public virtual DbSet<UserDailyActivity> UserDailyActivity { get; set; }
 
   
 
@@ -508,6 +514,67 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.Priority);
+        });
+
+        // QuestionGrammar Configuration
+        modelBuilder.Entity<QuestionGrammar>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("QuestionGrammar"); // Map to singular table name
+
+            // Index để tăng tốc query theo TopicId + Mode (dùng trong ImportQuestionsByTopic)
+            entity.HasIndex(e => new { e.TopicId, e.Mode }, "IX_QuestionGrammar_TopicId_Mode");
+            // Index riêng cho GrammarId (dùng trong GetQuestionsByGrammar)
+            entity.HasIndex(e => e.GrammarId, "IX_QuestionGrammar_GrammarId");
+            
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.ShortExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.LongExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.CorrectOption).HasMaxLength(5);
+
+            entity.HasMany(e => e.Answers)
+                .WithOne(a => a.QuestionGrammar)
+                .HasForeignKey(a => a.QuestionGrammarId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // QuestionGrammarAnswer Configuration
+        modelBuilder.Entity<QuestionGrammarAnswer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("QuestionGrammarAnswer"); // Map to singular table name
+            
+            entity.Property(e => e.Label).HasMaxLength(5);
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)");
+        });
+
+        // GrammarGroup Configuration
+        modelBuilder.Entity<GrammarGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasMany(e => e.Topics)
+                .WithOne(t => t.Group)
+                .HasForeignKey(t => t.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // GrammarTopic Configuration
+        modelBuilder.Entity<GrammarTopic>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.GroupId, "IX_GrammarTopics_GroupId");
+            
+            entity.Property(e => e.Title).IsRequired();
+            entity.Property(e => e.Level).HasDefaultValue("Basic");
+            entity.Property(e => e.LevelRange).HasDefaultValue("0-450");
+
+            entity.HasOne(e => e.Group)
+                .WithMany(g => g.Topics)
+                .HasForeignKey(e => e.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

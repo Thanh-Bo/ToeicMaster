@@ -1,8 +1,8 @@
 // app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers"; // <--- Import file vừa tạo
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,10 +16,25 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TOEIC Master",
-  description: "",
+  description: "Ứng dụng luyện thi TOEIC với ngữ pháp, từ vựng và đề thi",
   icons: {
     icon: "/logo.ico",
+    apple: "/icons/icon-192x192.png",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TOEIC Master",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#3b82f6",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -31,12 +46,18 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/logo.ico" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="TOEIC Master" />
+        <meta name="application-name" content="TOEIC Master" />
+        <meta name="msapplication-TileColor" content="#3b82f6" />
+        <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Chỉ cần gọi 1 component Providers là đủ */}
         <Providers>
           {children}
         </Providers>

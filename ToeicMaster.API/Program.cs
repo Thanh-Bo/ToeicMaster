@@ -14,11 +14,18 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // Tránh lỗi circular reference khi Include navigation properties (vd: QuestionGrammar ↔ Answers)
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
 // B. Đăng ký DB Context cho Entity Framework 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.CommandTimeout(120) // Tăng timeout lên 120 giây
+    );
+});
 
 
 // Đăng ký Swagger (Swashbuckle) để test API
@@ -33,6 +40,7 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IGrammarService, GrammarService>();
 
 builder.Services.AddHttpClient<AiExplanationService>();
+builder.Services.AddHttpClient<GrammarAiExplanationService>();
 
 // Azure Blood Storage
 builder.Services.AddScoped<BlobService>();

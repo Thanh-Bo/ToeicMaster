@@ -178,46 +178,46 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. FEATURE CARDS ── */}
-      <section className="w-full border-t-2 border-b-2 border-gray-200 dark:border-zinc-800">
+      <section className="w-full border-t border-gray-200 dark:border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               Tất cả những gì bạn cần
             </h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            Công cụ đầy đủ để luyện TOEIC hiệu quả nhất
-          </p>
-        </div>
+            <p className="text-gray-500 dark:text-gray-400">
+              Công cụ đầy đủ để luyện TOEIC hiệu quả nhất
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {features.map((feature, i) => (
-            <Link
-              key={i}
-              href={feature.href}
-              className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
-            >
-              {/* Icon and Title in same row */}
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0">
-                  {feature.icon}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {features.map((feature, i) => (
+              <Link
+                key={i}
+                href={feature.href}
+                className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
+              >
+                {/* Icon and Title in same row */}
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0">
+                    {feature.icon}
+                  </div>
+                  <h3 className=" font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 pt-1">
+                    {feature.title}
+                  </h3>
                 </div>
-                <h3 className=" font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 pt-1">
-                  {feature.title}
-                </h3>
-              </div>
-              {/* Description */}
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                {feature.description}
-              </p>
-            </Link>
-          ))}
-        </div>
+                {/* Description */}
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {feature.description}
+                </p>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── 4. GRAMMAR SECTION ── */}
-      {/* DISABLED: Grammar section
-      <section className="bg-blue-50 dark:bg-blue-950/20 border-t-2 border-b-2 border-gray-200 dark:border-zinc-800">
+
+      <section className="border-t border-gray-200 dark:border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
@@ -229,7 +229,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            // Grammar Feature 1
+            {/* // Grammar Feature 1 */}
             <Link
               href="/grammar"
               className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
@@ -243,11 +243,12 @@ export default function HomePage() {
                 </h3>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                Ôn tập quy tắc đúng lúc với hệ thống lặp lại ngắt quãng, giúp ghi nhớ lâu dài.
+                Ôn tập quy tắc đúng lúc với hệ thống lặp lại ngắt quãng, giúp
+                ghi nhớ lâu dài.
               </p>
             </Link>
 
-            // Grammar Feature 2
+            {/* // Grammar Feature 2 */}
             <Link
               href="/grammar"
               className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
@@ -261,7 +262,8 @@ export default function HomePage() {
                 </h3>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                Làm bài kiểm tra từng chủ đề để kiểm tra hiểu biết và cải thiện kỹ năng.
+                Làm bài kiểm tra từng chủ đề để kiểm tra hiểu biết và cải thiện
+                kỹ năng.
               </p>
             </Link>
           </div>
@@ -277,7 +279,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      */}
 
       {/* ── 5. HOW IT WORKS ── */}
       <section className="border-t border-gray-200 dark:border-zinc-800">
@@ -297,9 +298,7 @@ export default function HomePage() {
                 {/* Step Card */}
                 <div className="flex-1 flex flex-col items-center text-center gap-3 px-4 group hover:scale-105 transition-transform duration-200">
                   <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow duration-200 border border-blue-600 dark:border-blue-900">
-                    <div className="text-white">
-                      {step.icon}
-                    </div>
+                    <div className="text-white">{step.icon}</div>
                   </div>
                   <span className="text-lg font-mono font-bold text-blue-500 dark:text-blue-400">
                     {step.step}

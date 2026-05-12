@@ -6,12 +6,14 @@ import { Loader } from "lucide-react";
 
 interface GrammarTopicGridProps {
   topics: GrammarTopic[];
+  groupId?: number;
   isLoading?: boolean;
   isEmpty?: boolean;
 }
 
 export function GrammarTopicGrid({
   topics,
+  groupId,
   isLoading = false,
   isEmpty = false,
 }: GrammarTopicGridProps) {
@@ -21,7 +23,7 @@ export function GrammarTopicGrid({
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 animate-pulse"
+            className="flex flex-col gap-4 p-6 rounded-xl border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 animate-pulse"
           >
             <div className="w-full h-32 rounded-lg bg-gray-200 dark:bg-zinc-700" />
             <div className="h-6 w-3/4 bg-gray-200 dark:bg-zinc-700 rounded" />
@@ -54,7 +56,8 @@ export function GrammarTopicGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {topics.map((topic) => (
-        <GrammarTopicCard key={topic.id} topic={topic} />
+        
+        <GrammarTopicCard key={topic.id} topic={topic} groupId={groupId} />
       ))}
     </div>
   );

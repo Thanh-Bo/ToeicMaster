@@ -93,7 +93,7 @@ class FeedbackService {
           Authorization: `Bearer ${token || ""}`,
         },
       });
-
+      
       console.log("[FeedbackService] Response status:", response.status);
       console.log("[FeedbackService] Response headers:", response.headers);
 

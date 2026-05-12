@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using ToeicMaster.API.Models;
 using ToeicMaster.API.Services;
+using System.Security.Claims;
 
 namespace ToeicMaster.API.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/grammar/groups")]
 [Authorize]
 public class GrammarController : ControllerBase
 {
@@ -19,39 +21,53 @@ public class GrammarController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Lấy User ID từ JWT Token (returns null if not authenticated)
+    /// </summary>
+    private int? GetUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return null;
+        return int.TryParse(userIdClaim.Value, out int userId) ? userId : null;
+    }
+
     // ==========================================
-    // 1. GRAMMAR TOPICS APIs
+    // LAYER 2: GRAMMAR TOPICS (under Groups)
     // ==========================================
 
     /// <summary>
-    /// Lấy tất cả Grammar Topics
+    /// GET /api/v1/grammar/groups/{groupId}/topics
+    /// Lấy tất cả Grammar Topics trong một Group
     /// </summary>
-    [HttpGet("topics")]
+    [HttpGet("{groupId}/topics")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAllGrammarTopics()
+    public async Task<IActionResult> GetAllGrammarTopics(int groupId)
     {
         try
         {
-            var topics = await _grammarService.GetAllGrammarTopicsAsync();
+            var userId = GetUserId();
+            var topics = await _grammarService.GetGrammarsByGroupIdAsync(groupId, userId);
             return Ok(topics);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error getting grammar topics: {ex.Message}");
+            _logger.LogError($"Error getting grammar topics for group {groupId}: {ex.Message}");
             return StatusCode(500, new { error = "Lỗi lấy danh sách chủ đề ngữ pháp" });
         }
     }
 
     /// <summary>
+    /// GET /api/v1/grammar/groups/{groupId}/topics/{topicId}
     /// Lấy chi tiết Grammar Topic theo ID
     /// </summary>
-    [HttpGet("topics/{id}")]
+    [HttpGet("{groupId}/topics/{id}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetGrammarTopicById(int id)
+    public async Task<IActionResult> GetGrammarTopicById(int groupId, int id)
     {
         try
         {
-            var topic = await _grammarService.GetGrammarTopicByIdAsync(id);
+            var userId = GetUserId();
+            var topic = await _grammarService.GetGrammarTopicByIdAsync(id, userId);
             if (topic == null)
                 return NotFound(new { error = "Chủ đề ngữ pháp không tồn tại" });
 
@@ -65,33 +81,63 @@ public class GrammarController : ControllerBase
     }
 
     /// <summary>
-    /// Tạo mới Grammar Topic (Admin)
+    /// POST /api/v1/grammar/groups/{groupId}/topics
+    /// Tạo mới Grammar Topic - Hỗ trợ cả single và bulk create (Admin only)
     /// </summary>
-    [HttpPost("topics")]
+    [HttpPost("{groupId}/topics")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> CreateGrammarTopic([FromBody] AddGrammarTopicRequest request)
+    public async Task<IActionResult> CreateGrammarTopic(int groupId, [FromBody] JsonElement request)
     {
         try
         {
-            if (string.IsNullOrEmpty(request.Title))
-                return BadRequest(new { error = "Tiêu đề không được để trống" });
+            // Check if request is an array (bulk create) or single object
+            if (request.ValueKind == JsonValueKind.Array)
+            {
+                // Bulk create
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var requests = request.Deserialize<List<AddGrammarTopicRequest>>(options);
+                if (requests == null || requests.Count == 0)
+                    return BadRequest(new { error = "Danh sách chủ đề không được để trống" });
 
-            var topic = await _grammarService.CreateGrammarTopicAsync(request);
-            return CreatedAtAction(nameof(GetGrammarTopicById), new { id = topic.Id }, topic);
+                // Validate all requests
+                for (int i = 0; i < requests.Count; i++)
+                {
+                    var req = requests[i];
+                    if (string.IsNullOrEmpty(req.Title))
+                        return BadRequest(new { error = $"Tiêu đề không được để trống tại item {i + 1}", received = req });
+                }
+
+                var topics = await _grammarService.CreateGrammarTopicsAsync(groupId, requests);
+                return Ok(new { message = $"Tạo {topics.Count} chủ đề thành công", topics });
+            }
+            else if (request.ValueKind == JsonValueKind.Object)
+            {
+                // Single create
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var singleRequest = request.Deserialize<AddGrammarTopicRequest>(options);
+                if (singleRequest == null || string.IsNullOrEmpty(singleRequest.Title))
+                    return BadRequest(new { error = "Tiêu đề không được để trống", received = singleRequest });
+
+                var topic = await _grammarService.CreateGrammarTopicAsync(groupId, singleRequest);
+                return CreatedAtAction(nameof(GetGrammarTopicById), new { groupId = groupId, id = topic.Id }, topic);
+            }
+
+            return BadRequest(new { error = "Dữ liệu không hợp lệ" });
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error creating grammar topic: {ex.Message}");
+            _logger.LogError($"Error creating grammar topic(s): {ex.Message}");
             return StatusCode(500, new { error = "Lỗi tạo chủ đề ngữ pháp" });
         }
     }
 
     /// <summary>
-    /// Cập nhật Grammar Topic (Admin)
+    /// PUT /api/v1/grammar/groups/{groupId}/topics/{topicId}
+    /// Cập nhật Grammar Topic (Admin only)
     /// </summary>
-    [HttpPut("topics/{id}")]
+    [HttpPut("{groupId}/topics/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateGrammarTopic(int id, [FromBody] UpdateGrammarTopicRequest request)
+    public async Task<IActionResult> UpdateGrammarTopic(int groupId, int id, [FromBody] UpdateGrammarTopicRequest request)
     {
         try
         {
@@ -109,11 +155,12 @@ public class GrammarController : ControllerBase
     }
 
     /// <summary>
-    /// Xóa Grammar Topic (Admin)
+    /// DELETE /api/v1/grammar/groups/{groupId}/topics/{topicId}
+    /// Xóa Grammar Topic (Admin only)
     /// </summary>
-    [HttpDelete("topics/{id}")]
+    [HttpDelete("{groupId}/topics/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteGrammarTopic(int id)
+    public async Task<IActionResult> DeleteGrammarTopic(int groupId, int id)
     {
         try
         {
@@ -131,7 +178,7 @@ public class GrammarController : ControllerBase
     }
 
     // ==========================================
-    // 2. GRAMMARS APIs
+    // 2. GRAMMARS APIs (Layer 3)
     // ==========================================
 
     /// <summary>
@@ -156,9 +203,9 @@ public class GrammarController : ControllerBase
     /// <summary>
     /// Lấy chi tiết quy tắc ngữ pháp theo ID
     /// </summary>
-    [HttpGet("{id}")]
+    [HttpGet("topics/{topicId}/grammars/{id}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetGrammarById(int id)
+    public async Task<IActionResult> GetGrammarById(int topicId, int id)
     {
         try
         {
@@ -178,9 +225,9 @@ public class GrammarController : ControllerBase
     /// <summary>
     /// Tạo mới quy tắc ngữ pháp (Admin)
     /// </summary>
-    [HttpPost]
+    [HttpPost("topics/{topicId}/grammars")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> CreateGrammar([FromBody] AddGrammarRequest request)
+    public async Task<IActionResult> CreateGrammar(int topicId, [FromBody] AddGrammarRequest request)
     {
         try
         {
@@ -188,7 +235,7 @@ public class GrammarController : ControllerBase
                 return BadRequest(new { error = "Tên quy tắc không được để trống" });
 
             var grammar = await _grammarService.CreateGrammarAsync(request);
-            return CreatedAtAction(nameof(GetGrammarById), new { id = grammar.Id }, grammar);
+            return CreatedAtAction(nameof(GetGrammarById), new { topicId = topicId, id = grammar.Id }, grammar);
         }
         catch (Exception ex)
         {
@@ -198,11 +245,67 @@ public class GrammarController : ControllerBase
     }
 
     /// <summary>
+    /// Tạo nhiều quy tắc ngữ pháp cùng lúc (Admin)
+    /// </summary>
+    [HttpPost("topics/{topicId}/grammars/bulk")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateGrammarsBulk(int topicId, [FromBody] BulkAddGrammarRequest request)
+    {
+        try
+        {
+            if (topicId <= 0)
+                return BadRequest(new { error = "Topic ID không hợp lệ" });
+
+            if (request.Rules == null || !request.Rules.Any())
+                return BadRequest(new { error = "Danh sách quy tắc không được để trống" });
+
+            // Set TopicId from URL parameter
+            request.TopicId = topicId;
+
+            var response = await _grammarService.CreateGrammarsAsync(request);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error creating grammars in bulk: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi tạo quy tắc ngữ pháp hàng loạt" });
+        }
+    }
+
+    /// <summary>
+    /// Cập nhật nhiều quy tắc ngữ pháp cùng lúc (Admin)
+    /// </summary>
+    [HttpPut("topics/{topicId}/grammars/bulk")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateGrammarsBulk(int topicId, [FromBody] BulkUpdateGrammarRequest request)
+    {
+        try
+        {
+            if (topicId <= 0)
+                return BadRequest(new { error = "Topic ID không hợp lệ" });
+
+            if (request.Rules == null || !request.Rules.Any())
+                return BadRequest(new { error = "Danh sách quy tắc không được để trống" });
+
+            if (request.TopicId != topicId)
+                return BadRequest(new { error = "Topic ID trong body không khớp với URL" });
+
+            var response = await _grammarService.UpdateGrammarsAsync(request);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error updating grammars in bulk: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi cập nhật quy tắc ngữ pháp hàng loạt" });
+        }
+    }
+
+    /// <summary>
     /// Cập nhật quy tắc ngữ pháp (Admin)
     /// </summary>
-    [HttpPut("{id}")]
+    [HttpPut("topics/{topicId}/grammars/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateGrammar(int id, [FromBody] UpdateGrammarRequest request)
+    public async Task<IActionResult> UpdateGrammar(int topicId, int id, [FromBody] UpdateGrammarRequest request)
     {
         try
         {
@@ -222,9 +325,9 @@ public class GrammarController : ControllerBase
     /// <summary>
     /// Xóa quy tắc ngữ pháp (Admin)
     /// </summary>
-    [HttpDelete("{id}")]
+    [HttpDelete("topics/{topicId}/grammars/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteGrammar(int id)
+    public async Task<IActionResult> DeleteGrammar(int topicId, int id)
     {
         try
         {
@@ -242,221 +345,92 @@ public class GrammarController : ControllerBase
     }
 
     /// <summary>
-    /// Tìm kiếm quy tắc ngữ pháp
+    /// Xóa tất cả quy tắc ngữ pháp theo Topic (Admin)
     /// </summary>
-    [HttpGet("search")]
-    [AllowAnonymous]
-    public async Task<IActionResult> SearchGrammars([FromQuery] string keyword)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(keyword))
-                return BadRequest(new { error = "Từ khóa không được để trống" });
-
-            var grammars = await _grammarService.SearchGrammarsAsync(keyword);
-            return Ok(grammars);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error searching grammars: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi tìm kiếm" });
-        }
-    }
-
-    // ==========================================
-    // 3. GRAMMAR EXAMPLES APIs
-    // ==========================================
-
-    /// <summary>
-    /// Lấy các ví dụ của một quy tắc
-    /// </summary>
-    [HttpGet("{grammarId}/examples")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetGrammarExamples(int grammarId)
-    {
-        try
-        {
-            var examples = await _grammarService.GetGrammarExamplesAsync(grammarId);
-            return Ok(examples);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error getting grammar examples: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy ví dụ" });
-        }
-    }
-
-    /// <summary>
-    /// Thêm ví dụ cho quy tắc ngữ pháp (Admin)
-    /// </summary>
-    [HttpPost("{grammarId}/examples")]
+    [HttpDelete("topics/{topicId}/grammars")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AddGrammarExample(int grammarId, [FromBody] GrammarExampleDto request)
+    public async Task<IActionResult> DeleteAllGrammarsByTopic(int topicId)
     {
         try
         {
-            if (string.IsNullOrEmpty(request.Sentence))
-                return BadRequest(new { error = "Câu ví dụ không được để trống" });
+            if (topicId <= 0)
+                return BadRequest(new { error = "Topic ID không hợp lệ" });
 
-            var example = await _grammarService.AddGrammarExampleAsync(grammarId, request);
-            return CreatedAtAction(nameof(GetGrammarExamples), new { grammarId = grammarId }, example);
+            var result = await _grammarService.DeleteAllGrammarsByTopicAsync(topicId);
+            return Ok(new { message = $"Xóa thành công {result} quy tắc ngữ pháp" });
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error adding grammar example: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi thêm ví dụ" });
-        }
-    }
-
-    /// <summary>
-    /// Xóa ví dụ (Admin)
-    /// </summary>
-    [HttpDelete("examples/{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteGrammarExample(int id)
-    {
-        try
-        {
-            var result = await _grammarService.DeleteGrammarExampleAsync(id);
-            if (!result)
-                return NotFound(new { error = "Ví dụ không tồn tại" });
-
-            return Ok(new { message = "Xóa ví dụ thành công" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error deleting grammar example {id}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa ví dụ" });
+            _logger.LogError($"Error deleting all grammars for topic {topicId}: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi xóa quy tắc ngữ pháp" });
         }
     }
 
     // ==========================================
-    // 4. GRAMMAR QUESTIONS APIs
+    // GRAMMAR PRACTICE QUESTIONS
     // ==========================================
 
     /// <summary>
-    /// Lấy danh sách câu hỏi ngữ pháp theo Topic
+    /// Lấy câu hỏi luyện tập theo mode (easy/medium/hard)
     /// </summary>
-    [HttpGet("topics/{topicId}/questions")]
+    [HttpGet("topics/{topicId}/practice/{mode}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetGrammarQuestionsByTopic(
-        int topicId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetQuestionsByMode(int topicId, string mode, [FromQuery] int count = 20)
     {
         try
         {
-            var questions = await _grammarService.GetGrammarQuestionsByTopicAsync(topicId, page, pageSize);
+            if (topicId <= 0)
+                return BadRequest(new { error = "Topic ID không hợp lệ" });
+
+            if (string.IsNullOrEmpty(mode) || !new[] { "easy", "medium", "hard" }.Contains(mode.ToLower()))
+                return BadRequest(new { error = "Mode phải là: easy, medium, hoặc hard" });
+
+            var questions = await _grammarService.GetGrammarQuestionsByModeAsync(topicId, mode.ToLower(), count);
+            
+            if (!questions.Any())
+                return NotFound(new { error = $"Không tìm thấy câu hỏi {mode} cho topic này" });
+
+            return Ok(new { mode = mode.ToLower(), count = questions.Count, questions = questions });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting practice questions by mode: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi lấy câu hỏi luyện tập" });
+        }
+    }
+
+    // ==========================================
+    // MARK GRAMMAR AS LEARNED (Option A)
+    // ==========================================
+
+    /// <summary>
+    /// POST /api/v1/grammar/groups/topics/{topicId}/grammars/{grammarId}/learn
+    /// Mark grammar as learned when user views the lesson
+    /// </summary>
+    [HttpPost("topics/{topicId}/grammars/{grammarId}/learn")]
+    [Authorize]
+    public async Task<IActionResult> MarkGrammarAsLearned(int topicId, int grammarId)
+    {
+        try
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized(new { error = "Vui lòng đăng nhập" });
+
+            var progress = await _grammarService.MarkGrammarAsLearnedAsync(userId.Value, grammarId);
             return Ok(new
             {
-                items = questions,
-                page,
-                pageSize,
-                total = questions.Count
+                message = "Đã đánh dấu đã học",
+                grammarId = grammarId,
+                status = progress.Status,
+                nextReviewAt = progress.NextReviewAt
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error getting grammar questions: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy câu hỏi" });
-        }
-    }
-
-    /// <summary>
-    /// Lấy chi tiết câu hỏi ngữ pháp
-    /// </summary>
-    [HttpGet("questions/{id}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetGrammarQuestionById(int id)
-    {
-        try
-        {
-            var question = await _grammarService.GetGrammarQuestionByIdAsync(id);
-            if (question == null)
-                return NotFound(new { error = "Câu hỏi không tồn tại" });
-
-            return Ok(question);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error getting grammar question {id}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy câu hỏi" });
-        }
-    }
-
-    /// <summary>
-    /// Tạo câu hỏi ngữ pháp (Admin)
-    /// </summary>
-    [HttpPost("topics/{topicId}/questions")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> CreateGrammarQuestion(
-        int topicId,
-        [FromBody] QuestionGrammarImportItemDto request)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(request.Content))
-                return BadRequest(new { error = "Nội dung câu hỏi không được để trống" });
-
-            var question = await _grammarService.CreateGrammarQuestionAsync(topicId, request);
-            return CreatedAtAction(nameof(GetGrammarQuestionById), new { id = question.Id }, question);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error creating grammar question: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi tạo câu hỏi" });
-        }
-    }
-
-    /// <summary>
-    /// Xóa câu hỏi ngữ pháp (Admin)
-    /// </summary>
-    [HttpDelete("questions/{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteGrammarQuestion(int id)
-    {
-        try
-        {
-            var result = await _grammarService.DeleteGrammarQuestionAsync(id);
-            if (!result)
-                return NotFound(new { error = "Câu hỏi không tồn tại" });
-
-            return Ok(new { message = "Xóa câu hỏi thành công" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error deleting grammar question {id}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa câu hỏi" });
-        }
-    }
-
-    /// <summary>
-    /// Import hàng loạt câu hỏi ngữ pháp (Admin)
-    /// </summary>
-    [HttpPost("topics/{topicId}/import-questions")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ImportGrammarQuestions(
-        int topicId,
-        [FromBody] QuestionGrammarImportDto request)
-    {
-        try
-        {
-            if (request?.Questions == null || !request.Questions.Any())
-                return BadRequest(new { error = "Danh sách câu hỏi không được để trống" });
-
-            int count = 0;
-            foreach (var question in request.Questions)
-            {
-                await _grammarService.CreateGrammarQuestionAsync(topicId, question);
-                count++;
-            }
-
-            return Ok(new { message = $"Đã import {count} câu hỏi thành công" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error importing grammar questions: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi import câu hỏi" });
+            _logger.LogError($"Error marking grammar as learned: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi cập nhật tiến độ" });
         }
     }
 }
+
