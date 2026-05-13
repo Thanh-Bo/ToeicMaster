@@ -519,6 +519,7 @@ export interface GrammarTopic {
   canReviewNow: boolean;
   timeUntilReady: string; // "2d 3h"
   ruleCounts: Record<number, number>; // { 0: 5, 1: 3, 2: 2 }
+  groupId?: number; // Optional group ID for navigation
 }
 
 export interface QuestionGrammarAnswer {

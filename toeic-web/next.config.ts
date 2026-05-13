@@ -43,6 +43,7 @@ const withPWA = require("next-pwa")({
 
 const nextConfig: NextConfig = {
   /* config options here */
+  turbopack: {}, // Add empty turbopack config to silence the error
 };
 
 export default withPWA(nextConfig);
