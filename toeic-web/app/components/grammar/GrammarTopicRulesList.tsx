@@ -49,7 +49,6 @@ export function GrammarTopicRulesList({
     ...questionsByMode.hard,
   ];
 
-  console.log(`[GrammarTopicRulesList] selectedRuleId=${selectedRuleId}, allQuestions.length=${allQuestions.length}`);
 
   if (!selectedRule) {
     return (

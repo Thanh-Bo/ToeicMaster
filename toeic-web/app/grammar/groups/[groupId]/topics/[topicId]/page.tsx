@@ -55,26 +55,19 @@ export default function GrammarTopicDetailsPage() {
   };
 
   const loadQuestions = async (grammarId: number, mode: 'easy' | 'medium' | 'hard' = 'medium') => {
-    console.log(`[page.tsx] loadQuestions called: grammarId=${grammarId}, mode=${mode}`);
 
     // Reset cache if switching to a different grammar rule
     if (selectedGrammarId !== null && selectedGrammarId !== grammarId) {
       setQuestionsByMode({ easy: [], medium: [], hard: [] });
     }
 
-    // Use per-mode cache: skip API if this mode is already loaded for this grammar
-    if (selectedGrammarId === grammarId && questionsByMode[mode].length > 0) {
-      console.log(`[page.tsx] Using cached questions for mode: ${mode}`);
-      return;
-    }
+    
 
     try {
-      console.log(`[page.tsx] Loading questions from API for mode: ${mode}...`);
       setQuestionsLoading(true);
       setSelectedGrammarId(grammarId);
 
       const questionsData = await grammarService.getQuestionsByGrammar(grammarId, mode);
-      console.log(`[page.tsx] Received ${questionsData.items?.length || 0} questions from API`);
 
       // Store questions keyed by mode — no overwriting other modes
       setQuestionsByMode(prev => ({

@@ -35,7 +35,6 @@ export function GrammarProgressTab({ period }: GrammarProgressTabProps) {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log("Loading progress data for user:", user?.id);
       const [statsData, streakData, heatmapData, groupData] = await Promise.all(
         [
           grammarService.getStats(user!.id, period),
@@ -44,10 +43,7 @@ export function GrammarProgressTab({ period }: GrammarProgressTabProps) {
           grammarService.getGroupProgress(user!.id),
         ],
       );
-      console.log("Stats:", statsData);
-      console.log("Streak:", streakData);
-
-      console.log("Group Progress:", groupData);
+     
       setStats(statsData);
       setStreak(streakData);
 

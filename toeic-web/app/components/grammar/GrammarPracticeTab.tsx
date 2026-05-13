@@ -60,15 +60,7 @@ export function GrammarPracticeTab({
       ) {
         try {
           const durationSeconds = Math.round((Date.now() - sessionStartTime) / 1000);
-          console.log("Recording session with IDs:", {
-            grammarId,
-            topicId,
-            groupId,
-            userId: user.id,
-            durationSeconds,
-            questionsAnswered: totalAttempted,
-            correctAnswers: totalCorrect
-          });
+         
           
           // Only include IDs that are defined
           const sessionData: any = {
@@ -90,7 +82,6 @@ export function GrammarPracticeTab({
           
           await grammarService.recordStudySession(user.id, sessionData);
           setSessionRecorded(true);
-          console.log("Grammar practice session recorded successfully");
         } catch (error) {
           console.error("Failed to record grammar practice session:", error);
         }
@@ -138,7 +129,6 @@ export function GrammarPracticeTab({
           nextReviewAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // +1 day
           durationSeconds: durationSeconds
         });
-        console.log("Grammar progress updated successfully");
       } catch (error) {
         console.error("Failed to update grammar progress:", error);
       }

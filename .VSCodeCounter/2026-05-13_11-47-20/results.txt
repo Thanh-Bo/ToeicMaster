@@ -1,0 +1,224 @@
+Date : 2026-05-13 11:47:20
+Directory : d:\ToeicMaster\toeic-web
+Total : 135 files,  17982 codes, 1251 comments, 2040 blanks, all 21273 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| TypeScript JSX     |         94 |     15,776 |        941 |      1,639 |     18,356 |
+| TypeScript         |         25 |      1,620 |        287 |        298 |      2,205 |
+| PostCSS            |          1 |        186 |         19 |         42 |        247 |
+| Markdown           |          3 |        161 |          0 |         50 |        211 |
+| JSON               |          2 |        136 |          0 |          1 |        137 |
+| JSON with Comments |          1 |         34 |          0 |          1 |         35 |
+| JavaScript         |          2 |         20 |          2 |          5 |         27 |
+| Ignore             |          1 |         16 |          0 |          1 |         17 |
+| Docker             |          1 |         15 |          2 |          2 |         19 |
+| YAML               |          1 |         14 |          0 |          1 |         15 |
+| XML                |          4 |          4 |          0 |          0 |          4 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                            | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                               |        135 |     17,982 |      1,251 |      2,040 |     21,273 |
+| . (Files)                                                                       |         11 |        335 |          5 |         57 |        397 |
+| app                                                                             |        116 |     17,469 |      1,236 |      1,961 |     20,666 |
+| app (Files)                                                                     |          5 |      1,046 |         86 |        133 |      1,265 |
+| app\admin                                                                       |          1 |        442 |         28 |         57 |        527 |
+| app\components                                                                  |         74 |      8,361 |        580 |        960 |      9,901 |
+| app\components (Files)                                                          |          2 |         16 |          8 |         11 |         35 |
+| app\components\admin                                                            |          8 |        678 |         28 |         59 |        765 |
+| app\components\audio                                                            |          1 |        210 |         12 |         29 |        251 |
+| app\components\boomarks                                                         |          4 |        724 |         78 |         88 |        890 |
+| app\components\cards                                                            |          4 |        180 |         28 |         25 |        233 |
+| app\components\comments                                                         |          6 |        515 |         12 |         67 |        594 |
+| app\components\common                                                           |          7 |        358 |         31 |         42 |        431 |
+| app\components\exam                                                             |          4 |        146 |         19 |         19 |        184 |
+| app\components\feedback                                                         |          7 |        684 |         19 |         70 |        773 |
+| app\components\forms                                                            |          3 |        161 |         25 |         14 |        200 |
+| app\components\grammar                                                          |         10 |      1,702 |         99 |        188 |      1,989 |
+| app\components\highlight                                                        |          1 |        236 |         20 |         42 |        298 |
+| app\components\layout                                                           |          5 |        359 |         52 |         45 |        456 |
+| app\components\profile                                                          |          2 |        347 |          7 |         25 |        379 |
+| app\components\results                                                          |          3 |        493 |         26 |         44 |        563 |
+| app\components\tests                                                            |          2 |        204 |          7 |         19 |        230 |
+| app\components\vocabulary                                                       |          5 |      1,348 |        109 |        173 |      1,630 |
+| app\contexts                                                                    |          3 |        289 |         18 |         63 |        370 |
+| app\feedback                                                                    |          1 |         52 |          3 |          8 |         63 |
+| app\forgot-password                                                             |          1 |        105 |          5 |         11 |        121 |
+| app\grammar                                                                     |          3 |        589 |         28 |         66 |        683 |
+| app\grammar (Files)                                                             |          1 |        277 |         12 |         23 |        312 |
+| app\grammar\groups                                                              |          2 |        312 |         16 |         43 |        371 |
+| app\grammar\groups\[groupId]                                                    |          2 |        312 |         16 |         43 |        371 |
+| app\grammar\groups\[groupId] (Files)                                            |          1 |        187 |         10 |         24 |        221 |
+| app\grammar\groups\[groupId]\topics                                             |          1 |        125 |          6 |         19 |        150 |
+| app\grammar\groups\[groupId]\topics\[topicId]                                   |          1 |        125 |          6 |         19 |        150 |
+| app\login                                                                       |          1 |        185 |          6 |         23 |        214 |
+| app\offline                                                                     |          1 |         61 |          6 |          9 |         76 |
+| app\practice                                                                    |          5 |      1,308 |         69 |        112 |      1,489 |
+| app\practice (Files)                                                            |          1 |        137 |         11 |         13 |        161 |
+| app\practice\components                                                         |          4 |      1,171 |         58 |         99 |      1,328 |
+| app\profile                                                                     |          1 |         88 |          5 |         17 |        110 |
+| app\register                                                                    |          1 |        397 |         11 |         22 |        430 |
+| app\reset-password                                                              |          1 |        180 |         10 |         22 |        212 |
+| app\results                                                                     |          1 |      1,385 |         57 |         90 |      1,532 |
+| app\results\[id]                                                                |          1 |      1,385 |         57 |         90 |      1,532 |
+| app\services                                                                    |         12 |      1,002 |        216 |        208 |      1,426 |
+| app\subscription                                                                |          1 |        372 |         15 |         37 |        424 |
+| app\tests                                                                       |          2 |        925 |         66 |         67 |      1,058 |
+| app\tests\[id]                                                                  |          2 |        925 |         66 |         67 |      1,058 |
+| app\tests\[id] (Files)                                                          |          1 |        197 |         16 |         17 |        230 |
+| app\tests\[id]\start                                                            |          1 |        728 |         50 |         50 |        828 |
+| app\vocabulary                                                                  |          2 |        682 |         27 |         56 |        765 |
+| app\vocabulary (Files)                                                          |          1 |        144 |          6 |         14 |        164 |
+| app\vocabulary\[topicId]                                                        |          1 |        538 |         21 |         42 |        601 |
+| lib                                                                             |          2 |         38 |         10 |         12 |         60 |
+| public                                                                          |          6 |        140 |          0 |         10 |        150 |
+| public (Files)                                                                  |          5 |         98 |          0 |          0 |         98 |
+| public\icons                                                                    |          1 |         42 |          0 |         10 |         52 |
++---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                        | language           | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| d:\ToeicMaster\toeic-web\.dockerignore                                          | Ignore             |         16 |          0 |          1 |         17 |
+| d:\ToeicMaster\toeic-web\Dockerfile                                             | Docker             |         15 |          2 |          2 |         19 |
+| d:\ToeicMaster\toeic-web\PWA_TESTING.md                                         | Markdown           |         96 |          0 |         26 |        122 |
+| d:\ToeicMaster\toeic-web\README.md                                              | Markdown           |         23 |          0 |         14 |         37 |
+| d:\ToeicMaster\toeic-web\app\admin\page.tsx                                     | TypeScript JSX     |        442 |         28 |         57 |        527 |
+| d:\ToeicMaster\toeic-web\app\components\MyComponent.tsx                         | TypeScript JSX     |          8 |          0 |          3 |         11 |
+| d:\ToeicMaster\toeic-web\app\components\admin\DashboardTab.tsx                  | TypeScript JSX     |         81 |          0 |         10 |         91 |
+| d:\ToeicMaster\toeic-web\app\components\admin\FeedbackTab.tsx                   | TypeScript JSX     |          5 |          0 |          3 |          8 |
+| d:\ToeicMaster\toeic-web\app\components\admin\QuestionsTab.tsx                  | TypeScript JSX     |         96 |          0 |          6 |        102 |
+| d:\ToeicMaster\toeic-web\app\components\admin\TestActionsTab.tsx                | TypeScript JSX     |        170 |          4 |         10 |        184 |
+| d:\ToeicMaster\toeic-web\app\components\admin\TestsTab.tsx                      | TypeScript JSX     |        110 |          1 |          8 |        119 |
+| d:\ToeicMaster\toeic-web\app\components\admin\UsersTab.tsx                      | TypeScript JSX     |        112 |          2 |          6 |        120 |
+| d:\ToeicMaster\toeic-web\app\components\admin\VocabularyManagement.tsx          | TypeScript JSX     |         95 |         21 |         13 |        129 |
+| d:\ToeicMaster\toeic-web\app\components\admin\VocabularyTab.tsx                 | TypeScript JSX     |          9 |          0 |          3 |         12 |
+| d:\ToeicMaster\toeic-web\app\components\audio\AudioPlayer.tsx                   | TypeScript JSX     |        210 |         12 |         29 |        251 |
+| d:\ToeicMaster\toeic-web\app\components\boomarks\BookmarkNoteModal.tsx          | TypeScript JSX     |         48 |          3 |          8 |         59 |
+| d:\ToeicMaster\toeic-web\app\components\boomarks\ReviewSetupModal.tsx           | TypeScript JSX     |        241 |         22 |         31 |        294 |
+| d:\ToeicMaster\toeic-web\app\components\boomarks\ReviewTestModal.tsx            | TypeScript JSX     |        402 |         51 |         45 |        498 |
+| d:\ToeicMaster\toeic-web\app\components\boomarks\SidebarFilterItem.tsx          | TypeScript JSX     |         33 |          2 |          4 |         39 |
+| d:\ToeicMaster\toeic-web\app\components\cards\FeatureCard.tsx                   | TypeScript JSX     |         46 |          9 |          9 |         64 |
+| d:\ToeicMaster\toeic-web\app\components\cards\StatsCard.tsx                     | TypeScript JSX     |         60 |          6 |          7 |         73 |
+| d:\ToeicMaster\toeic-web\app\components\cards\TestCard.tsx                      | TypeScript JSX     |         71 |         12 |          8 |         91 |
+| d:\ToeicMaster\toeic-web\app\components\cards\index.ts                          | TypeScript         |          3 |          1 |          1 |          5 |
+| d:\ToeicMaster\toeic-web\app\components\comments\CommentForm.tsx                | TypeScript JSX     |        120 |          4 |         16 |        140 |
+| d:\ToeicMaster\toeic-web\app\components\comments\CommentItem.tsx                | TypeScript JSX     |        175 |          7 |         21 |        203 |
+| d:\ToeicMaster\toeic-web\app\components\comments\CommentList.tsx                | TypeScript JSX     |         41 |          0 |          6 |         47 |
+| d:\ToeicMaster\toeic-web\app\components\comments\CommentSection.tsx             | TypeScript JSX     |        140 |          1 |         16 |        157 |
+| d:\ToeicMaster\toeic-web\app\components\comments\UserAvatar.tsx                 | TypeScript JSX     |         34 |          0 |          7 |         41 |
+| d:\ToeicMaster\toeic-web\app\components\comments\index.ts                       | TypeScript         |          5 |          0 |          1 |          6 |
+| d:\ToeicMaster\toeic-web\app\components\common\AlertMessage.tsx                 | TypeScript JSX     |         75 |          4 |          5 |         84 |
+| d:\ToeicMaster\toeic-web\app\components\common\EmptyState.tsx                   | TypeScript JSX     |         45 |          6 |          4 |         55 |
+| d:\ToeicMaster\toeic-web\app\components\common\LoadingSpinner.tsx               | TypeScript JSX     |         37 |          3 |          6 |         46 |
+| d:\ToeicMaster\toeic-web\app\components\common\Pagination.tsx                   | TypeScript JSX     |         85 |          5 |         11 |        101 |
+| d:\ToeicMaster\toeic-web\app\components\common\ProgressBar.tsx                  | TypeScript JSX     |         47 |          5 |          6 |         58 |
+| d:\ToeicMaster\toeic-web\app\components\common\ThemeToggle.tsx                  | TypeScript JSX     |         63 |          7 |          9 |         79 |
+| d:\ToeicMaster\toeic-web\app\components\common\index.ts                         | TypeScript         |          6 |          1 |          1 |          8 |
+| d:\ToeicMaster\toeic-web\app\components\exam\AudioPlayer.tsx                    | TypeScript JSX     |         39 |          7 |          5 |         51 |
+| d:\ToeicMaster\toeic-web\app\components\exam\PartHeader.tsx                     | TypeScript JSX     |         31 |          3 |          5 |         39 |
+| d:\ToeicMaster\toeic-web\app\components\exam\QuestionPalette.tsx                | TypeScript JSX     |         73 |          8 |          8 |         89 |
+| d:\ToeicMaster\toeic-web\app\components\exam\index.ts                           | TypeScript         |          3 |          1 |          1 |          5 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\AdminFeedbackPanel.tsx         | TypeScript JSX     |        243 |          9 |         21 |        273 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\FeedbackForm.tsx               | TypeScript JSX     |        199 |          4 |         15 |        218 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\FeedbackList.tsx               | TypeScript JSX     |        140 |          2 |         14 |        156 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\FeedbackModal.tsx              | TypeScript JSX     |         59 |          2 |         10 |         71 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\FeedbackSection.tsx            | TypeScript JSX     |         18 |          0 |          4 |         22 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\FeedbackWidget.tsx             | TypeScript JSX     |         19 |          2 |          5 |         26 |
+| d:\ToeicMaster\toeic-web\app\components\feedback\index.ts                       | TypeScript         |          6 |          0 |          1 |          7 |
+| d:\ToeicMaster\toeic-web\app\components\forms\FormInput.tsx                     | TypeScript JSX     |         87 |         15 |          8 |        110 |
+| d:\ToeicMaster\toeic-web\app\components\forms\SubmitButton.tsx                  | TypeScript JSX     |         72 |          9 |          5 |         86 |
+| d:\ToeicMaster\toeic-web\app\components\forms\index.ts                          | TypeScript         |          2 |          1 |          1 |          4 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarLessonTab.tsx            | TypeScript JSX     |        242 |         15 |         20 |        277 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarPracticeTab.tsx          | TypeScript JSX     |        354 |         21 |         39 |        414 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarProgressTab.tsx          | TypeScript JSX     |        197 |          4 |         23 |        224 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarQuestion.tsx             | TypeScript JSX     |        175 |         10 |         16 |        201 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarTopicCard.tsx            | TypeScript JSX     |         84 |          7 |         13 |        104 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarTopicDetail.tsx          | TypeScript JSX     |        125 |          7 |         14 |        146 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarTopicGrid.tsx            | TypeScript JSX     |         58 |          0 |          7 |         65 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GrammarTopicRulesList.tsx       | TypeScript JSX     |        147 |          6 |         16 |        169 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\GroupAnalysis.tsx               | TypeScript JSX     |        236 |         22 |         29 |        287 |
+| d:\ToeicMaster\toeic-web\app\components\grammar\RandomPracticeTab.tsx           | TypeScript JSX     |         84 |          7 |         11 |        102 |
+| d:\ToeicMaster\toeic-web\app\components\highlight\HighlightText.tsx             | TypeScript JSX     |        236 |         20 |         42 |        298 |
+| d:\ToeicMaster\toeic-web\app\components\index.ts                                | TypeScript         |          8 |          8 |          8 |         24 |
+| d:\ToeicMaster\toeic-web\app\components\layout\Footer.tsx                       | TypeScript JSX     |         57 |          5 |          9 |         71 |
+| d:\ToeicMaster\toeic-web\app\components\layout\MobileBottomNav.tsx              | TypeScript JSX     |         88 |         15 |         10 |        113 |
+| d:\ToeicMaster\toeic-web\app\components\layout\PageHeader.tsx                   | TypeScript JSX     |        170 |         25 |         20 |        215 |
+| d:\ToeicMaster\toeic-web\app\components\layout\SimplePageHeader.tsx             | TypeScript JSX     |         40 |          6 |          5 |         51 |
+| d:\ToeicMaster\toeic-web\app\components\layout\index.ts                         | TypeScript         |          4 |          1 |          1 |          6 |
+| d:\ToeicMaster\toeic-web\app\components\profile\ProfileInfoTab.tsx              | TypeScript JSX     |        211 |          6 |         15 |        232 |
+| d:\ToeicMaster\toeic-web\app\components\profile\ProfilePasswordTab.tsx          | TypeScript JSX     |        136 |          1 |         10 |        147 |
+| d:\ToeicMaster\toeic-web\app\components\results\AnswerOptionResult.tsx          | TypeScript JSX     |         62 |          1 |          5 |         68 |
+| d:\ToeicMaster\toeic-web\app\components\results\ResultQuestionItem.tsx          | TypeScript JSX     |        239 |          8 |         18 |        265 |
+| d:\ToeicMaster\toeic-web\app\components\results\ResultRightSidebar.tsx          | TypeScript JSX     |        192 |         17 |         21 |        230 |
+| d:\ToeicMaster\toeic-web\app\components\tests\AnswerOption.tsx                  | TypeScript JSX     |         39 |          0 |          3 |         42 |
+| d:\ToeicMaster\toeic-web\app\components\tests\ExamRightSidebar.tsx              | TypeScript JSX     |        165 |          7 |         16 |        188 |
+| d:\ToeicMaster\toeic-web\app\components\vocabulary\Flashcard.tsx                | TypeScript JSX     |         81 |          7 |         16 |        104 |
+| d:\ToeicMaster\toeic-web\app\components\vocabulary\MatchingGame.tsx             | TypeScript JSX     |        329 |         30 |         43 |        402 |
+| d:\ToeicMaster\toeic-web\app\components\vocabulary\TopicCard.tsx                | TypeScript JSX     |        354 |         31 |         54 |        439 |
+| d:\ToeicMaster\toeic-web\app\components\vocabulary\VocabularyTest.tsx           | TypeScript JSX     |        553 |         34 |         54 |        641 |
+| d:\ToeicMaster\toeic-web\app\components\vocabulary\WordDetailFeedback.tsx       | TypeScript JSX     |         31 |          7 |          6 |         44 |
+| d:\ToeicMaster\toeic-web\app\contexts\AudioContext.tsx                          | TypeScript JSX     |         34 |          2 |          8 |         44 |
+| d:\ToeicMaster\toeic-web\app\contexts\AuthContext.tsx                           | TypeScript JSX     |        179 |         14 |         33 |        226 |
+| d:\ToeicMaster\toeic-web\app\contexts\ThemeContext.tsx                          | TypeScript JSX     |         76 |          2 |         22 |        100 |
+| d:\ToeicMaster\toeic-web\app\feedback\page.tsx                                  | TypeScript JSX     |         52 |          3 |          8 |         63 |
+| d:\ToeicMaster\toeic-web\app\forgot-password\page.tsx                           | TypeScript JSX     |        105 |          5 |         11 |        121 |
+| d:\ToeicMaster\toeic-web\app\globals.css                                        | PostCSS            |        186 |         19 |         42 |        247 |
+| d:\ToeicMaster\toeic-web\app\grammar\groups\[groupId]\page.tsx                  | TypeScript JSX     |        187 |         10 |         24 |        221 |
+| d:\ToeicMaster\toeic-web\app\grammar\groups\[groupId]\topics\[topicId]\page.tsx | TypeScript JSX     |        125 |          6 |         19 |        150 |
+| d:\ToeicMaster\toeic-web\app\grammar\page.tsx                                   | TypeScript JSX     |        277 |         12 |         23 |        312 |
+| d:\ToeicMaster\toeic-web\app\layout.tsx                                         | TypeScript JSX     |         61 |          1 |          5 |         67 |
+| d:\ToeicMaster\toeic-web\app\login\page.tsx                                     | TypeScript JSX     |        185 |          6 |         23 |        214 |
+| d:\ToeicMaster\toeic-web\app\offline\page.tsx                                   | TypeScript JSX     |         61 |          6 |          9 |         76 |
+| d:\ToeicMaster\toeic-web\app\page.tsx                                           | TypeScript JSX     |        310 |         18 |         26 |        354 |
+| d:\ToeicMaster\toeic-web\app\practice\components\BookmarksTab.tsx               | TypeScript JSX     |        492 |         32 |         41 |        565 |
+| d:\ToeicMaster\toeic-web\app\practice\components\HistoryTab.tsx                 | TypeScript JSX     |        276 |          9 |         24 |        309 |
+| d:\ToeicMaster\toeic-web\app\practice\components\PracticeTab.tsx                | TypeScript JSX     |        159 |         10 |         11 |        180 |
+| d:\ToeicMaster\toeic-web\app\practice\components\ProgressTab.tsx                | TypeScript JSX     |        244 |          7 |         23 |        274 |
+| d:\ToeicMaster\toeic-web\app\practice\page.tsx                                  | TypeScript JSX     |        137 |         11 |         13 |        161 |
+| d:\ToeicMaster\toeic-web\app\profile\page.tsx                                   | TypeScript JSX     |         88 |          5 |         17 |        110 |
+| d:\ToeicMaster\toeic-web\app\providers.tsx                                      | TypeScript JSX     |         21 |          1 |          3 |         25 |
+| d:\ToeicMaster\toeic-web\app\register\page.tsx                                  | TypeScript JSX     |        397 |         11 |         22 |        430 |
+| d:\ToeicMaster\toeic-web\app\reset-password\page.tsx                            | TypeScript JSX     |        180 |         10 |         22 |        212 |
+| d:\ToeicMaster\toeic-web\app\results\[id]\page.tsx                              | TypeScript JSX     |      1,385 |         57 |         90 |      1,532 |
+| d:\ToeicMaster\toeic-web\app\services\adminService.ts                           | TypeScript         |         95 |         13 |         20 |        128 |
+| d:\ToeicMaster\toeic-web\app\services\authService.ts                            | TypeScript         |         39 |          9 |          9 |         57 |
+| d:\ToeicMaster\toeic-web\app\services\axiosClient.ts                            | TypeScript         |         89 |         15 |         22 |        126 |
+| d:\ToeicMaster\toeic-web\app\services\bookmarkService.ts                        | TypeScript         |         52 |          9 |          9 |         70 |
+| d:\ToeicMaster\toeic-web\app\services\commentService.ts                         | TypeScript         |         47 |         24 |         10 |         81 |
+| d:\ToeicMaster\toeic-web\app\services\feedbackService.ts                        | TypeScript         |        175 |          0 |         27 |        202 |
+| d:\ToeicMaster\toeic-web\app\services\grammarService.ts                         | TypeScript         |        219 |         90 |         51 |        360 |
+| d:\ToeicMaster\toeic-web\app\services\paymentService.ts                         | TypeScript         |         68 |          9 |         15 |         92 |
+| d:\ToeicMaster\toeic-web\app\services\practiceService.ts                        | TypeScript         |         41 |          6 |          7 |         54 |
+| d:\ToeicMaster\toeic-web\app\services\statisticsService.ts                      | TypeScript         |         32 |          5 |          7 |         44 |
+| d:\ToeicMaster\toeic-web\app\services\testService.ts                            | TypeScript         |         47 |          9 |          7 |         63 |
+| d:\ToeicMaster\toeic-web\app\services\vocabularyService.ts                      | TypeScript         |         98 |         27 |         24 |        149 |
+| d:\ToeicMaster\toeic-web\app\subscription\page.tsx                              | TypeScript JSX     |        372 |         15 |         37 |        424 |
+| d:\ToeicMaster\toeic-web\app\tests\[id]\page.tsx                                | TypeScript JSX     |        197 |         16 |         17 |        230 |
+| d:\ToeicMaster\toeic-web\app\tests\[id]\start\page.tsx                          | TypeScript JSX     |        728 |         50 |         50 |        828 |
+| d:\ToeicMaster\toeic-web\app\types.ts                                           | TypeScript         |        468 |         47 |         57 |        572 |
+| d:\ToeicMaster\toeic-web\app\vocabulary\[topicId]\page.tsx                      | TypeScript JSX     |        538 |         21 |         42 |        601 |
+| d:\ToeicMaster\toeic-web\app\vocabulary\page.tsx                                | TypeScript JSX     |        144 |          6 |         14 |        164 |
+| d:\ToeicMaster\toeic-web\eslint.config.mjs                                      | JavaScript         |         14 |          2 |          3 |         19 |
+| d:\ToeicMaster\toeic-web\lib\date.ts                                            | TypeScript         |         33 |         10 |         10 |         53 |
+| d:\ToeicMaster\toeic-web\lib\utils.ts                                           | TypeScript         |          5 |          0 |          2 |          7 |
+| d:\ToeicMaster\toeic-web\next.config.ts                                         | TypeScript         |         46 |          1 |          3 |         50 |
+| d:\ToeicMaster\toeic-web\package.json                                           | JSON               |         42 |          0 |          1 |         43 |
+| d:\ToeicMaster\toeic-web\postcss.config.mjs                                     | JavaScript         |          6 |          0 |          2 |          8 |
+| d:\ToeicMaster\toeic-web\public\file.svg                                        | XML                |          1 |          0 |          0 |          1 |
+| d:\ToeicMaster\toeic-web\public\globe.svg                                       | XML                |          1 |          0 |          0 |          1 |
+| d:\ToeicMaster\toeic-web\public\icons\README.md                                 | Markdown           |         42 |          0 |         10 |         52 |
+| d:\ToeicMaster\toeic-web\public\manifest.json                                   | JSON               |         94 |          0 |          0 |         94 |
+| d:\ToeicMaster\toeic-web\public\next.svg                                        | XML                |          1 |          0 |          0 |          1 |
+| d:\ToeicMaster\toeic-web\public\window.svg                                      | XML                |          1 |          0 |          0 |          1 |
+| d:\ToeicMaster\toeic-web\render.yaml                                            | YAML               |         14 |          0 |          1 |         15 |
+| d:\ToeicMaster\toeic-web\tailwind.config.ts                                     | TypeScript         |         29 |          0 |          3 |         32 |
+| d:\ToeicMaster\toeic-web\tsconfig.json                                          | JSON with Comments |         34 |          0 |          1 |         35 |
+| Total                                                                           |                    |     17,982 |      1,251 |      2,040 |     21,273 |
++---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
