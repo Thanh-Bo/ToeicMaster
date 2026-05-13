@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { PageHeader, Footer } from "./components/layout";
 import { useAuth } from "./contexts/AuthContext";
 import { testService } from "./services/testService";
+import { grammarService } from "./services/grammarService";
+import { vocabularyService } from "./services/vocabularyService";
 import {
   Sparkles,
   BookOpen,
@@ -18,11 +20,17 @@ import {
   Lightbulb,
   ChevronRight,
   ArrowRight,
+  ALargeSmall,
+  Library,
+  HelpCircle,
 } from "lucide-react";
 
 export default function HomePage() {
   const { user } = useAuth();
   const [testCount, setTestCount] = useState<number | null>(null);
+  const [grammarTopicsCount, setGrammarTopicsCount] = useState<number | null>(null);
+  const [grammarQuestionsCount, setGrammarQuestionsCount] = useState<number | null>(null);
+  const [vocabCount, setVocabCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchTestCount = async () => {
@@ -39,22 +47,76 @@ export default function HomePage() {
     fetchTestCount();
   }, []);
 
+  // Fetch grammar topics, questions and vocabulary counts
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch grammar groups and count topics
+        const groups = await grammarService.getAllGroups();
+        let totalTopics = 0;
+        let totalQuestions = 0;
+        
+        for (const group of groups) {
+          const topics = await grammarService.getTopicsByGroup(group.id);
+          totalTopics += topics.length;
+          
+          // Count questions for each topic
+          for (const topic of topics) {
+            try {
+              const questionsData = await grammarService.getQuestionsByTopic(topic.id, 'easy', 1);
+              totalQuestions += questionsData.total || 0;
+            } catch {
+              // Skip if can't fetch questions
+            }
+          }
+        }
+        
+        setGrammarTopicsCount(totalTopics);
+        setGrammarQuestionsCount(totalQuestions);
+      } catch {
+        setGrammarTopicsCount(null);
+        setGrammarQuestionsCount(null);
+      }
+
+      try {
+        // Fetch vocabulary topics and count total words
+        const vocabTopics = await vocabularyService.getTopics();
+        let totalVocab = 0;
+        
+        for (const topic of vocabTopics) {
+          const words = await vocabularyService.getWordsByTopic(topic.id);
+          totalVocab += words.length;
+        }
+        
+        setVocabCount(totalVocab);
+      } catch {
+        setVocabCount(null);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const stats = [
     {
       icon: <BookOpen className="w-5 h-5" />,
       value: testCount !== null ? `${testCount}+` : "...",
       label: "Đề thi",
     },
-
     {
-      icon: <Brain className="w-5 h-5" />,
-      value: "Giải thích",
-      label: "Giải thích chi tiết",
+      icon: <Library className="w-5 h-5" />,
+      value: grammarTopicsCount !== null ? `${grammarTopicsCount}+` : "...",
+      label: "Chủ đề Grammar",
     },
     {
-      icon: <Trophy className="w-5 h-5" />,
-      value: "Miễn phí",
-      label: "Đăng ký & sử dụng",
+      icon: <HelpCircle className="w-5 h-5" />,
+      value: grammarQuestionsCount !== null ? `${grammarQuestionsCount}+` : "...",
+      label: "Câu hỏi Grammar",
+    },
+    {
+      icon: <ALargeSmall className="w-5 h-5" />,
+      value: vocabCount !== null ? `${vocabCount}+` : "...",
+      label: "Từ vựng",
     },
   ];
 
@@ -103,10 +165,39 @@ export default function HomePage() {
     },
   ];
 
+  const mainSections = [
+    {
+      icon: <BookOpen className="w-7 h-7" />,
+      title: "Grammar",
+      description: "Học ngữ pháp TOEIC với hệ thống SRS thông minh.",
+      href: "/grammar",
+    },
+    {
+      icon: <ALargeSmall className="w-7 h-7" />,
+      title: "Vocabulary",
+      description: "Học từ vựng theo chủ đề với phương pháp spaced repetition.",
+      href: "/vocabulary",
+    },
+    {
+      icon: <FileText className="w-7 h-7" />,
+      title: "Practice",
+      description: "Luyện đề TOEIC full test với chấm điểm tự động.",
+      href: "/practice",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300">
       {/* HEADER */}
-      <PageHeader />
+      <PageHeader
+        navLinks={[
+          { href: "/grammar", label: "Grammar", icon: Library },
+          { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
+          { href: "/practice", label: "Practice", icon: FileText },
+          // { href: "/vocabulary", label: "Vocab", icon: BookOpen },
+          // { href: "/practice", label: "Practice", icon: FileText },
+        ]}
+      />
 
       {/* ── 1. HERO SECTION ── */}
       <section className="max-w-4xl mx-auto px-4 pt-24 pb-20 text-center">
@@ -154,10 +245,41 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
+      <section className="max-w-5xl mx-auto px-4 py-12 ">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {mainSections.map((section, i) => (
+            <Link
+              key={i}
+              href={section.href}
+              className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0">
+                  {section.icon}
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 pt-1">
+                  {section.title}
+                </h3>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                {section.description}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
       {/* ── 2. STATS BAR ── */}
-      <section className="py-10 flex justify-center">
-        <div className="inline-flex divide-x divide-gray-200 dark:divide-zinc-700 border-2 border-gray-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+      <section className="py-10 border-t border-gray-200 dark:border-zinc-800">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+            Thống kê 
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Số liệu về nền tảng TOEIC Master
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <div className="inline-flex divide-x divide-gray-200 dark:divide-zinc-700 border-2 border-gray-200 dark:border-zinc-700 rounded-xl overflow-hidden">
           {stats.map((stat, i) => (
             <div
               key={i}
@@ -174,6 +296,7 @@ export default function HomePage() {
               </span>
             </div>
           ))}
+          </div>
         </div>
       </section>
 
@@ -345,6 +468,7 @@ export default function HomePage() {
         links={[
           { label: "Trang chủ", href: "/" },
           { label: "Luyện đề", href: "/practice" },
+          { label: "Từ vựng", href: "/vocabulary" },
           { label: "Ngữ Pháp", href: "/grammar" },
         ]}
       />

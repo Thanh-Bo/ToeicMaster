@@ -134,7 +134,7 @@ export function GrammarTopicDetail({
             questionsByMode={questionsByMode}
             selectedMode={selectedMode}
             onModeChange={handleModeChange}
-            isLoading={questionsLoading}
+            isLoading={questionsLoading}  
             grammarId={grammar.id}
             topicId={topicId}
           />

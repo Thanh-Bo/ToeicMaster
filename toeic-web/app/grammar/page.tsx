@@ -27,6 +27,9 @@ import {
   GitBranch,
   Activity,
   Loader,
+  FileText,
+  ALargeSmall,
+  Library,
 } from "lucide-react";
 import { PageHeader } from "../components";
 
@@ -45,9 +48,9 @@ export default function GrammarHub() {
   >({});
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "practice" | "progress" 
-  >("practice");
+  const [activeTab, setActiveTab] = useState<"practice" | "progress">(
+    "practice",
+  );
   const [progressPeriod, setProgressPeriod] = useState("30d");
 
   useEffect(() => {
@@ -135,7 +138,13 @@ export default function GrammarHub() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900">
-      <PageHeader />
+      <PageHeader
+        navLinks={[
+          { href: "/grammar", label: "Grammar", icon: Library },
+          { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
+          { href: "/practice", label: "Practice", icon: FileText },
+        ]}
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
@@ -162,7 +171,6 @@ export default function GrammarHub() {
             <BarChart2 className="w-4 h-4" />
             Tiến độ
           </button>
-          
         </div>
 
         {/* Tab Content */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QuestionGrammar } from "@/app/types";
 import { CheckCircle, Languages, Lightbulb, XCircle } from "lucide-react";
 
@@ -29,6 +29,11 @@ export function GrammarQuestion({
     userAnswer || null,
   );
 
+  // Reset selected option when question changes
+  useEffect(() => {
+    setSelectedOption(userAnswer || null);
+  }, [question.id, userAnswer]);
+
   const isCorrect = selectedOption === question.correctOption;
 
   const handleSelectOption = (label: string) => {
@@ -46,7 +51,7 @@ export function GrammarQuestion({
   return (
     <div className="w-full max-w-4xl mx-auto px-2 sm:px-4">
       {/* Question Number Badge + Content in same row */}
-      <div className="flex items-start gap-3 mb-4 sm:mb-6">
+      <div className="flex items-center  gap-3 mb-4 sm:mb-6">
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 mt-1">
           <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300">
             {questionNumber}

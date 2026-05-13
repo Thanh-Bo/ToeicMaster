@@ -21,7 +21,7 @@ interface GrammarTopicRulesListProps {
   selectedGrammarId: number | null;
 }
 
-export function GrammarTopicRulesList({
+export function   GrammarTopicRulesList({
   topicTitle,
   topicId,
   rules,

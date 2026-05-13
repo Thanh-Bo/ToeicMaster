@@ -210,7 +210,7 @@ export function GrammarPracticeTab({
       </div>
 
       {/* Mode Description - Responsive */}
-      <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 p-3 sm:p-4">
+      <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white  dark:bg-zinc-900 p-3 sm:p-4">
         <div className="flex items-center gap-2">
           <currentMode.icon className={`w-4 h-4 text-${currentMode.color}-600 dark:text-${currentMode.color}-400`} />
           <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
@@ -243,7 +243,7 @@ export function GrammarPracticeTab({
 
       {/* Page Stats Header - Responsive */}
       {questions.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="grid grid-cols-5 gap-2 sm:gap-4">
           <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng số câu</p>
             <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -260,6 +260,18 @@ export function GrammarPracticeTab({
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng điểm</p>
             <p className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
               {totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0}%
+            </p>
+          </div>
+          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Số câu đúng</p>
+            <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+              {totalCorrect}
+            </p>
+          </div>
+          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Số câu sai</p>
+            <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
+              {totalAttempted - totalCorrect}
             </p>
           </div>
         </div>
@@ -322,11 +334,9 @@ export function GrammarPracticeTab({
                           ? isAnswered && userAnswers[index] === questions[index]?.correctOption
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700'
                             : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-700'
-                          : isAnswered
-                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-700'
-                            : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
                     }`}
-                    title={`Câu ${index + 1}${isSubmitted ? (userAnswers[index] === questions[index]?.correctOption ? ' - Đúng' : ' - Sai') : isAnswered ? ' - Đã chọn' : ''}`}
+                    title={`Câu ${index + 1}${isSubmitted ? (userAnswers[index] === questions[index]?.correctOption ? ' - Đúng' : ' - Sai') : ''}`}
                   >
                     {index + 1}
                   </button>
@@ -356,7 +366,7 @@ export function GrammarPracticeTab({
 
       
       {/* Completion Message - Responsive */}
-      {questions.length > 0 && totalAttempted === questions.length && (
+      {/* {questions.length > 0 && totalAttempted === questions.length && (
         <div className="rounded-xl p-4 sm:p-6 border-1 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30">
           <div className="flex items-center gap-3 mb-4">
             <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 dark:text-green-400" />
@@ -397,7 +407,7 @@ export function GrammarPracticeTab({
             </p>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

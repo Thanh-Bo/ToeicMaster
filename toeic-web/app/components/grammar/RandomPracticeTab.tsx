@@ -52,7 +52,11 @@ export function RandomPracticeTab({ topicId, topicName }: RandomPracticeTabProps
 
   // Fix 3a: Auto-load khi component mount
   useEffect(() => {
-    loadQuestions('easy');
+     Promise.all([
+    loadQuestions('easy'),
+    loadQuestions('medium'),
+    loadQuestions('hard')
+  ]);
   }, [topicId]);
 
   const loadQuestions = async (mode: 'easy' | 'medium' | 'hard') => {
@@ -81,9 +85,9 @@ export function RandomPracticeTab({ topicId, topicName }: RandomPracticeTabProps
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header - Responsive */}
-      <div className="rounded-xl p-3 sm:p-4 lg:p-5 border-1 border-zinc-700 bg-zinc-800/50">
+      <div className="rounded-xl p-3 sm:p-4 lg:p-5 border-1 border-gray-200 dark:border-zinc-700 bg-white  dark:bg-zinc-900">
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-base sm:text-lg font-bold text-white">Luyện tập ngẫu nhiên</h2>
+          <h2 className="text-base sm:text-lg font-bold text-gray-700 dark:text-gray-300">Luyện tập ngẫu nhiên</h2>
         </div>
         <p className="text-xs sm:text-sm text-gray-400">
           Topic: {topicName} · 60 câu trộn ngẫu nhiên (giống thi TOEIC thật)

@@ -98,7 +98,7 @@ export default function PageHeader({
         <nav className="flex items-center gap-8">
           {/* Nav Links with Icons */}
           {links.map((link) => (
-            <Link
+            <Link 
               key={link.href}
               href={link.href}
               className="flex items-center gap-2  transition font-medium text-sm hidden md:flex"
@@ -119,7 +119,7 @@ export default function PageHeader({
               <Crown size={16} />
               Nâng cấp PRO
             </button> */}
-            <ThemeToggle />
+          
 
             {/* Feedback Button */}
             <button

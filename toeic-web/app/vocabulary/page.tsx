@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { Loader, ArrowLeft, Book, X } from "lucide-react";
+import { Loader, ArrowLeft, Book, X, Library, ALargeSmall, FileText } from "lucide-react";
 import { vocabularyService } from "../services/vocabularyService";
 import TopicCard from "../components/vocabulary/TopicCard";
 import { VocabularyTopic } from "../types";
@@ -34,7 +34,7 @@ export default function VocabularyPage() {
   };
 
   const filteredTopics = topics.filter((topic) =>
-    topic.title.toLowerCase().includes(searchTerm.toLowerCase())
+    topic.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
@@ -45,7 +45,9 @@ export default function VocabularyPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-lg opacity-30 animate-pulse"></div>
             <Loader className="w-16 h-16 text-blue-600 animate-spin relative" />
           </div>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">Đang tải chủ đề từ vựng...</p>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">
+            Đang tải chủ đề từ vựng...
+          </p>
         </div>
       </div>
     );
@@ -53,27 +55,26 @@ export default function VocabularyPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800">
-       <PageHeader />
+      <PageHeader
+        navLinks={[
+          { href: "/grammar", label: "Grammar", icon: Library },
+          { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
+          { href: "/practice", label: "Practice", icon: FileText },
+        ]}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 px-4 py-2 mb-8 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
-        >
-          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-          <span>Quay lại</span>
-        </button>
+        
 
         {/* Hero Section */}
         <div className="mb-12">
           <div className="flex items-start gap-4 mb-4">
-            
             <div className="flex-1">
               <h1 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
                 Từ Vựng TOEIC
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl leading-relaxed">
-                Phát triển vốn từ vựng chuyên sâu với các chủ đề TOEIC. Luyện tập, học flashcard và kiểm tra kiến thức
+                Phát triển vốn từ vựng chuyên sâu với các chủ đề TOEIC. Luyện
+                tập, học flashcard và kiểm tra kiến thức
               </p>
             </div>
           </div>
@@ -81,22 +82,36 @@ export default function VocabularyPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{topics.length}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Chủ đề</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {topics.length}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Chủ đề
+              </div>
             </div>
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {topics.reduce((sum, t) => sum + (t.wordCount || 0), 0)}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Từ vựng</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Từ vựng
+              </div>
             </div>
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">∞</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Miễn phí</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                ∞
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Miễn phí
+              </div>
             </div>
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-zinc-700">
-              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">3</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Cách học</div>
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                3
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Cách học
+              </div>
             </div>
           </div>
         </div>
@@ -104,8 +119,18 @@ export default function VocabularyPage() {
         {/* Search Section */}
         <div className="mb-12">
           <div className="relative max-w-2xl">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
             <input
               type="text"
@@ -125,9 +150,14 @@ export default function VocabularyPage() {
         {error && (
           <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl backdrop-blur-sm">
             <div className="flex items-start gap-3">
-              <X size={32} className="text-red-600 dark:text-red-400 flex-shrink-0" />
+              <X
+                size={32}
+                className="text-red-600 dark:text-red-400 flex-shrink-0"
+              />
               <div>
-                <h3 className="font-bold text-red-700 dark:text-red-300 mb-1">Lỗi tải dữ liệu</h3>
+                <h3 className="font-bold text-red-700 dark:text-red-300 mb-1">
+                  Lỗi tải dữ liệu
+                </h3>
                 <p className="text-red-600 dark:text-red-400">{error}</p>
               </div>
             </div>
@@ -145,7 +175,9 @@ export default function VocabularyPage() {
           <div className="text-center py-24 bg-white dark:bg-zinc-800/30 backdrop-blur-sm rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
             <div className="text-6xl mb-4">📭</div>
             <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
-              {searchTerm ? "Không tìm thấy chủ đề từ vựng phù hợp" : "Chưa có chủ đề từ vựng"}
+              {searchTerm
+                ? "Không tìm thấy chủ đề từ vựng phù hợp"
+                : "Chưa có chủ đề từ vựng"}
             </p>
             {searchTerm && (
               <button
