@@ -120,7 +120,7 @@ export default function PageHeader({
               Nâng cấp PRO
             </button> */}
           
-
+              <ThemeToggle />
             {/* Feedback Button */}
             <button
               onClick={() => setShowFeedback(true)}
@@ -193,7 +193,7 @@ export default function PageHeader({
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-shrink-0">
-            <ThemeToggle />
+            
             <Link
               href="/login"
               className="border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg transition font-medium text-sm px-3 py-2"

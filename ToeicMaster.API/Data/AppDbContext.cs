@@ -47,6 +47,11 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<UserVocabulary> UserVocabularies { get; set; }
 
+    // Vocabulary stats tracking
+    public virtual DbSet<UserActivityVocabSession> UserActivityVocabSessions { get; set; }
+
+    public virtual DbSet<UserVocabStreak> UserVocabStreaks { get; set; }
+
     public virtual DbSet<PracticeSession> PracticeSessions { get; set; }
 
     public virtual DbSet<PracticeAnswer> PracticeAnswers { get; set; }

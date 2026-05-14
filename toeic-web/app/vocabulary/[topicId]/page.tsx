@@ -7,8 +7,10 @@ import toast from "react-hot-toast";
 import Flashcard from "@/app/components/vocabulary/Flashcard";
 import MatchingGame from "@/app/components/vocabulary/MatchingGame";
 import { vocabularyService } from "@/app/services/vocabularyService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import VocabularyTest from "@/app/components/vocabulary/VocabularyTest";
 import WordDetailFeedback from "@/app/components/vocabulary/WordDetailFeedback";
+import { playSound, playWordAudio } from "@/app/lib/audio";
 
 type Phase = "LEARN" | "PRACTICE_GAME" | "TEST" | "COMPLETED";
 type SubPhase = "FLASHCARD" | "LISTEN_WRITE" | "FILL_BLANK";
@@ -17,6 +19,7 @@ export default function TopicStudyPage() {
   const params = useParams();
   const topicId = params?.topicId as string;
   const router = useRouter();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("LEARN");
   const [subPhase, setSubPhase] = useState<SubPhase>("FLASHCARD");
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -28,6 +31,42 @@ export default function TopicStudyPage() {
   const [inputFeedback, setInputFeedback] = useState("");
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
+
+  // Start session when entering page
+  useEffect(() => {
+    const startSession = async () => {
+      if (user?.id) {
+        try {
+          const response = await vocabularyService.startSession(user.id);
+          setSessionId(response.sessionId);
+        } catch (error) {
+          console.error("Error starting session:", error);
+        }
+      }
+    };
+    startSession();
+  }, [user?.id]);
+
+  // End session when leaving page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (sessionId && user?.id) {
+        // Use sendBeacon for reliable delivery on page close
+        const url = `${process.env.NEXT_PUBLIC_API_URL || ''}/users/${user.id}/vocabulary/sessions/${sessionId}/end`;
+        navigator.sendBeacon?.(url, '');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also end session on component unmount
+      if (sessionId && user?.id) {
+        vocabularyService.endSession(user.id, sessionId).catch(console.error);
+      }
+    };
+  }, [sessionId, user?.id]);
 
   useEffect(() => {
     const fetchWords = async () => {
@@ -68,7 +107,7 @@ export default function TopicStudyPage() {
             onClick={() => window.location.reload()}
             className="w-full bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
           >
-            🔄 Thử lại
+             Thử lại
           </button>
         </div>
       </div>
@@ -89,6 +128,13 @@ export default function TopicStudyPage() {
       setUserInput("");
       setInputFeedback("");
       setIsAnswerChecked(false);
+      // Auto-play pronunciation of the word
+      const currentWord = words[currentWordIndex];
+      if (currentWord) {
+        setTimeout(() => {
+          playWordAudio(currentWord.word, currentWord.audioUrl);
+        }, 300);
+      }
     } else if (subPhase === "LISTEN_WRITE") {
       setSubPhase("FILL_BLANK");
       setUserInput("");
@@ -149,6 +195,17 @@ export default function TopicStudyPage() {
         : `Sai rồi! Đáp án là: ${words[currentWordIndex].word}`
     );
     setIsAnswerChecked(true);
+
+    // Play sounds
+    if (isCorrect) {
+      playSound('correct');
+    } else {
+      playSound('wrong');
+    }
+    // Always play word pronunciation after check
+    setTimeout(() => {
+      playWordAudio(words[currentWordIndex].word, words[currentWordIndex].audioUrl);
+    }, isCorrect ? 300 : 600);
   };
 
   const handleCheckFillBlank = () => {
@@ -166,6 +223,17 @@ export default function TopicStudyPage() {
         : `Sai rồi! Đáp án là: ${words[currentWordIndex].word}`
     );
     setIsAnswerChecked(true);
+
+    // Play sounds
+    if (isCorrect) {
+      playSound('correct');
+    } else {
+      playSound('wrong');
+    }
+    // Always play word pronunciation after check
+    setTimeout(() => {
+      playWordAudio(words[currentWordIndex].word, words[currentWordIndex].audioUrl);
+    }, isCorrect ? 300 : 600);
   };
 
   const handleContinueAfterCheck = () => {

@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { testService } from "../services/testService";
 import { PageHeader } from "../components/layout";
 import { LoadingSpinner, EmptyState, AlertMessage } from "../components/common";
-import { BookOpen, BarChart2, History, Bookmark } from "lucide-react";
+import {
+  BookOpen,
+  BarChart2,
+  History,
+  Bookmark,
+  Library,
+  ALargeSmall,
+  FileText,
+} from "lucide-react";
 import PracticeTab from "./components/PracticeTab";
 import ProgressTab from "./components/ProgressTab";
 import BookmarksTab from "./components/BookmarksTab";
@@ -29,12 +37,17 @@ export default function PracticePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "completed" | "not-completed">("all");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "completed" | "not-completed"
+  >("all");
   const [filterPrefix, setFilterPrefix] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"practice" | "progress" | "history" | "bookmarks">("practice");
+  const [activeTab, setActiveTab] = useState<
+    "practice" | "progress" | "history" | "bookmarks"
+  >("practice");
 
   useEffect(() => {
-    testService.getList()
+    testService
+      .getList()
       .then((res) => {
         setTests(res.data.data || []);
       })
@@ -57,19 +70,26 @@ export default function PracticePage() {
 
   // Get unique prefixes from tests (sorted)
   const uniquePrefixes = Array.from(
-    new Set(tests.map((t) => extractPrefix(t.title)))
+    new Set(tests.map((t) => extractPrefix(t.title))),
   ).sort();
 
   // Get count of tests per prefix
   const getCountByPrefix = (prefix: string) => {
-    return tests.filter(t => extractPrefix(t.title) === prefix).length;
+    return tests.filter((t) => extractPrefix(t.title) === prefix).length;
   };
-
 
   return (
     <div className="min-h-screen bg-white  dark:bg-zinc-900 ">
       {/* HEADER */}
-      <PageHeader />
+      <PageHeader
+        navLinks={[
+          { href: "/grammar", label: "Grammar", icon: Library },
+          { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
+          { href: "/practice", label: "Practice", icon: FileText },
+          // { href: "/vocabulary", label: "Vocab", icon: BookOpen },
+          // { href: "/practice", label: "Practice", icon: FileText },
+        ]}
+      />
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -127,7 +147,9 @@ export default function PracticePage() {
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Chinh phục TOEIC Full Test
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">Luyện đề TOEIC với đề thi thật và chấm điểm tự động</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              Luyện đề TOEIC với đề thi thật và chấm điểm tự động
+            </p>
           </div>
         )}
 

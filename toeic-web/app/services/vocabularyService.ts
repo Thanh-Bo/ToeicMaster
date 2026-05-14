@@ -145,4 +145,42 @@ export const vocabularyService = {
     const response = await axiosClient.post("/vocabulary/import", vocabularies);
     return response.data;
   },
+
+  // ==========================================
+  // STATS APIs
+  // ==========================================
+
+  // Get vocabulary stats (total topics, words learned, review due, time, streak)
+  getVocabStats: async (userId: number): Promise<{
+    totalTopicsLearned: number;
+    totalVocabLearned: number;
+    reviewDue: number;
+    totalTimeMinutes: number;
+    streak: { current: number; longest: number };
+  }> => {
+    const response = await axiosClient.get(`/users/${userId}/vocabulary/stats`);
+    return response.data;
+  },
+
+  // Start a study session
+  startSession: async (userId: number): Promise<{ sessionId: number }> => {
+    const response = await axiosClient.post(`/users/${userId}/vocabulary/sessions/start`);
+    return response.data;
+  },
+
+  // End a study session
+  endSession: async (userId: number, sessionId: number): Promise<{ durationSeconds: number }> => {
+    const response = await axiosClient.post(`/users/${userId}/vocabulary/sessions/${sessionId}/end`);
+    return response.data;
+  },
+
+  // Get streak info
+  getStreak: async (userId: number): Promise<{
+    current: number;
+    longest: number;
+    lastActivityDate: string | null;
+  }> => {
+    const response = await axiosClient.get(`/users/${userId}/vocabulary/streak`);
+    return response.data;
+  },
 };

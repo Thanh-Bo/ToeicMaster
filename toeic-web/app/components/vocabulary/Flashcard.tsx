@@ -50,7 +50,7 @@ export default function Flashcard({ word, onBookmark }: Props) {
           </button>
 
           <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-            👆 Nhấp để nghe phát âm
+             Nhấp để nghe phát âm
           </div>
         </div>
 
@@ -83,7 +83,7 @@ export default function Flashcard({ word, onBookmark }: Props) {
            {/* Word Family */}
            {word.wordFamilies && word.wordFamilies.length > 0 && (
              <div className="mb-6">
-               <p className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">📚 Word Family</p>
+               <p className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3"> Word Family</p>
                <div className="space-y-2.5">
                  {word.wordFamilies.map((wf: any, idx: number) => (
                    <div key={idx} className="text-sm flex gap-3 p-2.5 rounded-lg bg-gray-50 dark:bg-zinc-700/50">

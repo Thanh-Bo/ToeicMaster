@@ -167,7 +167,7 @@ export default function HomePage() {
 
   const mainSections = [
     {
-      icon: <BookOpen className="w-7 h-7" />,
+      icon: <Library className="w-7 h-7" />,
       title: "Grammar",
       description: "Học ngữ pháp TOEIC với hệ thống SRS thông minh.",
       href: "/grammar",
