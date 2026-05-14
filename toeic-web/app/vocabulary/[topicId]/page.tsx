@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams , useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle, X, Loader, ArrowLeft, Gamepad2, PenTool, Volume2, Sparkles, FileText, Keyboard, SkipForward, BookText, Check } from "lucide-react";
+import { ArrowRight, CheckCircle, X, Loader, ArrowLeft, Gamepad2, PenTool, Volume2, Sparkles, FileText, Keyboard, SkipForward, BookText, Check, CircleCheckBig } from "lucide-react";
 import toast from "react-hot-toast";
 import Flashcard from "@/app/components/vocabulary/Flashcard";
 import MatchingGame from "@/app/components/vocabulary/MatchingGame";
@@ -244,27 +244,27 @@ export default function TopicStudyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 p-2 md:p-4">
       {/* Header Section */}
-      <div className="max-w-4xl mx-auto mb-12">
+      <div className="max-w-3xl mx-auto mb-4">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 px-4 py-2 mb-6 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
+          className="flex items-center gap-2 px-2.5 py-1.5 mb-3 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
         >
-          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span>Quay lại</span>
         </button>
 
         {/* Progress Bar Card */}
-        <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm p-3 rounded-xl shadow-md border border-gray-200 dark:border-zinc-800">
           {/* Title */}
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-base md:text-lg font-bold text-gray-900 dark:text-white mb-3">
             {topicTitle}
           </h1>
 
           {/* Process Steps */}
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex justify-between items-center gap-3">
             {[
               { phase: "LEARN", number: "1", label: "Học từ", icon: BookText  },
               { phase: "PRACTICE_GAME", number: "2", label: "Ghép thẻ", icon: Gamepad2 },
@@ -273,19 +273,19 @@ export default function TopicStudyPage() {
               <React.Fragment key={step.phase}>
                 <button
                   onClick={() => setPhase(step.phase as Phase)}
-                  className={`flex flex-col items-center gap-2 transition-all flex-1 cursor-pointer`}
+                  className={`flex flex-col items-center gap-1.5 transition-all flex-1 cursor-pointer`}
                 >
                   <div
-                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all shadow-sm ${
+                    className={`w-7 h-7 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all shadow-sm ${
                       phase === step.phase
-                        ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg scale-110"
+                        ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg scale-105"
                         : "border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105"
                     }`}
                   >
-                    <step.icon size={20} />
+                    <step.icon size={12} />
                   </div>
                   <span
-                    className={`text-xs font-bold text-center transition-colors hidden md:block ${
+                    className={`text-[9px] font-bold text-center transition-colors hidden md:block ${
                       phase === step.phase
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-gray-500 dark:text-gray-400"
@@ -310,14 +310,14 @@ export default function TopicStudyPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         {phase === "LEARN" && (
           <div className="flex flex-col items-center">
             {/* Progress Badge */}
-            <div className="mb-8 flex flex-col items-center gap-4">
-              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-full shadow-lg">
-                <span className="text-sm font-bold">Từ {currentWordIndex + 1} / {words.length}</span>
-                <div className="h-2 w-32 bg-white/30 rounded-full overflow-hidden">
+            <div className="mb-3 flex flex-col items-center gap-2">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full shadow-md">
+                <span className="text-xs font-bold">Từ {currentWordIndex + 1} / {words.length}</span>
+                <div className="h-1.5 w-20 bg-white/30 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-white transition-all duration-300"
                     style={{ width: `${((currentWordIndex + 1) / words.length) * 100}%` }}
@@ -326,39 +326,39 @@ export default function TopicStudyPage() {
               </div>
 
               {/* Sub-phase Tabs */}
-              <div className="flex gap-2 md:gap-3 justify-center flex-wrap">
+              <div className="flex gap-1.5 justify-center flex-wrap">
                 <button
                   onClick={() => setSubPhase("FLASHCARD")}
                   disabled={subPhase === "LISTEN_WRITE" || subPhase === "FILL_BLANK"}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                     subPhase === "FLASHCARD"
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-105"
                       : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <BookText  className="inline w-4 h-4 mr-2" />1. Thẻ học
+                  <BookText  className="inline w-3 h-3 mr-1" />1. Thẻ học
                 </button>
                 <button
                   onClick={() => setSubPhase("LISTEN_WRITE")}
                   disabled={subPhase === "FLASHCARD"}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                     subPhase === "LISTEN_WRITE"
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-105"
                       : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <Volume2 className="inline w-4 h-4 mr-2" />2. Nghe & Viết
+                  <Volume2 className="inline w-3 h-3 mr-1" />2. Nghe & Viết
                 </button>
                 <button
                   onClick={() => setSubPhase("FILL_BLANK")}
                   disabled={subPhase === "FLASHCARD" || subPhase === "LISTEN_WRITE"}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                     subPhase === "FILL_BLANK"
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-105"
                       : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <FileText className="inline w-4 h-4 mr-2" />3. Điền từ
+                  <FileText className="inline w-3 h-3 mr-1" />3. Điền từ
                 </button>
               </div>
             </div>
@@ -374,15 +374,15 @@ export default function TopicStudyPage() {
             )}
 
             {subPhase === "LISTEN_WRITE" && (
-              <div className="w-full max-w-3xl animate-fadeIn pb-20 md:pb-0">
-                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-3xl border border-gray-200 dark:border-zinc-700 p-8 md:p-12 shadow-lg">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center">
-                    <Volume2 className="inline w-8 h-8 mr-3" />
+              <div className="w-full max-w-xl animate-fadeIn pb-6 md:pb-0">
+                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 p-4 md:p-6 shadow-md">
+                  <h2 className="text-base md:text-lg font-bold mb-3 text-center">
+                    <Volume2 className="inline w-4 h-4 mr-2" />
                     Nghe và viết lại
                   </h2>
 
                   {/* Audio Button */}
-                  <div className="flex justify-center mb-10 md:mb-14">
+                  <div className="flex justify-center mb-4">
                     <button
                       onClick={() => {
                         const audioUrl = words[currentWordIndex].audioUrl;
@@ -407,13 +407,13 @@ export default function TopicStudyPage() {
                           window.speechSynthesis.speak(utterance);
                         }
                       }}
-                      className="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl border-4 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95"
+                      className="w-12 h-12 rounded-full flex items-center justify-center transition-all transform hover:scale-105 shadow-lg border-2 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95"
                     >
-                      <Volume2 size={64} className="text-white" />
+                      <Volume2 size={24} className="text-white" />
                     </button>
                   </div>
 
-                  <p className="text-center text-lg md:text-xl mb-8 font-semibold">
+                  <p className="text-center text-xs md:text-sm mb-3 font-medium">
                     Bạn nghe từ ở trên. Gõ lại từ bạn vừa nghe
                   </p>
 
@@ -431,56 +431,56 @@ export default function TopicStudyPage() {
                       }
                     }}
                     placeholder="Nhập từ ở đây..."
-                    className="w-full px-6 py-4 rounded-2xl text-gray-900 dark:text-white border-2 border-gray-200 dark:border-zinc-700 text-center text-lg font-semibold mb-8 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all bg-white dark:bg-zinc-800"
+                    className="w-full px-3 py-2.5 rounded-lg text-gray-900 dark:text-white border-2 border-gray-200 dark:border-zinc-700 text-center text-sm md:text-base font-semibold mb-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all bg-white dark:bg-zinc-800"
                   />
 
                   {/* Feedback */}
                   {isAnswerChecked ? (
                     <div
-                      className={`rounded-2xl p-8 border-l-4 shadow-lg transition-all ${
+                      className={`rounded-lg p-3 border-l-4 shadow-sm transition-all ${
                         isAnswerCorrect
                           ? "bg-green-50 dark:bg-green-900/20 border-green-500"
                           : "bg-red-50 dark:bg-red-900/20 border-red-500"
                       }`}
                     >
-                      <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
                         {isAnswerCorrect ? (
-                          <Sparkles size={32} className="text-green-600 dark:text-green-400" />
+                          <CircleCheckBig  size={20} className="text-green-600 dark:text-green-400" />
                         ) : (
-                          <X size={32} className="text-red-600 dark:text-red-400" />
+                          <X size={20} className="text-red-600 dark:text-red-400" />
                         )}
-                        <h3 className={`text-xl font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                        <h3 className={`text-sm font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
                           {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
                         </h3>
                       </div>
                       <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
-                    <p className="text-center text-sm text-gray-400"><Keyboard className="inline w-4 h-4 mr-2" />Nhấn Enter để kiểm tra</p>
+                    <p className="text-center text-xs text-gray-400"><Keyboard className="inline w-3 h-3 mr-1" />Nhấn Enter để kiểm tra</p>
                   )}
                 </div>
               </div>
             )}
 
             {subPhase === "FILL_BLANK" && (
-              <div className="w-full max-w-3xl animate-fadeIn">
-                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-3xl shadow-lg p-8 md:p-12 transition-all">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">
-                    <FileText className="inline w-8 h-8 mr-3" />
+              <div className="w-full max-w-xl animate-fadeIn">
+                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-xl shadow-md p-4 md:p-6 transition-all">
+                  <h2 className="text-base md:text-lg font-bold mb-3 text-center">
+                    <FileText className="inline w-4 h-4 mr-2" />
                     Điền từ vào chỗ trống
                   </h2>
 
                   {/* Meaning Hint */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 mb-10">
-                    <p className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-300 text-center">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4">
+                    <p className="text-sm md:text-base font-bold text-blue-700 dark:text-blue-300 text-center">
                       {words[currentWordIndex].meaning || "Không có định nghĩa"}
                     </p>
                   </div>
 
                   {/* Input Area */}
-                  <div className="relative bg-gray-50 dark:bg-zinc-800 rounded-2xl p-8 mb-10 border-2 border-dashed border-gray-300 dark:border-zinc-700">
+                  <div className="relative bg-gray-50 dark:bg-zinc-800 rounded-lg p-4 mb-4 border-2 border-dashed border-gray-300 dark:border-zinc-700">
                     {/* Visual Layer */}
-                    <div className="flex justify-center flex-wrap gap-2 md:gap-3 mb-6">
+                    <div className="flex justify-center flex-wrap gap-1.5 mb-3">
                       {words[currentWordIndex].word
                         .split("")
                         .map((char: string, idx: number) => {
@@ -494,9 +494,9 @@ export default function TopicStudyPage() {
                           return (
                             <div
                               key={idx}
-                              className={`w-10 h-14 md:w-14 md:h-16 flex items-center justify-center text-2xl md:text-3xl font-bold rounded-lg transition-all ${
+                              className={`w-6 h-8 md:w-8 md:h-10 flex items-center justify-center text-base md:text-lg font-bold rounded-md transition-all ${
                                 userChar
-                                  ? "bg-blue-600 text-white shadow-md transform scale-105"
+                                  ? "bg-blue-600 text-white shadow-sm transform scale-105"
                                   : isHint
                                     ? "bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-400"
                                     : "bg-white dark:bg-zinc-900 text-transparent border border-gray-300 dark:border-zinc-600"
@@ -529,7 +529,7 @@ export default function TopicStudyPage() {
                       spellCheck="false"
                     />
 
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-center text-[11px] text-gray-500 dark:text-gray-400">
                       {words[currentWordIndex].word.length} ký tự • Nhấn Enter để kiểm tra
                     </p>
                   </div>
@@ -537,27 +537,27 @@ export default function TopicStudyPage() {
                   {/* Feedback */}
                   {isAnswerChecked ? (
                     <div
-                      className={`rounded-2xl p-6 border-l-4 shadow-lg transition-all ${
+                      className={`rounded-lg p-3 border-l-4 shadow-sm transition-all ${
                         isAnswerCorrect
                           ? "bg-green-50 dark:bg-green-900/20 border-green-500"
                           : "bg-red-50 dark:bg-red-900/20 border-red-500"
                       }`}
                     >
-                      <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
                         {isAnswerCorrect ? (
-                          <Sparkles size={32} className="text-green-600 dark:text-green-400" />
+                          <Sparkles size={20} className="text-green-600 dark:text-green-400" />
                         ) : (
-                          <X size={32} className="text-red-600 dark:text-red-400" />
+                          <X size={20} className="text-red-600 dark:text-red-400" />
                         )}
-                        <h3 className={`text-xl font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                        <h3 className={`text-sm font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
                           {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
                         </h3>
                       </div>
                       <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
-                    <div className="text-center h-12 flex items-center justify-center text-gray-400 animate-pulse">
-                      <Keyboard className="inline w-4 h-4 mr-2" />
+                    <div className="text-center h-8 flex items-center justify-center text-gray-400 animate-pulse text-xs">
+                      <Keyboard className="inline w-3 h-3 mr-1" />
                       <span>Gõ để điền từ</span>
                     </div>
                   )}
@@ -566,7 +566,7 @@ export default function TopicStudyPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="mt-10 flex gap-4 w-full max-w-md px-4 md:px-0">
+            <div className="mt-4 flex gap-2.5 w-full max-w-xs px-2 md:px-0">
               <button
                 onClick={
                   subPhase === "FLASHCARD"
@@ -578,9 +578,9 @@ export default function TopicStudyPage() {
                     : handlePreviousSubPhase
                 }
                 disabled={subPhase === "FLASHCARD" && currentWordIndex === 0}
-                className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700 flex items-center justify-center gap-2"
+                className="px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700 flex items-center justify-center gap-2"
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={16} />
                 Quay lại
               </button>
               <button
@@ -601,9 +601,9 @@ export default function TopicStudyPage() {
                     handleNextCard();
                   }
                 }}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all hover:shadow-xl active:scale-95"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-bold py-2 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all hover:shadow-lg active:scale-95"
               >
-                Tiếp theo <ArrowRight size={18} className="hidden md:inline" />
+                Tiếp theo <ArrowRight size={16} className="hidden md:inline" />
               </button>
             </div>
           </div>
@@ -617,23 +617,17 @@ export default function TopicStudyPage() {
                 alert("Xuất sắc! Bây giờ hãy làm bài kiểm tra cuối cùng.");
                 setPhase("TEST");
               }}
-            />
-            <button
-              onClick={() => {
+              onSkip={() => {
                 if (confirm("⚠️ Bạn có chắc chắn muốn bỏ qua phần luyện tập?")) {
                   setPhase("TEST");
                 }
               }}
-              className="w-full max-w-md mx-auto px-6 py-3 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-            >
-              <SkipForward size={18} />
-              Bỏ qua và đi kiểm tra
-            </button>
+            />
           </div>
         )}
 
         {phase === "TEST" && (
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-800 p-8">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md border border-gray-200 dark:border-zinc-800 p-4 md:p-6">
             <VocabularyTest
               topicId={Number(topicId)}
               topicTitle={topicTitle}
@@ -643,21 +637,21 @@ export default function TopicStudyPage() {
         )}
 
         {phase === "COMPLETED" && (
-          <div className="text-center py-24 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl shadow-lg border border-green-200 dark:border-green-800">
-            <div className="w-24 h-24 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={48} />
+          <div className="text-center py-8 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl shadow-md border border-green-200 dark:border-green-800">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-3">
+              <CheckCircle size={24} />
             </div>
-            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-3">
-              Chúc mừng! <Sparkles className="inline w-8 h-8" />
+            <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mb-2">
+              Chúc mừng! <Sparkles className="inline w-5 h-5" />
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 mb-5 text-sm">
               Bạn đã hoàn thành chủ đề từ vựng này
             </p>
             <a
               href="/vocabulary"
-              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2"
+              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} />
               Về trang Từ vựng
             </a>
           </div>
