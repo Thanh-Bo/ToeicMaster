@@ -38,6 +38,14 @@ public class VocabularyController : ControllerBase
         int userId = userIdStr != null ? int.Parse(userIdStr) : 0;
         var now = DateTime.UtcNow;
 
+        // Lấy tất cả topic progress của user
+        var userTopicProgress = await _context.UserVocabs
+            .Where(uv => uv.UserId == userId)
+            .ToListAsync();
+
+        // Chuyển sang Dictionary để tra cứu nhanh
+        var userTopicDict = userTopicProgress.ToDictionary(uv => uv.TopicId, uv => uv);
+
         var topics = await _context.Topics
             .Select(t => new TopicDto
             {
@@ -47,34 +55,38 @@ public class VocabularyController : ControllerBase
                 LevelRange = t.LevelRange,
                 ImageUrl = t.ImageUrl,
                 TotalWords = t.Vocabularies.Count,
-                // Tính số từ user đã học (Status > 0)
-                LearnedWords = userId == 0 ? 0 : t.Vocabularies
-                    .Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Status > 0)),
                 
-                // SRS Progress: Current level = max level user achieved for this topic
-                CurrentLevel = userId == 0 ? 0 : t.Vocabularies
-                    .SelectMany(v => v.UserVocabularies.Where(uv => uv.UserId == userId))
-                    .Max(uv => (int?)uv.Level) ?? 0,
+                // Nếu user đã học topic này (có record trong UserVocabs)
+                LearnedWords = userId == 0 ? 0 : 
+                    userTopicDict.ContainsKey(t.Id) ? t.Vocabularies.Count : 0,
                 
-                // NextReviewAt: minimum nextReviewAt among all words in this topic
-                NextReviewAt = userId == 0 ? null : t.Vocabularies
-                    .SelectMany(v => v.UserVocabularies.Where(uv => uv.UserId == userId))
-                    .Min(uv => (DateTime?)uv.NextReviewAt),
+                // SRS Progress: Level từ UserVocabs (theo topic)
+                CurrentLevel = userId == 0 ? 0 : 
+                    userTopicDict.ContainsKey(t.Id) ? userTopicDict[t.Id].Level : 0,
                 
-                // Word counts by level
-                WordCounts = userId == 0 ? new Dictionary<int, int>() : new Dictionary<int, int>
-                {
-                    { 0, t.Vocabularies.Count(v => !v.UserVocabularies.Any(uv => uv.UserId == userId)) },
-                    { 1, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 1)) },
-                    { 2, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 2)) },
-                    { 3, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 3)) },
-                    { 4, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 4)) },
-                    { 5, t.Vocabularies.Count(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.Level == 5)) }
-                },
+                // NextReviewAt từ UserVocabs (theo topic)
+                NextReviewAt = userId == 0 ? null : 
+                    userTopicDict.ContainsKey(t.Id) ? userTopicDict[t.Id].NextReviewAt : null,
+                
+                // Word counts by level - tất cả từ trong topic cùng level
+                WordCounts = userId == 0 ? new Dictionary<int, int>() : 
+                    userTopicDict.ContainsKey(t.Id) 
+                        ? new Dictionary<int, int>
+                        {
+                            { 0, 0 },
+                            { 1, userTopicDict[t.Id].Level == 1 ? t.Vocabularies.Count : 0 },
+                            { 2, userTopicDict[t.Id].Level == 2 ? t.Vocabularies.Count : 0 },
+                            { 3, userTopicDict[t.Id].Level == 3 ? t.Vocabularies.Count : 0 },
+                            { 4, userTopicDict[t.Id].Level == 4 ? t.Vocabularies.Count : 0 },
+                            { 5, userTopicDict[t.Id].Level == 5 ? t.Vocabularies.Count : 0 }
+                        }
+                        : new Dictionary<int, int> { { 0, t.Vocabularies.Count } },
                 
                 // Can review now?
-                CanReviewNow = userId == 0 ? false : t.Vocabularies
-                    .Any(v => v.UserVocabularies.Any(uv => uv.UserId == userId && uv.NextReviewAt <= now && uv.Status < 3)),
+                CanReviewNow = userId == 0 ? false : 
+                    userTopicDict.ContainsKey(t.Id) 
+                        ? userTopicDict[t.Id].NextReviewAt <= now && userTopicDict[t.Id].Status < 3 
+                        : false,
                 
                 // Time until ready - tính bên ngoài query
                 TimeUntilReady = ""
@@ -131,47 +143,56 @@ public class VocabularyController : ControllerBase
     }
 
     /// <summary>
-    /// Submit test results và cập nhật vocabulary levels
+    /// Level up vocabulary khi hoàn thành topic (Test hoặc Matching Game)
     /// </summary>
-    [HttpPost("topics/{topicId}/test-results")]
+    [HttpPost("topics/{topicId}/level-up")]
     [Authorize]
-    public async Task<IActionResult> SubmitTestResults(
-        int topicId,
-        [FromBody] SubmitTestResultsRequest request)
+    public async Task<IActionResult> LevelUp(int topicId)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var now = DateTime.UtcNow;
 
         try
         {
-            // Lấy tất cả từ của topic này của user
-            var userVocabularies = await _context.UserVocabularies
-                .Where(uv => uv.UserId == userId && 
-                       uv.Vocabulary.TopicId == topicId)
-                .ToListAsync();
+            // Tìm hoặc tạo record cho topic này
+            var userVocab = await _context.UserVocabs
+                .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.TopicId == topicId);
 
-            // Nếu điểm >= 50% → Level up
-            if (request.Score >= 50)
+            if (userVocab == null)
             {
-                foreach (var uv in userVocabularies)
+                // Tạo mới nếu chưa có
+                userVocab = new UserVocab
                 {
-                    if (uv.Level < 5) // Không vượt quá level 5
-                    {
-                        uv.Level += 1;
-                        uv.NextReviewAt = CalculateNextReviewDate(uv.Level, true);
-                        uv.LastReviewedAt = now;
-                        uv.ReviewCount += 1;
-                    }
-                }
+                    UserId = userId,
+                    TopicId = topicId,
+                    Status = 1, // Learning
+                    Level = 1,
+                    NextReviewAt = CalculateNextReviewDate(1, true),
+                    LastReviewedAt = now,
+                    ReviewCount = 0,
+                    TotalQuestionsAnswered = 0,
+                    TotalCorrectAnswers = 0,
+                    CreatedAt = now
+                };
+                _context.UserVocabs.Add(userVocab);
+            }
+
+            // Level up nếu chưa đạt max
+            if (userVocab.Level < 5)
+            {
+                userVocab.Level += 1;
+                userVocab.NextReviewAt = CalculateNextReviewDate(userVocab.Level, true);
+                userVocab.LastReviewedAt = now;
+                userVocab.ReviewCount += 1;
             }
 
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
-                message = "Test results saved",
-                newLevel = userVocabularies.Max(uv => (int?)uv.Level) ?? 0,
-                score = request.Score
+                message = "Level up successfully",
+                newLevel = userVocab.Level,
+                topicId = topicId
             });
         }
         catch (Exception ex)
@@ -179,52 +200,95 @@ public class VocabularyController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Cập nhật số câu hỏi đã làm và câu đúng sau khi làm test
+    /// </summary>
+    [HttpPost("topics/{topicId}/update-stats")]
+    [Authorize]
+    public async Task<IActionResult> UpdateVocabStats(
+        int topicId,
+        [FromBody] UpdateVocabStatsRequest request)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var now = DateTime.UtcNow;
+
+        try
+        {
+            // Tìm record của user cho topic này
+            var userVocab = await _context.UserVocabs
+                .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.TopicId == topicId);
+
+            if (userVocab == null)
+            {
+                return NotFound(new { error = "Topic chưa được học" });
+            }
+
+            // Cộng dồn số câu hỏi và câu đúng
+            userVocab.TotalQuestionsAnswered += request.TotalQuestions;
+            userVocab.TotalCorrectAnswers += request.CorrectAnswers;
+            userVocab.LastReviewedAt = now;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Stats updated successfully",
+                totalQuestionsAnswered = userVocab.TotalQuestionsAnswered,
+                totalCorrectAnswers = userVocab.TotalCorrectAnswers,
+                accuracy = userVocab.TotalQuestionsAnswered > 0 
+                    ? Math.Round((double)userVocab.TotalCorrectAnswers / userVocab.TotalQuestionsAnswered * 100, 1)
+                    : 0
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpGet("topics/{topicId}/words")]
     public async Task<IActionResult> GetWordsByTopic(int topicId)
     {
         var userId = GetUserId();
 
-        var words = await _context.Vocabularies
-            .Where(v => v.TopicId == topicId)
-            .Include(v => v.WordFamilies) // Quan trọng: Lấy WordFamily
-            .Select(v => new VocabularyDto
-            {
-                Id = v.Id,
-                Word = v.Word,
-                Meaning = v.Meaning,
-                Pronunciation = v.Pronunciation,
-                PartOfSpeech = v.PartOfSpeech,
-                Example = v.Example,
-                ExampleTranslation = v.ExampleTranslation,
-                AudioUrl = v.AudioUrl,
-                ImageUrl = v.ImageUrl,
-                TopicId = v.TopicId,
-                
-                // Map danh sách WordFamily
-                WordFamilies = v.WordFamilies.Select(wf => new WordFamilyDto 
-                { 
-                    Word = wf.Word, 
-                    PartOfSpeech = wf.PartOfSpeech, 
-                    Meaning = wf.Meaning 
-                }).ToList(),
+        // Lấy thông tin học tập của user cho topic này (per-topic tracking)
+        var userVocab = await _context.UserVocabs
+            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.TopicId == topicId);
 
-                // Lấy trạng thái học của user (0: New, 1: Learning...)
-                Status = v.UserVocabularies
-                    .Where(uv => uv.UserId == userId)
-                    .Select(uv => uv.Status)
-                    .FirstOrDefault(),
-                
-                // Lấy level & nextReviewAt từ UserVocabulary (SRS)
-                Level = v.UserVocabularies
-                    .Where(uv => uv.UserId == userId)
-                    .Select(uv => uv.Level)
-                    .FirstOrDefault(),
-                NextReviewAt = v.UserVocabularies
-                    .Where(uv => uv.UserId == userId)
-                    .Select(uv => uv.NextReviewAt)
-                    .FirstOrDefault()
-            })
+        // Lấy words từ DB trước
+        var vocabularies = await _context.Vocabularies
+            .Where(v => v.TopicId == topicId)
+            .Include(v => v.WordFamilies)
             .ToListAsync();
+
+        // Map sang DTO trong memory (không dùng expression tree)
+        var words = vocabularies.Select(v => new VocabularyDto
+        {
+            Id = v.Id,
+            Word = v.Word,
+            Meaning = v.Meaning,
+            Pronunciation = v.Pronunciation,
+            PartOfSpeech = v.PartOfSpeech,
+            Example = v.Example,
+            ExampleTranslation = v.ExampleTranslation,
+            AudioUrl = v.AudioUrl,
+            ImageUrl = v.ImageUrl,
+            TopicId = v.TopicId,
+            
+            // Map danh sách WordFamily
+            WordFamilies = v.WordFamilies?.Select(wf => new WordFamilyDto 
+            { 
+                Word = wf.Word, 
+                PartOfSpeech = wf.PartOfSpeech, 
+                Meaning = wf.Meaning 
+            }).ToList() ?? new List<WordFamilyDto>(),
+
+            // Lấy trạng thái học từ userVocab (per-topic tracking)
+            Status = userVocab?.Status ?? 0,
+            Level = userVocab?.Level ?? 0,
+            NextReviewAt = userVocab?.NextReviewAt
+        }).ToList();
 
         return Ok(words);
     }
@@ -238,39 +302,48 @@ public class VocabularyController : ControllerBase
         var userId = GetUserId();
         var now = DateTime.UtcNow;
 
-        // 1. Lấy từ đến hạn ôn tập (Due Review)
-        var dueReviewIds = await _context.UserVocabularies
-            .Where(uv => uv.UserId == userId && uv.NextReviewAt <= now && uv.Status < 3) // Chưa Mastered
+        // 1. Lấy các topic đến hạn ôn tập (Due Review)
+        var dueReviewTopicIds = await _context.UserVocabs
+            .Where(uv => uv.UserId == userId && uv.NextReviewAt <= now && uv.Status < 3)
             .OrderBy(uv => uv.NextReviewAt)
+            .Select(uv => uv.TopicId)
             .Take(count)
-            .Select(uv => uv.VocabularyId)
             .ToListAsync();
 
-        // 2. Lấy thêm từ mới (New) nếu chưa đủ số lượng
+        // 2. Lấy từ từ các topic đến hạn
+        var dueWordIds = await _context.Vocabularies
+            .Where(v => v.TopicId.HasValue && dueReviewTopicIds.Contains(v.TopicId.Value))
+            .Select(v => v.Id)
+            .ToListAsync();
+
+        // 3. Lấy thêm từ mới (New) nếu chưa đủ số lượng
         var newWordIds = new List<int>();
-        int needed = count - dueReviewIds.Count;
+        int needed = count - dueWordIds.Count;
 
         if (needed > 0)
         {
-            var learnedIds = await _context.UserVocabularies
+            // Lấy các topic đã học
+            var learnedTopicIds = await _context.UserVocabs
                 .Where(uv => uv.UserId == userId)
-                .Select(uv => uv.VocabularyId)
+                .Select(uv => uv.TopicId)
                 .ToListAsync();
 
             var query = _context.Vocabularies.AsQueryable();
             
             if (topicId.HasValue)
                 query = query.Where(v => v.TopicId == topicId.Value);
+            else
+                // Lọc từ các topic chưa học
+                query = query.Where(v => v.TopicId.HasValue && !learnedTopicIds.Contains(v.TopicId.Value));
 
             newWordIds = await query
-                .Where(v => !learnedIds.Contains(v.Id)) // Chưa học
-                .OrderBy(v => Guid.NewGuid()) // Random
+                .OrderBy(v => Guid.NewGuid())
                 .Take(needed)
                 .Select(v => v.Id)
                 .ToListAsync();
         }
 
-        var finalIds = dueReviewIds.Concat(newWordIds).Distinct().ToList();
+        var finalIds = dueWordIds.Concat(newWordIds).Distinct().ToList();
 
         // Query lấy chi tiết
         var flashcards = await _context.Vocabularies
@@ -293,14 +366,14 @@ public class VocabularyController : ControllerBase
                 }).ToList(),
                 
                 // Set trạng thái giả lập cho UI: 2 (Review) hoặc 0 (New)
-                Status = dueReviewIds.Contains(v.Id) ? 2 : 0 
+                Status = dueWordIds.Contains(v.Id) ? 2 : 0 
             })
             .ToListAsync();
 
         // Shuffle kết quả trả về
         var shuffled = flashcards.OrderBy(x => Guid.NewGuid()).ToList();
 
-        return Ok(new { cards = shuffled, reviewCount = dueReviewIds.Count, newCount = newWordIds.Count });
+        return Ok(new { cards = shuffled, reviewCount = dueWordIds.Count, newCount = newWordIds.Count });
     }
 
    
@@ -478,10 +551,6 @@ public class VocabularyController : ControllerBase
         var vocab = await _context.Vocabularies.FindAsync(id);
         if (vocab == null) return NotFound();
 
-        // Xóa UserVocabularies liên quan trước (nếu không có Cascade DB)
-        var relatedUserVocabs = _context.UserVocabularies.Where(uv => uv.VocabularyId == id);
-        _context.UserVocabularies.RemoveRange(relatedUserVocabs);
-
         _context.Vocabularies.Remove(vocab);
         await _context.SaveChangesAsync();
         return Ok(new { message = "Xóa thành công" });
@@ -491,7 +560,7 @@ public class VocabularyController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAllVocabularies()
     {
-        await _context.UserVocabularies.ExecuteDeleteAsync();
+        await _context.UserVocabs.ExecuteDeleteAsync();
         await _context.WordFamilies.ExecuteDeleteAsync(); // Xóa bảng con trước
         await _context.Vocabularies.ExecuteDeleteAsync();
         return Ok(new { message = "Đã xóa sạch hệ thống từ vựng." });
@@ -499,4 +568,10 @@ public class VocabularyController : ControllerBase
 
     // --- CÁC HELPER CLASSES (Để ở cuối file hoặc tách ra file riêng) ---
     public class UpdateStatusRequest { public int Status { get; set; } }
+
+    public class UpdateVocabStatsRequest 
+    { 
+        public int TotalQuestions { get; set; }
+        public int CorrectAnswers { get; set; }
+    }
 }

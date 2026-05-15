@@ -18,6 +18,7 @@ interface VocabularyTestProps {
   topicId: number;
   topicTitle: string;
   onComplete?: () => void;
+  skipLevelUp?: boolean; // Nếu true, chỉ gọi onComplete mà không submit test results
 }
 
 interface TestStats {
@@ -37,6 +38,7 @@ export default function VocabularyTest({
   topicId,
   topicTitle,
   onComplete,
+  skipLevelUp = false,
 }: VocabularyTestProps) {
   const [questions, setQuestions] = useState<QuestionVocab[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -161,12 +163,20 @@ export default function VocabularyTest({
   };
 
   const submitTestResults = async (finalScore: number) => {
+    // Nếu skipLevelUp = true, chỉ gọi onComplete mà không gọi API
+    if (skipLevelUp) {
+      onComplete?.();
+      return;
+    }
     try {
-      await vocabularyService.submitTestResults(topicId, {
-        score: finalScore,
-        correctCount: stats.correctCount,
+      // Gọi levelUp và update stats
+      await vocabularyService.levelUp(topicId);
+      // Cập nhật số câu hỏi đã làm
+      await vocabularyService.updateVocabStats(topicId, {
         totalQuestions: questions.length,
+        correctAnswers: stats.correctCount
       });
+      onComplete?.();
     } catch (err) {
       console.error("Error submitting test:", err);
     }

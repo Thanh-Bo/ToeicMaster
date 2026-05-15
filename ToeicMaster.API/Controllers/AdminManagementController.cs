@@ -245,7 +245,7 @@ public class AdminManagementController : ControllerBase
                 TotalTests = u.TestAttempts.Count,
                 TotalPractice = u.PracticeSessions.Count,
                 TotalBookmarks = u.Bookmarks.Count,
-                TotalVocabulary = u.UserVocabularies.Count,
+                TotalVocabulary = u.UserVocabs.Count,
             })
             .FirstOrDefaultAsync();
 

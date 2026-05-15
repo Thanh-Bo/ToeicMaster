@@ -32,6 +32,12 @@ export default function TopicStudyPage() {
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [completedPhases, setCompletedPhases] = useState<{
+    matchingGame: boolean;
+    test: boolean;
+  }>({ matchingGame: false, test: false });
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [explanation, setExplanation] = useState<string | null>(null);
 
   // Start session when entering page
   useEffect(() => {
@@ -182,7 +188,7 @@ export default function TopicStudyPage() {
 
   const handleCheckListenWrite = () => {
     if (!userInput.trim()) {
-      setInputFeedback("Vui lòng nhập từ!");
+      toast.error("Vui lòng nhập từ trước khi kiểm tra!");
       return;
     }
     const isCorrect =
@@ -210,7 +216,7 @@ export default function TopicStudyPage() {
 
   const handleCheckFillBlank = () => {
     if (!userInput.trim()) {
-      setInputFeedback("Vui lòng nhập từ!");
+      toast.error("Vui lòng nhập từ trước khi kiểm tra!");
       return;
     }
     const isCorrect =
@@ -249,7 +255,19 @@ export default function TopicStudyPage() {
       <div className="max-w-3xl mx-auto mb-4">
         {/* Back Button */}
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            // Only show alert if user hasn't completed ANY phase yet
+            if (!completedPhases.matchingGame && !completedPhases.test) {
+              const currentLevel = words[0]?.userVocabulary?.level || 1;
+              const nextLevel = Math.min(currentLevel + 1, 5);
+              
+              if (window.confirm(`Bạn chưa hoàn thành Ghép thẻ hoặc Kiểm tra để tiến đến Giai đoạn ${nextLevel}.\n\nNhấn "OK" để thoát, "Cancel" để ở lại.`)) {
+                router.back();
+              }
+              return;
+            }
+            router.back();
+          }}
           className="flex items-center gap-2 px-2.5 py-1.5 mb-3 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
@@ -425,9 +443,15 @@ export default function TopicStudyPage() {
                       setUserInput(e.target.value);
                       setInputFeedback("");
                     }}
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        handleCheckListenWrite();
+                        if (isAnswerChecked) {
+                          // If already checked, proceed to next
+                          handleContinueAfterCheck();
+                        } else {
+                          // First time - check answer
+                          handleCheckListenWrite();
+                        }
                       }
                     }}
                     placeholder="Nhập từ ở đây..."
@@ -486,7 +510,20 @@ export default function TopicStudyPage() {
                         .map((char: string, idx: number) => {
                           const word = words[currentWordIndex].word;
                           const totalLen = word.length;
-                          const isHint = idx === 0 || idx === totalLen - 1 || idx === Math.floor(totalLen / 2);
+                          
+                          // Dynamic hint based on word length
+                          let isHint = false;
+                          if (totalLen <= 4) {
+                            // Short words: only 1 hint (first character)
+                            isHint = idx === 0;
+                          } else if (totalLen <= 6) {
+                            // Medium words: 2 hints (first and last)
+                            isHint = idx === 0 || idx === totalLen - 1;
+                          } else {
+                            // Long words: 3 hints (first, middle, last)
+                            isHint = idx === 0 || idx === totalLen - 1 || idx === Math.floor(totalLen / 2);
+                          }
+                          
                           const userChar = userInput[idx];
                           const displayChar = userChar ? userChar : isHint ? char : "";
                           const isCurrentCursor = idx === userInput.length;
@@ -521,7 +558,15 @@ export default function TopicStudyPage() {
                         setIsAnswerChecked(false);
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") handleCheckFillBlank();
+                        if (e.key === "Enter") {
+                          if (isAnswerChecked) {
+                            // If already checked, proceed to next
+                            handleContinueAfterCheck();
+                          } else {
+                            // First time - check answer
+                            handleCheckFillBlank();
+                          }
+                        }
                       }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-text"
                       autoComplete="off"
@@ -565,46 +610,74 @@ export default function TopicStudyPage() {
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="mt-4 flex gap-2.5 w-full max-w-xs px-2 md:px-0">
-              <button
-                onClick={
-                  subPhase === "FLASHCARD"
-                    ? () => {
-                        if (currentWordIndex > 0) {
-                          setCurrentWordIndex((prev) => prev - 1);
+            {/* Navigation Buttons with Word Numbers */}
+            <div className="mt-4 flex flex-col gap-3 w-full max-w-md px-2 md:px-0">
+              {/* Word Number Navigation */}
+              {subPhase === "FLASHCARD" && (
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                  {words.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCurrentWordIndex(index);
+                        setUserInput("");
+                        setInputFeedback("");
+                        setIsAnswerChecked(false);
+                      }}
+                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-all ${
+                        index === currentWordIndex
+                          ? "bg-blue-600 text-white shadow-md"
+                          : index < currentWordIndex
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex gap-2.5">
+                <button
+                  onClick={
+                    subPhase === "FLASHCARD"
+                      ? () => {
+                          if (currentWordIndex > 0) {
+                            setCurrentWordIndex((prev) => prev - 1);
+                          }
                         }
-                      }
-                    : handlePreviousSubPhase
-                }
-                disabled={subPhase === "FLASHCARD" && currentWordIndex === 0}
-                className="px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700 flex items-center justify-center gap-2"
-              >
-                <ArrowLeft size={16} />
-                Quay lại
-              </button>
-              <button
-                onClick={() => {
-                  if (subPhase === "LISTEN_WRITE") {
-                    if (isAnswerChecked) {
-                      handleContinueAfterCheck();
-                    } else {
-                      handleCheckListenWrite();
-                    }
-                  } else if (subPhase === "FILL_BLANK") {
-                    if (isAnswerChecked) {
-                      handleContinueAfterCheck();
-                    } else {
-                      handleCheckFillBlank();
-                    }
-                  } else {
-                    handleNextCard();
+                      : handlePreviousSubPhase
                   }
-                }}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-bold py-2 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all hover:shadow-lg active:scale-95"
-              >
-                Tiếp theo <ArrowRight size={16} className="hidden md:inline" />
-              </button>
+                  disabled={subPhase === "FLASHCARD" && currentWordIndex === 0}
+                  className="px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/70 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed font-bold transition-all border border-gray-300 dark:border-zinc-700 flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft size={16} />
+                  Quay lại
+                </button>
+                <button
+                  onClick={() => {
+                    if (subPhase === "LISTEN_WRITE") {
+                      if (isAnswerChecked) {
+                        handleContinueAfterCheck();
+                      } else {
+                        handleCheckListenWrite();
+                      }
+                    } else if (subPhase === "FILL_BLANK") {
+                      if (isAnswerChecked) {
+                        handleContinueAfterCheck();
+                      } else {
+                        handleCheckFillBlank();
+                      }
+                    } else {
+                      handleNextCard();
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-bold py-2 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all hover:shadow-lg active:scale-95"
+                >
+                  Tiếp theo <ArrowRight size={16} className="hidden md:inline" />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -613,8 +686,16 @@ export default function TopicStudyPage() {
           <div className="flex flex-col gap-6">
             <MatchingGame
               words={words}
-              onComplete={() => {
-                alert("Xuất sắc! Bây giờ hãy làm bài kiểm tra cuối cùng.");
+              onComplete={async () => {
+                setCompletedPhases(prev => ({ ...prev, matchingGame: true }));
+                // Level up khi hoàn thành Matching Game (OR logic - chỉ cần 1 trong 2)
+                try {
+                  await vocabularyService.levelUp(Number(topicId));
+                  toast.success("🎉 Chúc mừng! Bạn đã hoàn thành Ghép thẻ và được tăng level!");
+                } catch (error) {
+                  console.error("Error updating level:", error);
+                  toast.success("Hoàn thành Ghép thẻ!");
+                }
                 setPhase("TEST");
               }}
               onSkip={() => {
@@ -631,7 +712,18 @@ export default function TopicStudyPage() {
             <VocabularyTest
               topicId={Number(topicId)}
               topicTitle={topicTitle}
-              onComplete={() => setPhase("COMPLETED")}
+              skipLevelUp={completedPhases.matchingGame} // Skip nếu đã level up từ Matching Game
+              onComplete={async () => {
+                setCompletedPhases(prev => ({ ...prev, test: true }));
+                // Chỉ hiện toast, không cần gọi API vì đã level up từ Matching Game
+                if (completedPhases.matchingGame) {
+                  toast.success("Hoàn thành Kiểm tra!");
+                } else {
+                  // Level up từ Test (chưa làm Matching Game)
+                  toast.success("🎉 Chúc mừng! Bạn đã hoàn thành Kiểm tra và được tăng level!");
+                }
+                setPhase("COMPLETED");
+              }}
             />
           </div>
         )}

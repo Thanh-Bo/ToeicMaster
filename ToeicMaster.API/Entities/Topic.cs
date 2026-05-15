@@ -21,4 +21,7 @@ public class Topic
 
     // Quan hệ 1-n với Vocabulary
     public virtual ICollection<Vocabulary> Vocabularies { get; set; } = new List<Vocabulary>();
+
+    // Quan hệ 1-n với UserVocab (per-topic tracking)
+    public virtual ICollection<UserVocab> UserVocabs { get; set; } = new List<UserVocab>();
 }

@@ -126,7 +126,7 @@ export default function TopicCard({ topic }: Props) {
     if (topic.currentLevel === 5) {
       // Reached mastery level
       setShowConfetti(true);
-      playSound('levelup');
+      
     }
     
     prevCanReviewRef.current = topic.canReviewNow;

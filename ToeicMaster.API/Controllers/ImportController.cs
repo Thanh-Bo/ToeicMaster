@@ -190,25 +190,42 @@ public async Task<IActionResult> ImportQuestionVocabFromExcel(int topicId, IForm
 
         try
         {
-            // Lấy tất cả từ của topic này của user
-            var userVocabularies = await _context.UserVocabularies
-                .Where(uv => uv.UserId == userId &&
-                       uv.Vocabulary.TopicId == topicId)
-                .ToListAsync();
+            // Lấy record của user cho topic này (schema mới: per-topic tracking)
+            var userVocab = await _context.UserVocabs
+                .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.TopicId == topicId);
+
+            // Nếu chưa có record, tạo mới
+            if (userVocab == null)
+            {
+                userVocab = new UserVocab
+                {
+                    UserId = userId,
+                    TopicId = topicId,
+                    Level = 1,
+                    Status = 1, // Learning
+                    CreatedAt = now,
+                    NextReviewAt = now.AddDays(1)
+                };
+                _context.UserVocabs.Add(userVocab);
+            }
 
             // Nếu điểm >= 50% → Level up
             if (request.Score >= 50)
             {
-                foreach (var uv in userVocabularies)
+                if (userVocab.Level < 5) // Không vượt quá level 5
                 {
-                    if (uv.Level < 5) // Không vượt quá level 5
-                    {
-                        uv.Level += 1;
-                        uv.NextReviewAt = CalculateNextReviewDate(uv.Level, true);
-                        uv.LastReviewedAt = now;
-                        uv.ReviewCount += 1;
-                    }
+                    userVocab.Level += 1;
+                    userVocab.NextReviewAt = CalculateNextReviewDate(userVocab.Level, true);
+                    userVocab.LastReviewedAt = now;
+                    userVocab.ReviewCount += 1;
                 }
+            }
+            else
+            {
+                // Điểm < 50% → reset về level 1
+                userVocab.Level = 1;
+                userVocab.NextReviewAt = CalculateNextReviewDate(1, false);
+                userVocab.LastReviewedAt = now;
             }
            
 
@@ -217,7 +234,7 @@ public async Task<IActionResult> ImportQuestionVocabFromExcel(int topicId, IForm
             return Ok(new
             {
                 message = "Test results saved",
-                newLevel = userVocabularies.Max(uv => (int?)uv.Level) ?? 0,
+                newLevel = userVocab.Level,
                 score = request.Score
             });
         }

@@ -250,7 +250,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
   };
 
   return (
-    <div className="w-full h-[min(660px,calc(100vh-7rem))] min-h-[500px] flex flex-col overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="w-full h-[min(660px,calc(100vh-7rem))] min-h-[500px] flex flex-col overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700   ">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm p-2.5">
         <h3 className="text-center font-bold text-lg md:text-xl text-gray-700 dark:text-white flex items-center justify-center gap-2">
@@ -263,7 +263,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
       <div className="flex gap-2.5 p-2.5 overflow-hidden mx-auto w-full max-w-4xl flex-1">
         
         {/* SIDEBAR - Stats & Controls */}
-        <div className="w-40 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5 flex flex-col gap-2 overflow-y-auto">
+        <div className="w-40 flex-shrink-0 rounded-lg shadow-md p-2.5 flex flex-col gap-2 overflow-y-auto">
           
           {/* Time - Prominent */}
           <div className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/40 dark:to-purple-900/20 p-2.5 rounded-lg text-center border border-purple-200 dark:border-purple-700">

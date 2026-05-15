@@ -23,10 +23,10 @@ public class VocabularyStatsController : ControllerBase
 
     /// <summary>
     /// GET /api/v1/users/{userId}/vocabulary/stats
-    /// Get all vocabulary stats for user
+    /// Get all vocabulary stats for user with period filter
     /// </summary>
     [HttpGet("stats")]
-    public async Task<IActionResult> GetStats(int userId)
+    public async Task<IActionResult> GetStats(int userId, [FromQuery] string period = "all")
     {
         try
         {
@@ -35,29 +35,55 @@ public class VocabularyStatsController : ControllerBase
             if (currentUserId != userId)
                 return Forbid();
 
-            // Total topics learned (distinct topics with status > 0)
-            var totalTopicsLearned = await _context.UserVocabularies
-                .Where(uv => uv.UserId == userId && uv.Status > 0)
-                .Select(uv => uv.Vocabulary.TopicId)
-                .Distinct()
-                .CountAsync();
+            // Tính ngày bắt đầu dựa trên period
+            var now = DateTime.UtcNow;
+            DateTime? startDate = period.ToLower() switch
+            {
+                "week" or "7" => now.AddDays(-7),
+                "month" or "30" => now.AddDays(-30),
+                "quarter" or "90" => now.AddDays(-90),
+                "year" or "365" => now.AddDays(-365),
+                "all" or _ => (DateTime?)null
+            };
 
-            // Total vocab learned (status > 0)
-            var totalVocabLearned = await _context.UserVocabularies
-                .Where(uv => uv.UserId == userId && uv.Status > 0)
+            // Lấy topic progress của user (có thể lọc theo thời gian)
+            var userTopicQuery = _context.UserVocabs
+                .Where(uv => uv.UserId == userId && uv.Status > 0);
+            
+            if (startDate.HasValue)
+                userTopicQuery = userTopicQuery.Where(uv => uv.LastReviewedAt >= startDate.Value);
+
+            var userTopicProgress = await userTopicQuery.ToListAsync();
+
+            // Total topics learned
+            var totalTopicsLearned = userTopicProgress.Count;
+
+            // Total vocab learned = tổng số từ trong các topic đã học
+            var topicIds = userTopicProgress.Select(uv => uv.TopicId).ToList();
+            var totalVocabLearned = await _context.Vocabularies
+                .Where(v => v.TopicId.HasValue && topicIds.Contains(v.TopicId.Value))
                 .CountAsync();
 
             // Review due (NextReviewAt <= now)
-            var now = DateTime.UtcNow;
-            var reviewDue = await _context.UserVocabularies
-                .Where(uv => uv.UserId == userId && uv.NextReviewAt <= now)
-                .CountAsync();
+            var reviewDue = userTopicProgress.Count(uv => uv.NextReviewAt <= now);
 
-            // Total study time in minutes
-            var totalTimeSeconds = await _context.UserActivityVocabSessions
-                .Where(s => s.UserId == userId && s.DurationSeconds.HasValue)
+            // Total study time in minutes (có thể lọc theo thời gian)
+            var sessionQuery = _context.UserActivityVocabSessions
+                .Where(s => s.UserId == userId && s.DurationSeconds.HasValue);
+            
+            if (startDate.HasValue)
+                sessionQuery = sessionQuery.Where(s => s.StartTime >= startDate.Value);
+
+            var totalTimeSeconds = await sessionQuery
                 .SumAsync(s => (int?)s.DurationSeconds) ?? 0;
             var totalTimeMinutes = totalTimeSeconds / 60;
+
+            // Total questions answered and accuracy from UserVocabularies
+            var totalQuestionsAnswered = userTopicProgress.Sum(uv => uv.TotalQuestionsAnswered);
+            var totalCorrectAnswers = userTopicProgress.Sum(uv => uv.TotalCorrectAnswers);
+            var accuracy = totalQuestionsAnswered > 0 
+                ? Math.Round((double)totalCorrectAnswers / totalQuestionsAnswered * 100, 1) 
+                : 0;
 
             // Get streak
             var streak = await GetOrCreateStreak(userId);
@@ -68,6 +94,10 @@ public class VocabularyStatsController : ControllerBase
                 totalVocabLearned,
                 reviewDue,
                 totalTimeMinutes,
+                totalQuestionsAnswered,
+                totalCorrectAnswers,
+                accuracy,
+                period,
                 streak = new
                 {
                     current = streak.CurrentStreak,

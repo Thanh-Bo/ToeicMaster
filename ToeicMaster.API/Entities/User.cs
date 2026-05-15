@@ -47,7 +47,7 @@ public partial class User
 
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-    public virtual ICollection<UserVocabulary> UserVocabularies { get; set; } = new List<UserVocabulary>();
+    public virtual ICollection<UserVocab> UserVocabs { get; set; } = new List<UserVocab>();
 
     
 

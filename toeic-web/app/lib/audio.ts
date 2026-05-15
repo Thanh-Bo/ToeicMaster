@@ -21,7 +21,7 @@ export const playSound = (type: 'correct' | 'wrong' | 'word', word?: string) => 
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
     } else if (type === 'wrong') {
-      // Error sound - low buzz
+      // Error sound - low buzz (volume increased)
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -32,7 +32,7 @@ export const playSound = (type: 'correct' | 'wrong' | 'word', word?: string) => 
       oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
       oscillator.frequency.setValueAtTime(150, audioContext.currentTime + 0.1);
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
       
       oscillator.start(audioContext.currentTime);
@@ -41,7 +41,7 @@ export const playSound = (type: 'correct' | 'wrong' | 'word', word?: string) => 
       // Browser TTS for word pronunciation
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = 'en-US';
-      utterance.rate = 0.8;
+      utterance.rate = 1.0;
       window.speechSynthesis.speak(utterance);
     }
   } catch (error) {

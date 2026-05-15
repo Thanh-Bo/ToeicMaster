@@ -45,7 +45,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Vocabulary> Vocabularies { get; set; }
 
-    public virtual DbSet<UserVocabulary> UserVocabularies { get; set; }
+    public virtual DbSet<UserVocab> UserVocabs { get; set; }
 
     // Vocabulary stats tracking
     public virtual DbSet<UserActivityVocabSession> UserActivityVocabSessions { get; set; }
@@ -344,20 +344,22 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // UserVocabulary configuration
-        modelBuilder.Entity<UserVocabulary>(entity =>
+        // UserVocab configuration
+        modelBuilder.Entity<UserVocab>(entity =>
         {
+            entity.ToTable("UserVocab"); // Đảm bảo tên bảng không có 's'
+            
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.UserId, e.VocabularyId }).IsUnique();
+            entity.HasIndex(e => new { e.UserId, e.TopicId }).IsUnique();
 
             entity.HasOne(e => e.User)
-                .WithMany(u => u.UserVocabularies)
+                .WithMany(u => u.UserVocabs)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Vocabulary)
-                .WithMany(v => v.UserVocabularies)
-                .HasForeignKey(e => e.VocabularyId)
+            entity.HasOne(e => e.Topic)
+                .WithMany(t => t.UserVocabs)
+                .HasForeignKey(e => e.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

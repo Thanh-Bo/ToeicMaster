@@ -1,15 +1,17 @@
 "use client";
 import { useState } from 'react';
-
-import { Volume2, RotateCw, Bookmark } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Volume2, RotateCw, Bookmark, CheckCircle, Circle } from 'lucide-react';
 import { VocabWord } from '@/app/types';
 
 interface Props {
   word: VocabWord;
   onBookmark: () => void;
+  onMaster?: (isMastered: boolean) => void;
+  isMastered?: boolean;
 }
 
-export default function Flashcard({ word, onBookmark }: Props) {
+export default function Flashcard({ word, onBookmark, onMaster, isMastered }: Props) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   // Xử lý Audio (Dùng Browser Speech API nếu không có file mp3)
@@ -61,9 +63,35 @@ export default function Flashcard({ word, onBookmark }: Props) {
               <button onClick={(e) => {e.stopPropagation(); onBookmark()}} className={`p-2 rounded-full transition-all ${word.isBookmarked ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 shadow-md' : 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}>
                 <Bookmark size={18}/>
               </button>
-              <button onClick={handlePlayAudio} className="p-2 text-white bg-linear-to-br from-blue-500 to-blue-600 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg">
-                <Volume2 size={18}/>
-              </button>
+              
+              {/* Master Button - Icon only */}
+              <div className="flex items-center gap-2">
+                {onMaster && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newState = !isMastered;
+                      onMaster(newState);
+                      if (newState) {
+                        toast.success('Đã đánh dấu là đã nhớ!');
+                      } else {
+                        toast.error('Đã bỏ đánh dấu');
+                      }
+                    }}
+                    className={`p-2 rounded-full transition-all shadow-md hover:shadow-lg ${
+                      isMastered
+                        ? 'text-green-500 bg-green-100 dark:bg-green-900/30'
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                    }`}
+                    title={isMastered ? 'Đã nhớ (click để bỏ)' : 'Đánh dấu đã nhớ'}
+                  >
+                    {isMastered ? <CheckCircle size={18} /> : <Circle size={18} />}
+                  </button>
+                )}
+                <button onClick={handlePlayAudio} className="p-2 text-white bg-linear-to-br from-blue-500 to-blue-600 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg">
+                  <Volume2 size={18}/>
+                </button>
+              </div>
            </div>
 
            {/* Nghĩa & Ảnh */}
@@ -96,6 +124,7 @@ export default function Flashcard({ word, onBookmark }: Props) {
            )}
 
            
+
         </div>
 
       </div>

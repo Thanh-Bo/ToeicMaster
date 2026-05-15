@@ -79,7 +79,7 @@ public class StatisticsController : ControllerBase
             .CountAsync(b => b.UserId == userId);
 
         // Vocabulary stats (không filter)
-        var vocabStats = await _context.UserVocabularies
+        var vocabStats = await _context.UserVocabs
             .Where(uv => uv.UserId == userId)
             .GroupBy(uv => 1)
             .Select(g => new
@@ -319,7 +319,7 @@ public class StatisticsController : ControllerBase
             .Distinct()
             .ToListAsync();
 
-        var vocabDates = await _context.UserVocabularies
+        var vocabDates = await _context.UserVocabs
             .Where(uv => uv.UserId == userId && uv.LastReviewedAt != null)
             .Select(uv => uv.LastReviewedAt!.Value.Date)
             .Distinct()
@@ -393,7 +393,7 @@ public class StatisticsController : ControllerBase
         var userId = GetUserId();
 
         // Tổng quát
-        var userVocabStats = await _context.UserVocabularies
+        var userVocabStats = await _context.UserVocabs
             .Where(uv => uv.UserId == userId)
             .GroupBy(uv => 1)
             .Select(g => new
@@ -405,17 +405,16 @@ public class StatisticsController : ControllerBase
             })
             .FirstOrDefaultAsync() ?? new { TotalVocab = 0, Learned = 0, Learning = 0, NotStarted = 0 };
 
-        // Stats theo topic
-        var topicStats = await _context.Vocabularies
-            .GroupBy(v => v.TopicId)
-            .Select(g => new
+        // Stats theo topic - sửa theo schema mới (per-topic tracking)
+        var topicStats = await _context.Topics
+            .Select(t => new
             {
-                TopicId = g.Key,
-                TotalWords = g.Count(),
-                LearnedCount = _context.UserVocabularies
-                    .Count(uv => uv.UserId == userId && uv.VocabularyId == g.First().Id && uv.Status == 3),
-                LearningCount = _context.UserVocabularies
-                    .Count(uv => uv.UserId == userId && g.Select(v => v.Id).Contains(uv.VocabularyId) && uv.Status == 1)
+                TopicId = t.Id,
+                TotalWords = t.Vocabularies.Count,
+                LearnedCount = _context.UserVocabs
+                    .Count(uv => uv.UserId == userId && uv.TopicId == t.Id && uv.Status == 3),
+                LearningCount = _context.UserVocabs
+                    .Count(uv => uv.UserId == userId && uv.TopicId == t.Id && uv.Status == 1)
             })
             .ToListAsync();
 
@@ -435,7 +434,7 @@ public class StatisticsController : ControllerBase
             .FirstOrDefaultAsync();
 
         // Streak
-        var activeDates = await _context.UserVocabularies
+        var activeDates = await _context.UserVocabs
             .Where(uv => uv.UserId == userId)
             .Select(uv => uv.LastReviewedAt!.Value.Date)
             .Distinct()
@@ -463,57 +462,6 @@ public class StatisticsController : ControllerBase
                 : 0
         });
     }
-
-    /// <summary>
-    /// 2️⃣ GET /review-today - Vocabulary cần ôn tập hôm nay (SRS)
-    /// </summary>
-    [HttpGet("review-today")]
-    public async Task<IActionResult> GetReviewToday()
-    {
-        var userId = GetUserId();
-        var now = DateTime.UtcNow;
-
-        // Lấy từ vựng cần review theo SRS (Spaced Repetition System)
-        // - Review overdue (đã quá hạn)
-        // - Review due today
-        // - New words (optional, số lượng giới hạn)
-        var reviewWords = await _context.UserVocabularies
-            .Include(uv => uv.Vocabulary)
-            .Where(uv => uv.UserId == userId 
-                && uv.Status < 3  // Chưa mastered
-                && (uv.NextReviewAt == null || uv.NextReviewAt <= now))
-            .OrderBy(uv => uv.NextReviewAt)
-            .Take(20) // Tối đa 20 từ mỗi ngày
-            .Select(uv => new
-            {
-                id = uv.VocabularyId,
-                word = uv.Vocabulary.Word,
-                meaning = uv.Vocabulary.Meaning,
-                pronunciation = uv.Vocabulary.Pronunciation,
-                example = uv.Vocabulary.Example,
-                audioUrl = uv.Vocabulary.AudioUrl,
-                imageUrl = uv.Vocabulary.ImageUrl,
-                status = uv.Status,
-                nextReviewAt = uv.NextReviewAt,
-                reviewCount = uv.ReviewCount,
-                isOverdue = uv.NextReviewAt < now
-            })
-            .ToListAsync();
-
-        // Phân loại
-        var overdue = reviewWords.Where(w => w.isOverdue).Count();
-        var dueToday = reviewWords.Count() - overdue;
-
-        return Ok(new
-        {
-            totalToReview = reviewWords.Count(),
-            overdue,
-            dueToday,
-            words = reviewWords
-        });
-    }
-
-   
 }
 
 public class TestSubmissionDto

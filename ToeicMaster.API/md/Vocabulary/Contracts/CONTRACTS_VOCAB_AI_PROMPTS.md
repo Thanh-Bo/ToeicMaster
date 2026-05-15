@@ -10,24 +10,12 @@
 ## 🟢 EASY MODE - Câu hỏi Từ vựng Contracts
 
 ````
-Bạn là giáo viên TOEIC chuyên từ vựng tiếng Anh thương mại.
+Bạn là giáo viên TOEIC chuyên từ vựng tiếng Anh .
 
 NHIỆM VỤ: Tạo câu hỏi trắc nghiệm từ vựng Part 5 TOEIC.
 
-CHỦ ĐỀ: Contracts (Hợp đồng & Điều khoản) - Easy Level
+CHỦ ĐỀ: Marketing - Easy Level
 
-TỪ VỰNG TRỌNG TÂM:
-- agreement (n): thỏa thuận, hợp đồng
-- sign (v): ký tên
-- party (n): bên (tham gia hợp đồng)
-- negotiate (v): đàm phán, thương lượng
-- establish (v): thiết lập, xác lập
-- renew (v): gia hạn, làm mới
-- cancel (v): hủy bỏ
-- stipulate (v): quy định, điều khoản
-- provision (n): điều khoản, điều lệ
-- obligate (v): bắt buộc, ràng buộc
-- terminate (v): chấm dứt, kết thúc
 
 MỨC ĐỘ: easy (A2-B1)
 
@@ -39,11 +27,10 @@ YÊU CẦU CHO MỖI CÂU:
 5. Long explanation: null (để trống)
 
 QUY TẮC:
-- ✅ Tạo đúng 11 câu, mỗi câu sử dụng 1 từ trong danh sách 11 từ (mỗi từ dùng 1 lần)
+- ✅ Tạo đúng số câu tương ứng với số từ vụng , mỗi câu sử dụng 1 từ trong danh sách (mỗi từ dùng 1 lần)
 - ✅ Câu ngắn (8-15 từ), từ vựng cơ bản về hợp đồng
 - ✅ 4 đáp án có tính gây nhiễu và nó phải nằm trong từ vựng
 - ✅ **QUAN TRỌNG: Đáp án đúng phải PHÂN BỐ ĐỀU giữa A, B, C, D**
-- ✅ Thứ tự 11 từ: agreement → sign → party → negotiate → establish → renew → cancel → stipulate → provision → obligate → terminate
 
 TRẢ VỀ DẠNG CSV với 8 cột để import vào Excel (KHÔNG có markdown):
 
@@ -57,7 +44,7 @@ Content,OptionA,OptionB,OptionC,OptionD,CorrectOption,ShortExplanation,LongExpla
 
 Lưu ý:
 - Dòng đầu tiên là header (tên cột)
-- Tạo đúng 11 câu, mỗi từ trong danh sách xuất hiện đúng 1 lần
+- Tạo đúng số câu tương ứng với số từ vụng, mỗi từ trong danh sách xuất hiện đúng 1 lần
 - Đáp án đúng phân bố đều: khoảng 2-3 câu A, 2-3 câu B, 2-3 câu C, 2-3 câu D
 - Short explanation đúng format: 5 dòng, dùng <br>, đáp án đúng bọc trong <span class='highlight-correct'>, KHÔNG dùng <b>
 - LongExplanation luôn là null

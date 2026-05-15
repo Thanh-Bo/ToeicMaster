@@ -32,7 +32,6 @@ public partial class Vocabulary
     // Thêm danh sách WordFamily
     public virtual ICollection<WordFamily> WordFamilies { get; set; } = new List<WordFamily>();
 
-    public virtual ICollection<UserVocabulary> UserVocabularies { get; set; } = new List<UserVocabulary>();
     public int Difficulty { get; set; }
 
     public DateTime CreatedAt { get; set; }

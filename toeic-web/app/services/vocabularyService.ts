@@ -183,4 +183,21 @@ export const vocabularyService = {
     const response = await axiosClient.get(`/users/${userId}/vocabulary/streak`);
     return response.data;
   },
+
+  // Level up for a topic (dùng cho cả Matching Game và Test)
+  levelUp: async (topicId: number): Promise<{ message: string; newLevel: number }> => {
+    const response = await axiosClient.post(`/vocabulary/topics/${topicId}/level-up`);
+    return response.data;
+  },
+
+  // Cập nhật số câu hỏi đã làm và câu đúng
+  updateVocabStats: async (topicId: number, data: { totalQuestions: number; correctAnswers: number }): Promise<{ 
+    message: string; 
+    totalQuestionsAnswered: number; 
+    totalCorrectAnswers: number;
+    accuracy: number;
+  }> => {
+    const response = await axiosClient.post(`/vocabulary/topics/${topicId}/update-stats`, data);
+    return response.data;
+  },
 };
