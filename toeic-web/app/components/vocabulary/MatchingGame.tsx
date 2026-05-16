@@ -252,7 +252,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
   return (
     <div className="w-full h-[min(660px,calc(100vh-7rem))] min-h-[500px] flex flex-col overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700   ">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm p-2.5">
+      <div className=" border-b border-gray-200 dark:border-gray-700 shadow-sm p-2.5">
         <h3 className="text-center font-bold text-lg md:text-xl text-gray-700 dark:text-white flex items-center justify-center gap-2">
           <Gamepad2 className="w-5 h-5 text-blue-500" />
           Nối từ vựng với nghĩa đúng
@@ -263,7 +263,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
       <div className="flex gap-2.5 p-2.5 overflow-hidden mx-auto w-full max-w-4xl flex-1">
         
         {/* SIDEBAR - Stats & Controls */}
-        <div className="w-40 flex-shrink-0 rounded-lg shadow-md p-2.5 flex flex-col gap-2 overflow-y-auto">
+        <div className="w-40 flex-shrink-0 rounded-lg shadow-md p-2.5 flex flex-col gap-2 overflow-y-auto border border-gray-200 dark:border-gray-700">
           
           {/* Time - Prominent */}
           <div className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/40 dark:to-purple-900/20 p-2.5 rounded-lg text-center border border-purple-200 dark:border-purple-700">
@@ -413,7 +413,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
 
           {/* Matched Cards Display */}
           {matchedCount > 0 && (
-            <div className="mt-2.5 p-2.5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="mt-2.5 p-2.5  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
               <p className="text-[11px] font-semibold text-gray-600 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
                 <Check size={16} /> Đã ghép xong: {matchedCount}/{currentBatchSize}
               </p>

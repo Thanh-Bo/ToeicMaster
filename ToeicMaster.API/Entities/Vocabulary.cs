@@ -32,6 +32,11 @@ public partial class Vocabulary
     // Thêm danh sách WordFamily
     public virtual ICollection<WordFamily> WordFamilies { get; set; } = new List<WordFamily>();
 
+    // Collocations, Synonyms, Antonyms (JSON format)
+    public string? Collocations { get; set; }
+    public string? Synonyms { get; set; }
+    public string? Antonyms { get; set; }
+
     public int Difficulty { get; set; }
 
     public DateTime CreatedAt { get; set; }

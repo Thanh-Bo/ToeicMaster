@@ -108,20 +108,29 @@ export default function Flashcard({ word, onBookmark, onMaster, isMastered }: Pr
               <p className="text-gray-600 dark:text-gray-300 text-xs italic font-medium">{word.exampleTranslation}</p>
            </div>
 
-           {/* Word Family */}
-           {word.wordFamilies && word.wordFamilies.length > 0 && (
-             <div className="mb-4">
-               <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2"> Word Family</p>
-               <div className="space-y-1.5">
-                 {word.wordFamilies.map((wf: any, idx: number) => (
-                   <div key={idx} className="text-xs flex gap-2 p-2 rounded-lg bg-gray-50 dark:bg-zinc-700/50">
-                      <span className="font-bold text-blue-600 dark:text-blue-400 min-w-fit">{wf.word}</span>
-                      <span className="text-gray-600 dark:text-gray-400 italic">({wf.partOfSpeech || wf.type})</span>
-                   </div>
-                 ))}
+           {/* Synonyms - Từ đồng nghĩa */}
+           {(() => {
+             // Parse JSON nếu synonyms là string
+             const synonyms = typeof word.synonyms === 'string' 
+               ? (word.synonyms ? JSON.parse(word.synonyms) : [])
+               : (word.synonyms || []);
+             
+             if (synonyms.length === 0) return null;
+             
+             return (
+               <div className="mb-4">
+                 <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Từ đồng nghĩa</p>
+                 <div className="space-y-1.5">
+                   {synonyms.map((syn: any, idx: number) => (
+                     <div key={idx} className="text-xs flex gap-2 p-2 rounded-lg bg-gray-50 dark:bg-zinc-700/50">
+                        <span className="font-bold text-blue-600 dark:text-blue-400 min-w-fit">{syn.word}</span>
+                        <span className="text-gray-600 dark:text-gray-400">- {syn.meaning}</span>
+                     </div>
+                   ))}
+                 </div>
                </div>
-             </div>
-           )}
+             );
+           })()}
 
            
 

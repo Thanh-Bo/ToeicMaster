@@ -743,7 +743,7 @@ export default function TopicStudyPage() {
               href="/vocabulary"
               className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2"
             >
-              <ArrowLeft size={16} />
+              
               Về trang Từ vựng
             </a>
           </div>

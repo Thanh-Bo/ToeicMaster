@@ -31,6 +31,11 @@ namespace ToeicMaster.API.Models
         // Trả về danh sách Word Family cho mặt sau Flashcard
         public List<WordFamilyDto> WordFamilies { get; set; } = new();
 
+        // Collocations, Synonyms, Antonyms (JSON strings)
+        public string? Collocations { get; set; }
+        public string? Synonyms { get; set; }
+        public string? Antonyms { get; set; }
+
         // User Progress
         public int Status { get; set; } // 0: New, 1: Learning, 3: Mastered
         public bool IsBookmarked { get; set; } // Nếu bạn có tính năng bookmark từ vựng
@@ -70,8 +75,13 @@ namespace ToeicMaster.API.Models
         public int? TopicId { get; set; }
         public int? Difficulty { get; set; }
         public int? QuestionId { get; set; } // Optional: Link tới câu hỏi gốc
-
+        
         public List<WordFamilyDto>? WordFamilies { get; set; }
+        
+        // Thêm Collocations, Synonyms, Antonyms cho import
+        public string? Collocations { get; set; }
+        public string? Synonyms { get; set; }
+        public string? Antonyms { get; set; }
     }
 
     public class UpdateVocabularyRequest
@@ -88,8 +98,14 @@ namespace ToeicMaster.API.Models
         public int? TopicId { get; set; }
         public int? Difficulty { get; set; }
         public int? QuestionId { get; set; } // Optional: Link tới câu hỏi gốc
+        public string? Icon { get; set; }
 
         public List<WordFamilyDto>? WordFamilies { get; set; }
+        
+        // Thêm Collocations, Synonyms, Antonyms cho update
+        public string? Collocations { get; set; }
+        public string? Synonyms { get; set; }
+        public string? Antonyms { get; set; }
     }
 
     // --- 3. User Action Requests ---

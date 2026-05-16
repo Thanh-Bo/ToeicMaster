@@ -106,6 +106,95 @@ public class VocabularyController : ControllerBase
     }
 
     /// <summary>
+    /// Tạo topic mới - có thể tạo 1 hoặc nhiều topic (Admin only)
+    /// </summary>
+    [HttpPost("topics")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateTopics([FromBody] CreateTopicsRequest request)
+    {
+        try
+        {
+            // Hỗ trợ cả single topic và multiple topics
+            var topicsToCreate = request.Topics ?? new List<CreateTopicItem>();
+            
+            // Nếu chỉ gửi 1 topic (backward compatibility)
+            if (request.Title != null)
+            {
+                topicsToCreate.Add(new CreateTopicItem
+                {
+                    Title = request.Title,
+                    Level = request.Level,
+                    LevelRange = request.LevelRange,
+                    ImageUrl = request.ImageUrl
+                });
+            }
+
+            if (!topicsToCreate.Any())
+                return BadRequest(new { error = "Vui lòng cung cấp ít nhất 1 topic" });
+
+            // Validate tất cả topics
+            var errors = new List<string>();
+            var existingTitles = await _context.Topics
+                .Select(t => t.Title.ToLower())
+                .ToListAsync();
+
+            for (int i = 0; i < topicsToCreate.Count; i++)
+            {
+                var topic = topicsToCreate[i];
+                if (string.IsNullOrWhiteSpace(topic.Title))
+                {
+                    errors.Add($"Topic #{i + 1}: Tiêu đề không được để trống");
+                    continue;
+                }
+
+                if (existingTitles.Contains(topic.Title.ToLower()))
+                {
+                    errors.Add($"Topic #{i + 1}: '{topic.Title}' đã tồn tại");
+                }
+            }
+
+            if (errors.Any())
+                return BadRequest(new { error = "Validation failed", errors });
+
+            // Tạo topics
+            var createdTopics = new List<Topic>();
+            foreach (var item in topicsToCreate)
+            {
+                var topic = new Topic
+                {
+                    Title = item.Title,
+                    Level = item.Level ?? "Beginner",
+                    LevelRange = item.LevelRange ?? "0-300",
+                    ImageUrl = item.ImageUrl
+                };
+
+                _context.Topics.Add(topic);
+                createdTopics.Add(topic);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"Tạo thành công {createdTopics.Count} topic(s)",
+                count = createdTopics.Count,
+                topics = createdTopics.Select(t => new
+                {
+                    id = t.Id,
+                    title = t.Title,
+                    level = t.Level,
+                    levelRange = t.LevelRange,
+                    imageUrl = t.ImageUrl
+                })
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Helper: Tính thời gian còn lại cho countdown timer
     /// </summary>
     private string CalculateTimeRemaining(DateTime nextReviewAt)
@@ -284,11 +373,16 @@ public class VocabularyController : ControllerBase
                 Meaning = wf.Meaning 
             }).ToList() ?? new List<WordFamilyDto>(),
 
-            // Lấy trạng thái học từ userVocab (per-topic tracking)
-            Status = userVocab?.Status ?? 0,
-            Level = userVocab?.Level ?? 0,
-            NextReviewAt = userVocab?.NextReviewAt
-        }).ToList();
+                // Thêm Collocations, Synonyms, Antonyms
+                Collocations = v.Collocations,
+                Synonyms = v.Synonyms,
+                Antonyms = v.Antonyms,
+
+                // Lấy trạng thái học từ userVocab (per-topic tracking)
+                Status = userVocab?.Status ?? 0,
+                Level = userVocab?.Level ?? 0,
+                NextReviewAt = userVocab?.NextReviewAt
+            }).ToList();
 
         return Ok(words);
     }
@@ -365,6 +459,11 @@ public class VocabularyController : ControllerBase
                     Word = wf.Word, PartOfSpeech = wf.PartOfSpeech, Meaning = wf.Meaning 
                 }).ToList(),
                 
+                // Thêm Collocations, Synonyms, Antonyms
+                Collocations = v.Collocations,
+                Synonyms = v.Synonyms,
+                Antonyms = v.Antonyms,
+                
                 // Set trạng thái giả lập cho UI: 2 (Review) hoặc 0 (New)
                 Status = dueWordIds.Contains(v.Id) ? 2 : 0 
             })
@@ -422,7 +521,11 @@ public class VocabularyController : ControllerBase
                 TopicId = v.TopicId,
                 Tocpic = v.Topic != null ? v.Topic.Title : null, // Hiển thị tên Topic
                 Difficulty = v.Difficulty,
-                Icon = v.Icon
+                Icon = v.Icon,
+                // Thêm Collocations, Synonyms, Antonyms
+                Collocations = v.Collocations,
+                Synonyms = v.Synonyms,
+                Antonyms = v.Antonyms
             })
             .ToListAsync();
 
@@ -466,6 +569,10 @@ public class VocabularyController : ControllerBase
             Tocpic = vocabulary.Topic?.Title,
             Difficulty = vocabulary.Difficulty,
             Icon = vocabulary.Icon,
+            // Thêm Collocations, Synonyms, Antonyms
+            Collocations = vocabulary.Collocations,
+            Synonyms = vocabulary.Synonyms,
+            Antonyms = vocabulary.Antonyms,
             WordFamilies = vocabulary.WordFamilies.Select(wf => new WordFamilyDto
             {
                 Word = wf.Word,
@@ -480,54 +587,139 @@ public class VocabularyController : ControllerBase
    
  
 
-    [HttpPost("import")]
-    public async Task<IActionResult> ImportVocabulary([FromBody] List<AddVocabularyRequest> vocabularies)
+    [HttpPost("topic/{topicId}/import")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ImportVocabulary(
+        int topicId,
+        IFormFile file)
     {
-        if (vocabularies == null || !vocabularies.Any())
-            return BadRequest(new { error = "Danh sách trống" });
-
-        var existingWords = await _context.Vocabularies
-            .Select(v => v.Word.ToLower())
-            .ToListAsync();
-
-        var newVocabs = new List<Vocabulary>();
-
-        foreach (var v in vocabularies)
+        try
         {
-            if (string.IsNullOrEmpty(v.Word) || string.IsNullOrEmpty(v.Meaning)) continue;
-            if (existingWords.Contains(v.Word.ToLower().Trim())) continue;
+            // Validate file
+            if (file == null || file.Length == 0)
+                return BadRequest(new { error = "Vui lòng upload file Excel" });
 
-            var vocab = new Vocabulary
-            {
-                Word = v.Word.Trim(),
-                Meaning = v.Meaning.Trim(),
-                Pronunciation = v.Pronunciation,
-                PartOfSpeech = v.PartOfSpeech,
-                Example = v.Example,
-                ExampleTranslation = v.ExampleTranslation,
-                TopicId = v.TopicId,
-                Difficulty = v.Difficulty ?? 1
-            };
+            if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { error = "File phải có định dạng .xlsx" });
 
-            // Import Word Families
-            if (v.WordFamilies != null)
+            // Check if topic exists
+            var topicExists = await _context.Topics.AnyAsync(t => t.Id == topicId);
+            if (!topicExists)
+                return NotFound(new { error = "Topic không tồn tại" });
+
+            var vocabularies = new List<Vocabulary>();
+            var errors = new List<string>();
+
+            using (var stream = new MemoryStream())
             {
-                foreach(var wf in v.WordFamilies)
+                await file.CopyToAsync(stream);
+                using (var package = new OfficeOpenXml.ExcelPackage(stream))
                 {
-                    vocab.WordFamilies.Add(new WordFamily { Word = wf.Word, PartOfSpeech = wf.PartOfSpeech, Meaning = wf.Meaning });
+                    var worksheet = package.Workbook.Worksheets[0];
+                    if (worksheet == null)
+                        return BadRequest(new { error = "File Excel không có worksheet" });
+
+                    var rowCount = worksheet.Dimension?.Rows ?? 0;
+                    if (rowCount < 2)
+                        return BadRequest(new { error = "File Excel không có dữ liệu" });
+
+                    // Expected columns: Word, Meaning, Pronunciation, PartOfSpeech, Example, ExampleTranslation, AudioUrl, ImageUrl, Difficulty, Icon, Collocations, Synonyms, Antonyms
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        try
+                        {
+                            var word = worksheet.Cells[row, 1].Text?.Trim();
+                            var meaning = worksheet.Cells[row, 2].Text?.Trim();
+                            var pronunciation = worksheet.Cells[row, 3].Text?.Trim();
+                            var partOfSpeech = worksheet.Cells[row, 4].Text?.Trim();
+                            var example = worksheet.Cells[row, 5].Text?.Trim();
+                            var exampleTranslation = worksheet.Cells[row, 6].Text?.Trim();
+                            var audioUrl = worksheet.Cells[row, 7].Text?.Trim();
+                            var imageUrl = worksheet.Cells[row, 8].Text?.Trim();
+                            var difficultyText = worksheet.Cells[row, 9].Text?.Trim();
+                            var icon = worksheet.Cells[row, 10].Text?.Trim();
+                            var collocations = worksheet.Cells[row, 11].Text?.Trim();
+                            var synonyms = worksheet.Cells[row, 12].Text?.Trim();
+                            var antonyms = worksheet.Cells[row, 13].Text?.Trim();
+
+                            if (string.IsNullOrEmpty(word))
+                            {
+                                errors.Add($"Dòng {row}: Từ vựng (Word) trống");
+                                continue;
+                            }
+
+                            if (string.IsNullOrEmpty(meaning))
+                            {
+                                errors.Add($"Dòng {row}: Nghĩa (Meaning) trống");
+                                continue;
+                            }
+
+                            // Parse difficulty
+                            int difficulty = 1;
+                            if (!string.IsNullOrEmpty(difficultyText) && !int.TryParse(difficultyText, out difficulty))
+                            {
+                                difficulty = 1;
+                            }
+
+                            // Check if word already exists in this topic
+                            var existingWord = await _context.Vocabularies
+                                .AnyAsync(v => v.Word.ToLower() == word.ToLower() && v.TopicId == topicId);
+                            
+                            if (existingWord)
+                            {
+                                errors.Add($"Dòng {row}: Từ '{word}' đã tồn tại trong topic này");
+                                continue;
+                            }
+
+                            var vocab = new Vocabulary
+                            {
+                                Word = word,
+                                Meaning = meaning,
+                                Pronunciation = string.IsNullOrEmpty(pronunciation) ? null : pronunciation,
+                                PartOfSpeech = string.IsNullOrEmpty(partOfSpeech) ? null : partOfSpeech,
+                                Example = string.IsNullOrEmpty(example) ? null : example,
+                                ExampleTranslation = string.IsNullOrEmpty(exampleTranslation) ? null : exampleTranslation,
+                                AudioUrl = string.IsNullOrEmpty(audioUrl) ? null : audioUrl,
+                                ImageUrl = string.IsNullOrEmpty(imageUrl) ? null : imageUrl,
+                                TopicId = topicId,
+                                Difficulty = difficulty,
+                                Icon = string.IsNullOrEmpty(icon) ? null : icon,
+                                Collocations = string.IsNullOrEmpty(collocations) ? null : collocations,
+                                Synonyms = string.IsNullOrEmpty(synonyms) ? null : synonyms,
+                                Antonyms = string.IsNullOrEmpty(antonyms) ? null : antonyms,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            vocabularies.Add(vocab);
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add($"Dòng {row}: {ex.Message}");
+                        }
+                    }
                 }
             }
 
-            newVocabs.Add(vocab);
-        }
+            if (!vocabularies.Any())
+                return BadRequest(new { error = "Không có từ vựng hợp lệ trong file Excel", errors });
 
-        if (newVocabs.Any())
-        {
-            _context.Vocabularies.AddRange(newVocabs);
+            // Save to database
+            _context.Vocabularies.AddRange(vocabularies);
             await _context.SaveChangesAsync();
-        }
 
-        return Ok(new { message = $"Đã import {newVocabs.Count} từ vựng" });
+            return Ok(new
+            {
+                message = $"Import thành công {vocabularies.Count} từ vựng" + (errors.Any() ? $", lỗi {errors.Count} dòng" : ""),
+                topicId,
+                successCount = vocabularies.Count,
+                errorCount = errors.Count,
+                errors = errors.Any() ? errors : null
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Lỗi import từ vựng", details = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
@@ -539,7 +731,18 @@ public class VocabularyController : ControllerBase
         vocab.Word = request.Word ?? vocab.Word;
         vocab.Meaning = request.Meaning ?? vocab.Meaning;
         vocab.Example = request.Example ?? vocab.Example;
-        // ... (Map các trường khác nếu cần)
+        vocab.Pronunciation = request.Pronunciation ?? vocab.Pronunciation;
+        vocab.PartOfSpeech = request.PartOfSpeech ?? vocab.PartOfSpeech;
+        vocab.ExampleTranslation = request.ExampleTranslation ?? vocab.ExampleTranslation;
+        vocab.AudioUrl = request.AudioUrl ?? vocab.AudioUrl;
+        vocab.ImageUrl = request.ImageUrl ?? vocab.ImageUrl;
+        vocab.TopicId = request.TopicId ?? vocab.TopicId;
+        vocab.Difficulty = request.Difficulty ?? vocab.Difficulty;
+        vocab.Icon = request.Icon ?? vocab.Icon;
+        // Thêm Collocations, Synonyms, Antonyms
+        vocab.Collocations = request.Collocations ?? vocab.Collocations;
+        vocab.Synonyms = request.Synonyms ?? vocab.Synonyms;
+        vocab.Antonyms = request.Antonyms ?? vocab.Antonyms;
 
         await _context.SaveChangesAsync();
         return Ok(new { message = "Cập nhật thành công" });
@@ -554,6 +757,32 @@ public class VocabularyController : ControllerBase
         _context.Vocabularies.Remove(vocab);
         await _context.SaveChangesAsync();
         return Ok(new { message = "Xóa thành công" });
+    }
+
+    [HttpDelete("topic/{topicId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteVocabulariesByTopic(int topicId)
+    {
+        // Kiểm tra topic tồn tại
+        var topicExists = await _context.Topics.AnyAsync(t => t.Id == topicId);
+        if (!topicExists)
+            return NotFound(new { error = "Topic không tồn tại" });
+
+        // Xóa các vocabularies thuộc topic này
+        var vocabularies = await _context.Vocabularies
+            .Where(v => v.TopicId == topicId)
+            .ToListAsync();
+
+        if (!vocabularies.Any())
+            return NotFound(new { error = "Không có từ vựng nào trong topic này" });
+
+        _context.Vocabularies.RemoveRange(vocabularies);
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = $"Đã xóa {vocabularies.Count} từ vựng thuộc topic {topicId}"
+        });
     }
 
     [HttpDelete("delete-all")]
@@ -573,5 +802,25 @@ public class VocabularyController : ControllerBase
     { 
         public int TotalQuestions { get; set; }
         public int CorrectAnswers { get; set; }
+    }
+
+    public class CreateTopicItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Level { get; set; }
+        public string? LevelRange { get; set; }
+        public string? ImageUrl { get; set; }
+    }
+
+    public class CreateTopicsRequest
+    {
+        // Hỗ trợ cả single topic (backward compatibility)
+        public string? Title { get; set; }
+        public string? Level { get; set; }
+        public string? LevelRange { get; set; }
+        public string? ImageUrl { get; set; }
+        
+        // Hoặc multiple topics
+        public List<CreateTopicItem>? Topics { get; set; }
     }
 }

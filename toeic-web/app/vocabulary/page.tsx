@@ -64,37 +64,37 @@ export default function VocabularyPage() {
           { href: "/practice", label: "Practice", icon: FileText },
         ]}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Hero Section */}
-        <div className="mb-8">
-          <div className="flex items-start gap-4 mb-4">
+        <div className="mb-6">
+          <div className="flex items-start gap-3 mb-2">
             <div className="flex-1">
-              <h3 className="text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
+              <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2 leading-tight">
                 Từ Vựng TOEIC
               </h3>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-4xl leading-relaxed">
-                Phát triển vốn từ vựng chuyên sâu với các chủ đề TOEIC. Luyện tập, học flashcard và kiểm tra kiến thức
+              <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl leading-relaxed">
+                Phát triển vốn từ vựng chuyên sâu với các chủ đề TOEIC
               </p>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-gray-200 dark:border-zinc-700">
+        <div className="flex gap-3 mb-6 border-b border-gray-200 dark:border-zinc-700">
           <button
             onClick={() => setActiveTab("practice")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
               activeTab === "practice"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <Book className="w-5 h-5" />
+            <Book className="w-4 h-4" />
             Học
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
               activeTab === "progress"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
@@ -111,10 +111,10 @@ export default function VocabularyPage() {
         ) : (
           <>
             {/* Search Section */}
-            <div className="mb-12">
-              <div className="relative max-w-2xl">
+            <div className="mb-6">
+              <div className="relative max-w-xl">
                 <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -128,31 +128,31 @@ export default function VocabularyPage() {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Tìm kiếm chủ đề từ vựng..."
+                  placeholder="Tìm kiếm chủ đề..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-5 py-4 border-2 border-gray-200 dark:border-zinc-700 rounded-xl
+                  className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 dark:border-zinc-700 rounded-lg
                     bg-white dark:bg-zinc-800 text-gray-900 dark:text-white
                     placeholder-gray-500 dark:placeholder-gray-400
                     focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 transition-all
-                    text-base font-medium shadow-sm"
+                    text-sm font-medium shadow-sm"
                 />
               </div>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl backdrop-blur-sm">
-                <div className="flex items-start gap-3">
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg backdrop-blur-sm">
+                <div className="flex items-start gap-2">
                   <X
-                    size={32}
+                    size={24}
                     className="text-red-600 dark:text-red-400 flex-shrink-0"
                   />
                   <div>
-                    <h3 className="font-bold text-red-700 dark:text-red-300 mb-1">
+                    <h3 className="font-bold text-red-700 dark:text-red-300 mb-1 text-sm">
                       Lỗi tải dữ liệu
                     </h3>
-                    <p className="text-red-600 dark:text-red-400">{error}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                   </div>
                 </div>
               </div>
@@ -160,15 +160,15 @@ export default function VocabularyPage() {
 
             {/* Topics Grid */}
             {filteredTopics.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 animate-fade-in">
                 {filteredTopics.map((topic) => (
                   <TopicCard key={topic.id} topic={topic} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-24 bg-white dark:bg-zinc-800/30 backdrop-blur-sm rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
-                <div className="text-6xl mb-4">📭</div>
-                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+              <div className="text-center py-16 bg-white dark:bg-zinc-800/30 backdrop-blur-sm rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
+                <div className="text-5xl mb-3">📭</div>
+                <p className="text-gray-500 dark:text-gray-400 text-base font-medium">
                   {searchTerm
                     ? "Không tìm thấy chủ đề từ vựng phù hợp"
                     : "Chưa có chủ đề từ vựng"}
@@ -176,7 +176,7 @@ export default function VocabularyPage() {
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm("")}
-                    className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                    className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
                   >
                     Xóa tìm kiếm
                   </button>

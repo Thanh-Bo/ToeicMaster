@@ -248,6 +248,24 @@ export interface WordFamily {
   meaning?: string; // Optional
 }
 
+// 2.1 Collocation (Cụm từ hay đi với từ vựng)
+export interface Collocation {
+  phrase: string;
+  meaning: string;
+}
+
+// 2.2 Synonym (Từ đồng nghĩa)
+export interface Synonym {
+  word: string;
+  meaning: string;
+}
+
+// 2.3 Antonym (Từ trái nghĩa)
+export interface Antonym {
+  word: string;
+  meaning: string;
+}
+
 // 3. Main Vocabulary Item (Cập nhật)
 export interface VocabularyItem {
   id: number;
@@ -267,6 +285,11 @@ export interface VocabularyItem {
   
   // Quan trọng cho Flashcard mặt sau
   wordFamilies: WordFamily[]; 
+
+  // Collocations, Synonyms, Antonyms
+  collocations?: Collocation[];
+  synonyms?: Synonym[];
+  antonyms?: Antonym[];
 
   // User Progress
   status: VocabularyStatus;
