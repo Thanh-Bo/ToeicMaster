@@ -39,10 +39,33 @@ public class GrammarGroupsController : ControllerBase
     }
 
     /// <summary>
-    /// Lấy chi tiết Grammar Group theo ID
+    /// Lấy chi tiết Grammar Group theo UUID
     /// </summary>
-    [HttpGet("{id}")]
+    [HttpGet("{groupGuid:guid}")]
     [AllowAnonymous]
+    public async Task<IActionResult> GetGrammarGroupByGuid(Guid groupGuid)
+    {
+        try
+        {
+            var group = await _grammarService.GetGrammarGroupByGuidAsync(groupGuid);
+            if (group == null)
+                return NotFound(new { error = "Nhóm ngữ pháp không tồn tại" });
+
+            return Ok(group);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting grammar group {groupGuid}: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi lấy chi tiết nhóm" });
+        }
+    }
+
+#if DEBUG
+    /// <summary>
+    /// Lấy chi tiết Grammar Group theo ID (Internal - Development only)
+    /// </summary>
+    [HttpGet("internal/{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetGrammarGroupById(int id)
     {
         try
@@ -59,6 +82,7 @@ public class GrammarGroupsController : ControllerBase
             return StatusCode(500, new { error = "Lỗi lấy chi tiết nhóm" });
         }
     }
+#endif
 
     /// <summary>
     /// Tạo mới Grammar Group (Admin)

@@ -18,8 +18,8 @@ export const grammarService = {
     return response.data || [];
   },
 
-  getGroupById: async (groupId: number): Promise<any | null> => {
-    const response = await axiosClient.get(`/grammar/groups/${groupId}`);
+  getGroupById: async (groupGuid: string): Promise<any | null> => {
+    const response = await axiosClient.get(`/grammar/groups/${groupGuid}`);
     return response.data || null;
   },
 
@@ -42,13 +42,13 @@ export const grammarService = {
   // GRAMMAR TOPICS (Layer 2 - under Groups)
   // ==========================================
 
-  getTopicsByGroup: async (groupId: number): Promise<GrammarTopic[]> => {
-    const response = await axiosClient.get(`/grammar/groups/${groupId}/topics`);
+  getTopicsByGroup: async (groupGuid: string): Promise<GrammarTopic[]> => {
+    const response = await axiosClient.get(`/grammar/groups/${groupGuid}/topics`);
     return response.data || [];
   },
 
-  getTopicById: async (groupId: number, topicId: number): Promise<GrammarTopic | null> => {
-    const response = await axiosClient.get(`/grammar/groups/${groupId}/topics/${topicId}`);
+  getTopicById: async (groupGuid: string, topicGuid: string): Promise<GrammarTopic | null> => {
+    const response = await axiosClient.get(`/grammar/groups/${groupGuid}/topics/${topicGuid}`);
     return response.data || null;
   },
 

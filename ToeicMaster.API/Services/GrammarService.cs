@@ -54,6 +54,22 @@ public class GrammarService : IGrammarService
         }
     }
 
+    public async Task<GrammarGroupDto?> GetGrammarGroupByGuidAsync(Guid groupGuid)
+    {
+        try
+        {
+            var group = await _context.GrammarGroups
+                .FirstOrDefaultAsync(g => g.GroupGuid == groupGuid);
+
+            return group != null ? MapGrammarGroupToDto(group) : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting grammar group {groupGuid}: {ex.Message}");
+            return null;
+        }
+    }
+
     public async Task<GrammarGroup> CreateGrammarGroupAsync(AddGrammarGroupRequest request)
     {
         try
@@ -156,6 +172,30 @@ public class GrammarService : IGrammarService
         }
     }
 
+    public async Task<List<GrammarTopicDto>> GetGrammarsByGroupGuidAsync(Guid groupGuid, int? userId = null)
+    {
+        try
+        {
+            var group = await _context.GrammarGroups
+                .FirstOrDefaultAsync(g => g.GroupGuid == groupGuid);
+            
+            if (group == null)
+                return new List<GrammarTopicDto>();
+
+            var topics = await _context.GrammarTopics
+                .Where(t => t.GroupId == group.Id)
+                .OrderBy(t => t.Title)
+                .ToListAsync();
+
+            return topics.Select(t => MapGrammarTopicToDto(t, userId)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting grammar topics for group {groupGuid}: {ex.Message}");
+            return new List<GrammarTopicDto>();
+        }
+    }
+
     public async Task<GrammarTopicDto?> GetGrammarTopicByIdAsync(int id, int? userId = null)
     {
         try
@@ -168,6 +208,22 @@ public class GrammarService : IGrammarService
         catch (Exception ex)
         {
             _logger.LogError($"Error getting grammar topic {id}: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<GrammarTopicDto?> GetGrammarTopicByGuidAsync(Guid topicGuid, int? userId = null)
+    {
+        try
+        {
+            var topic = await _context.GrammarTopics
+                .FirstOrDefaultAsync(t => t.TopicGuid == topicGuid);
+
+            return topic != null ? MapGrammarTopicToDto(topic, userId) : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting grammar topic {topicGuid}: {ex.Message}");
             return null;
         }
     }
@@ -1213,6 +1269,7 @@ public class GrammarService : IGrammarService
         return new GrammarGroupDto
         {
             Id = group.Id,
+            GroupGuid = group.GroupGuid,
             Title = group.Title,
             Description = group.Description,
             Order = group.Order,
@@ -1269,15 +1326,21 @@ public class GrammarService : IGrammarService
                           ug.NextReviewAt <= now);
         }
 
+        // Get the group info for GroupGuid
+        var group = _context.GrammarGroups.FirstOrDefault(g => g.Id == topic.GroupId);
+
         return new GrammarTopicDto
         {
             Id = topic.Id,
+            TopicGuid = topic.TopicGuid,
             Title = topic.Title,
             Description = topic.Description,
             ImageUrl = topic.ImageUrl,
             Level = topic.Level,
             LevelRange = topic.LevelRange,
             Category = topic.Category,
+            GroupId = topic.GroupId,
+            GroupGuid = group?.GroupGuid ?? Guid.Empty,
             TotalRules = totalRules,
             LearnedRules = learnedRules,
             CurrentLevel = currentLevel,

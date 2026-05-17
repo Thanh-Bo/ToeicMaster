@@ -561,6 +561,7 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).IsRequired();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.GroupGuid).HasDefaultValueSql("NEWID()");
 
             entity.HasMany(e => e.Topics)
                 .WithOne(t => t.Group)
@@ -573,15 +574,29 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.GroupId, "IX_GrammarTopics_GroupId");
+            entity.HasIndex(e => e.TopicGuid, "IX_GrammarTopics_TopicGuid").IsUnique();
             
             entity.Property(e => e.Title).IsRequired();
             entity.Property(e => e.Level).HasDefaultValue("Basic");
             entity.Property(e => e.LevelRange).HasDefaultValue("0-450");
+            entity.Property(e => e.TopicGuid).HasDefaultValueSql("NEWID()");
 
             entity.HasOne(e => e.Group)
                 .WithMany(g => g.Topics)
                 .HasForeignKey(e => e.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Topic (Vocabulary) Configuration
+        modelBuilder.Entity<Topic>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TopicGuid, "IX_Topics_TopicGuid").IsUnique();
+            
+            entity.Property(e => e.Title).IsRequired();
+            entity.Property(e => e.Level).HasDefaultValue("Basic");
+            entity.Property(e => e.LevelRange).HasDefaultValue("0-450");
+            entity.Property(e => e.TopicGuid).HasDefaultValueSql("NEWID()");
         });
 
         OnModelCreatingPartial(modelBuilder);

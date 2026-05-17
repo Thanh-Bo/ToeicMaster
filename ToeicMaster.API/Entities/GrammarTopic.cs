@@ -6,6 +6,8 @@ public class GrammarTopic
 {
     public int Id { get; set; }
 
+    public Guid TopicGuid { get; set; } = Guid.NewGuid();
+
     public int GroupId { get; set; } // Foreign Key to GrammarGroup
 
     [Required]

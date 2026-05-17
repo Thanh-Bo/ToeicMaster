@@ -11,20 +11,19 @@ export const testService = {
     return axiosClient.get("/tests?limit=100");
   },
 
-  // 2. Lấy chi tiết đề (Cho trang thi)
-  // app/services/testService.ts
-  getTestFull: (id: number | string, parts?: string | null) => {
+  // 2. Lấy chi tiết đề (Cho trang thi) - UUID only
+  getTestFull: (testGuid: string, parts?: string | null) => {
     const url = parts
-      ? `/tests/${id}/full?parts=${parts}`
-      : `/tests/${id}/full`;
+      ? `/tests/${testGuid}/full?parts=${parts}`
+      : `/tests/${testGuid}/full`;
     return axiosClient.get(url);
   },
   // 3. Nộp bài (Sẽ dùng sau)
   submit: (data: any) => {
     return axiosClient.post("/tests/submit", data);
   },
-  getResult: (attemptId: number | string) => {
-    return axiosClient.get(`/tests/results/${attemptId}`);
+  getResult: (attemptGuid: string) => {
+    return axiosClient.get(`/tests/results/${attemptGuid}`);
   },
 
   // 4. Lấy giải thích câu hỏi

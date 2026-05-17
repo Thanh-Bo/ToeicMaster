@@ -87,7 +87,7 @@ export default function HomePage() {
         let totalVocab = 0;
         
         for (const topic of vocabTopics) {
-          const words = await vocabularyService.getWordsByTopic(topic.id);
+          const words = await vocabularyService.getWordsByTopic(topic.topicGuid);
           totalVocab += words.length;
         }
         

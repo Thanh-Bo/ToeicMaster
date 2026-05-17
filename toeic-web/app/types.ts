@@ -95,8 +95,8 @@ export interface DashboardStats {
 }
 
 export interface TestHistoryItem {
-  attemptId: number;
-  attemptGuid?: string;
+  attemptId: number;  // Internal ID (not exposed in URLs)
+  attemptGuid: string; // UUID for public URLs
   testId: number;
   testTitle: string;
   totalScore: number;
@@ -346,6 +346,7 @@ export interface Flashcard {
 
 export interface VocabularyTopic {
   id: number;
+  topicGuid: string; // UUID for public URLs
   title: string;
   level: string;
   levelRange: string;
@@ -529,6 +530,7 @@ export interface Grammar {
 
 export interface GrammarTopic {
   id: number;
+  topicGuid: string; // UUID for public URLs
   title: string;
   description?: string;
   imageUrl?: string;
@@ -543,6 +545,7 @@ export interface GrammarTopic {
   timeUntilReady: string; // "2d 3h"
   ruleCounts: Record<number, number>; // { 0: 5, 1: 3, 2: 2 }
   groupId?: number; // Optional group ID for navigation
+  groupGuid?: string; // UUID for group navigation
 }
 
 export interface QuestionGrammarAnswer {

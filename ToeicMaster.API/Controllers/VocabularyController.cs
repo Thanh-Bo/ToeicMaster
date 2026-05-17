@@ -50,6 +50,7 @@ public class VocabularyController : ControllerBase
             .Select(t => new TopicDto
             {
                 Id = t.Id,
+                TopicGuid = t.TopicGuid,
                 Title = t.Title,
                 Level = t.Level,
                 LevelRange = t.LevelRange,
@@ -336,10 +337,19 @@ public class VocabularyController : ControllerBase
         }
     }
 
-    [HttpGet("topics/{topicId}/words")]
-    public async Task<IActionResult> GetWordsByTopic(int topicId)
+    [HttpGet("topics/{topicGuid:guid}/words")]
+    public async Task<IActionResult> GetWordsByTopic(Guid topicGuid)
     {
         var userId = GetUserId();
+
+        // Find topic by GUID
+        var topic = await _context.Topics
+            .FirstOrDefaultAsync(t => t.TopicGuid == topicGuid);
+        
+        if (topic == null)
+            return NotFound(new { error = "Topic không tồn tại" });
+
+        var topicId = topic.Id;
 
         // Lấy thông tin học tập của user cho topic này (per-topic tracking)
         var userVocab = await _context.UserVocabs
@@ -386,6 +396,57 @@ public class VocabularyController : ControllerBase
 
         return Ok(words);
     }
+
+#if DEBUG
+    [HttpGet("internal/topics/{topicId:int}/words")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetWordsByTopicId(int topicId)
+    {
+        var userId = GetUserId();
+
+        // Lấy thông tin học tập của user cho topic này (per-topic tracking)
+        var userVocab = await _context.UserVocabs
+            .FirstOrDefaultAsync(uv => uv.UserId == userId && uv.TopicId == topicId);
+
+        // Lấy words từ DB trước
+        var vocabularies = await _context.Vocabularies
+            .Where(v => v.TopicId == topicId)
+            .Include(v => v.WordFamilies)
+            .ToListAsync();
+
+        // Map sang DTO trong memory (không dùng expression tree)
+        var words = vocabularies.Select(v => new VocabularyDto
+        {
+            Id = v.Id,
+            Word = v.Word,
+            Meaning = v.Meaning,
+            Pronunciation = v.Pronunciation,
+            PartOfSpeech = v.PartOfSpeech,
+            Example = v.Example,
+            ExampleTranslation = v.ExampleTranslation,
+            AudioUrl = v.AudioUrl,
+            ImageUrl = v.ImageUrl,
+            TopicId = v.TopicId,
+            
+            WordFamilies = v.WordFamilies?.Select(wf => new WordFamilyDto 
+            { 
+                Word = wf.Word, 
+                PartOfSpeech = wf.PartOfSpeech, 
+                Meaning = wf.Meaning 
+            }).ToList() ?? new List<WordFamilyDto>(),
+
+                Collocations = v.Collocations,
+                Synonyms = v.Synonyms,
+                Antonyms = v.Antonyms,
+
+                Status = userVocab?.Status ?? 0,
+                Level = userVocab?.Level ?? 0,
+                NextReviewAt = userVocab?.NextReviewAt
+            }).ToList();
+
+        return Ok(words);
+    }
+#endif
 
     /// <summary>
     /// Lấy Flashcards ôn tập (Spaced Repetition)

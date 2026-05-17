@@ -9,8 +9,8 @@ import { Loader } from "lucide-react";
 
 export default function GrammarTopicDetailsPage() {
   const params = useParams();
-  const groupId = Number(params.groupId);
-  const topicId = Number(params.topicId);
+  const groupGuid = params.groupId as string;
+  const topicGuid = params.topicId as string;
 
   const [topic, setTopic] = useState<GrammarTopic | null>(null);
   const [rules, setRules] = useState<Grammar[]>([]);
@@ -25,24 +25,26 @@ export default function GrammarTopicDetailsPage() {
   const [selectedGrammarId, setSelectedGrammarId] = useState<number | null>(null);
 
   useEffect(() => {
-    loadTopicData();
-  }, [groupId, topicId]);
+    if (groupGuid && topicGuid) {
+      loadTopicData();
+    }
+  }, [groupGuid, topicGuid]);
 
   const loadTopicData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Load topic details with both groupId and topicId
-      const topicData = await grammarService.getTopicById(groupId, topicId);
+      // Load topic details using UUIDs
+      const topicData = await grammarService.getTopicById(groupGuid, topicGuid);
       if (!topicData) {
         setError("Không tìm thấy chủ đề");
         return;
       }
       setTopic(topicData);
 
-      // Load all grammar rules for this topic
-      const rulesData = await grammarService.getGrammarsByTopic(topicId);
+      // Load all grammar rules for this topic using internal topic.id
+      const rulesData = await grammarService.getGrammarsByTopic(topicData.id);
       setRules(rulesData);
 
       // Don't load questions on mount - lazy load when Practice tab is clicked
@@ -131,7 +133,7 @@ export default function GrammarTopicDetailsPage() {
   return (
     <GrammarTopicRulesList
       topicTitle={topic.title || "Không xác định"}
-      topicId={topicId}
+      topicId={topic.id}
       rules={rules}
       questionsByMode={questionsByMode}
       onLoadQuestions={loadQuestions}

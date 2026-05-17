@@ -6,6 +6,8 @@ public class Topic
 {
     public int Id { get; set; }
 
+    public Guid TopicGuid { get; set; } = Guid.NewGuid();
+
     [Required]
     public string Title { get; set; } = null!; // Ví dụ: "Contracts"
 

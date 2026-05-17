@@ -36,12 +36,33 @@ public class GrammarController : ControllerBase
     // ==========================================
 
     /// <summary>
-    /// GET /api/v1/grammar/groups/{groupId}/topics
-    /// Lấy tất cả Grammar Topics trong một Group
+    /// GET /api/v1/grammar/groups/{groupGuid}/topics
+    /// Lấy tất cả Grammar Topics trong một Group (UUID)
     /// </summary>
-    [HttpGet("{groupId}/topics")]
+    [HttpGet("{groupGuid:guid}/topics")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAllGrammarTopics(int groupId)
+    public async Task<IActionResult> GetAllGrammarTopics(Guid groupGuid)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var topics = await _grammarService.GetGrammarsByGroupGuidAsync(groupGuid, userId);
+            return Ok(topics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting grammar topics for group {groupGuid}: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi lấy danh sách chủ đề ngữ pháp" });
+        }
+    }
+
+#if DEBUG
+    /// <summary>
+    /// GET /api/v1/grammar/groups/{groupId}/topics (Internal - Development only)
+    /// </summary>
+    [HttpGet("internal/{groupId:int}/topics")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllGrammarTopicsById(int groupId)
     {
         try
         {
@@ -55,13 +76,38 @@ public class GrammarController : ControllerBase
             return StatusCode(500, new { error = "Lỗi lấy danh sách chủ đề ngữ pháp" });
         }
     }
+#endif
 
     /// <summary>
-    /// GET /api/v1/grammar/groups/{groupId}/topics/{topicId}
-    /// Lấy chi tiết Grammar Topic theo ID
+    /// GET /api/v1/grammar/groups/{groupGuid}/topics/{topicGuid}
+    /// Lấy chi tiết Grammar Topic theo UUID
     /// </summary>
-    [HttpGet("{groupId}/topics/{id}")]
+    [HttpGet("{groupGuid:guid}/topics/{topicGuid:guid}")]
     [AllowAnonymous]
+    public async Task<IActionResult> GetGrammarTopicByGuid(Guid groupGuid, Guid topicGuid)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var topic = await _grammarService.GetGrammarTopicByGuidAsync(topicGuid, userId);
+            if (topic == null)
+                return NotFound(new { error = "Chủ đề ngữ pháp không tồn tại" });
+
+            return Ok(topic);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting grammar topic {topicGuid}: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi lấy chi tiết chủ đề" });
+        }
+    }
+
+#if DEBUG
+    /// <summary>
+    /// GET /api/v1/grammar/groups/{groupId}/topics/{id} (Internal - Development only)
+    /// </summary>
+    [HttpGet("internal/{groupId:int}/topics/{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetGrammarTopicById(int groupId, int id)
     {
         try
@@ -79,6 +125,7 @@ public class GrammarController : ControllerBase
             return StatusCode(500, new { error = "Lỗi lấy chi tiết chủ đề" });
         }
     }
+#endif
 
     /// <summary>
     /// POST /api/v1/grammar/groups/{groupId}/topics

@@ -24,10 +24,10 @@ export const vocabularyService = {
     return response.data;
   },
 
-  // Lấy từ vựng của 1 Topic
-  getWordsByTopic: async (topicId: number): Promise<VocabularyItem[]> => {
+  // Lấy từ vựng của 1 Topic (UUID)
+  getWordsByTopic: async (topicGuid: string): Promise<VocabularyItem[]> => {
     const response = await axiosClient.get(
-      `/vocabulary/topics/${topicId}/words`
+      `/vocabulary/topics/${topicGuid}/words`
     );
     return response.data;
   },

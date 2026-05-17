@@ -77,7 +77,7 @@ export default function TopicStudyPage() {
   useEffect(() => {
     const fetchWords = async () => {
       try {
-        const data = await vocabularyService.getWordsByTopic(Number(topicId));
+        const data = await vocabularyService.getWordsByTopic(topicId as string);
         setWords(data);
 
         // Lấy tên topic

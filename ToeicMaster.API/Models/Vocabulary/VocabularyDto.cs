@@ -45,6 +45,7 @@ namespace ToeicMaster.API.Models
     public class TopicDto
     {
         public int Id { get; set; }
+        public Guid TopicGuid { get; set; }
         public string Title { get; set; }
         public string Level { get; set; }
         public string LevelRange { get; set; }

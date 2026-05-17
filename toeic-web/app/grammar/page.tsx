@@ -35,6 +35,7 @@ import { PageHeader } from "../components";
 
 interface GrammarGroup {
   id: number;
+  groupGuid: string; // UUID for public URLs
   title: string;
   description: string;
   order: number;
@@ -44,9 +45,9 @@ interface GrammarGroup {
 export default function GrammarHub() {
   const [groups, setGroups] = useState<GrammarGroup[]>([]);
   const [groupTopics, setGroupTopics] = useState<
-    Record<number, GrammarTopic[]>
+    Record<string, GrammarTopic[]>
   >({});
-  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"practice" | "progress">(
     "practice",
@@ -65,21 +66,26 @@ export default function GrammarHub() {
 
       // Load topics for each group and expand all by default
       if (data && data.length > 0) {
-        const topicsMap: Record<number, GrammarTopic[]> = {};
-        const expandedSet = new Set<number>();
+        const topicsMap: Record<string, GrammarTopic[]> = {};
+        const expandedSet = new Set<string>();
 
         await Promise.all(
           data.map(async (group) => {
-            expandedSet.add(group.id);
+            expandedSet.add(group.groupGuid);
             try {
-              const topics = await grammarService.getTopicsByGroup(group.id);
-              topicsMap[group.id] = topics || [];
+              const topics = await grammarService.getTopicsByGroup(group.groupGuid);
+              // Add groupGuid to each topic for navigation
+              const topicsWithGroupGuid = topics?.map(topic => ({
+                ...topic,
+                groupGuid: group.groupGuid
+              })) || [];
+              topicsMap[group.groupGuid] = topicsWithGroupGuid;
             } catch (error) {
               console.error(
-                `Error loading topics for group ${group.id}:`,
+                `Error loading topics for group ${group.groupGuid}:`,
                 error,
               );
-              topicsMap[group.id] = [];
+              topicsMap[group.groupGuid] = [];
             }
           }),
         );
@@ -94,13 +100,13 @@ export default function GrammarHub() {
     }
   };
 
-  const toggleGroup = (groupId: number) => {
+  const toggleGroup = (groupGuid: string) => {
     setExpandedGroups((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(groupId)) {
-        newSet.delete(groupId);
+      if (newSet.has(groupGuid)) {
+        newSet.delete(groupGuid);
       } else {
-        newSet.add(groupId);
+        newSet.add(groupGuid);
       }
       return newSet;
     });
@@ -236,19 +242,19 @@ export default function GrammarHub() {
             ) : (
               <div className="flex flex-col gap-6">
                 {groups.map((group) => {
-                  const isExpanded = expandedGroups.has(group.id);
-                  const topics = groupTopics[group.id] || [];
+                  const isExpanded = expandedGroups.has(group.groupGuid);
+                  const topics = groupTopics[group.groupGuid] || [];
 
                   return (
                     <div
-                      key={group.id}
+                      key={group.groupGuid}
                       className={`rounded-xl border-1 bg-white dark:bg-zinc-900 overflow-hidden ${getGroupColor(
                         group.order,
                       )}`}
                     >
                       {/* Group Header - Clickable to toggle */}
                       <button
-                        onClick={() => toggleGroup(group.id)}
+                        onClick={() => toggleGroup(group.groupGuid)}
                         className="w-full flex items-center gap-4 p-4 sm:p-6 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
                       >
                         {/* Icon */}
@@ -297,9 +303,8 @@ export default function GrammarHub() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-stretch">
                               {topics.map((topic) => (
                                 <GrammarTopicCard
-                                  key={topic.id}
+                                  key={topic.topicGuid || topic.id}
                                   topic={topic}
-                                  groupId={group.id}
                                 />
                               ))}
                             </div>

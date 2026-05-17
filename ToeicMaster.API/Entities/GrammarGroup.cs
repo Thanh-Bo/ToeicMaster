@@ -6,6 +6,8 @@ public class GrammarGroup
 {
     public int Id { get; set; }
 
+    public Guid GroupGuid { get; set; } = Guid.NewGuid();
+
     [Required]
     public string Title { get; set; } = null!; // Ví dụ: "Nhóm 1: Từ loại & Cấu trúc cơ bản"
 

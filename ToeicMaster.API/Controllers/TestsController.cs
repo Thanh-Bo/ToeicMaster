@@ -88,23 +88,34 @@ namespace ToeicMaster.API.Controllers
             }
         }
 
-        [HttpGet("{idOrGuid}/full")]
-        public async Task<IActionResult> GetTestFull(string idOrGuid, [FromQuery] string? parts = null)
+        // Public endpoint - UUID only
+        [HttpGet("{testGuid:guid}/full")]
+        public async Task<IActionResult> GetTestFull(Guid testGuid, [FromQuery] string? parts = null)
         {
-            // Resolve testId: accept either integer ID or UUID
-            int id;
-            if (Guid.TryParse(idOrGuid, out var testGuid))
-            {
-                var test = await _efContext.Tests.FirstOrDefaultAsync(t => t.TestGuid == testGuid);
-                if (test == null)
-                    return NotFound(new { message = "Không tìm thấy đề thi." });
-                id = test.Id;
-            }
-            else if (!int.TryParse(idOrGuid, out id))
-            {
-                return BadRequest(new { message = "ID không hợp lệ." });
-            }
+            var test = await _efContext.Tests.FirstOrDefaultAsync(t => t.TestGuid == testGuid);
+            if (test == null)
+                return NotFound(new { message = "Không tìm thấy đề thi." });
 
+            return await BuildTestFullDataAsync(test.Id, parts);
+        }
+
+#if DEBUG
+        // Internal endpoint for testing - Development only
+        [HttpGet("internal/tests/{id:int}/full")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetTestFullById(int id, [FromQuery] string? parts = null)
+        {
+            var test = await _efContext.Tests.FirstOrDefaultAsync(t => t.Id == id);
+            if (test == null)
+                return NotFound(new { message = "Không tìm thấy đề thi." });
+
+            return await BuildTestFullDataAsync(id, parts);
+        }
+#endif
+
+        // Shared method to build test full data
+        private async Task<IActionResult> BuildTestFullDataAsync(int testId, string? parts)
+        {
             // 1. Phân tách chuỗi "1,2,5" thành danh sách số nguyên [1, 2, 5]
             List<int> partNumbers = new List<int>();
             if (!string.IsNullOrEmpty(parts))
@@ -125,10 +136,8 @@ namespace ToeicMaster.API.Controllers
             }
 
             // 2. Tạo Cache Key động dựa trên danh sách Part để tránh lấy nhầm dữ liệu
-            // Nếu không truyền parts, cache key là test_full_10
-            // Nếu truyền parts=1,2, cache key là test_full_10_p1,2
             string cacheKey =
-                $"test_full_{id}" + (partNumbers.Any() ? $"_p{string.Join(",", partNumbers)}" : "");
+                $"test_full_{testId}" + (partNumbers.Any() ? $"_p{string.Join(",", partNumbers)}" : "");
 
             if (_cache.TryGetValue(cacheKey, out TestDetailDto? cachedData))
                 return Ok(new { success = true, data = cachedData });
@@ -148,7 +157,6 @@ namespace ToeicMaster.API.Controllers
         JOIN Answers a ON q.Id = a.QuestionId
         WHERE t.Id = @Id ";
 
-            // Thêm điều kiện lọc PartNumber vào SQL nếu có yêu cầu
             if (partNumbers.Any())
             {
                 sql += " AND p.PartNumber IN @PartNumbers ";
@@ -158,17 +166,16 @@ namespace ToeicMaster.API.Controllers
 
             using (var connection = _dapperContext.CreateConnection())
             {
-                // Truyền tham số PartNumbers vào Dapper
                 var flatData = await connection.QueryAsync<dynamic>(
                     sql,
-                    new { Id = id, PartNumbers = partNumbers }
+                    new { Id = testId, PartNumbers = partNumbers }
                 );
 
                 if (!flatData.Any())
                     return NotFound(new { message = "Không tìm thấy nội dung phù hợp" });
 
                 var firstRow = flatData.First();
-                int resolvedTestId = (int)firstRow.TestId; // extract from dynamic before using in LINQ
+                int resolvedTestId = (int)firstRow.TestId;
                 var testGuidValue = await _efContext.Tests
                     .Where(t => t.Id == resolvedTestId)
                     .Select(t => t.TestGuid)
@@ -186,7 +193,6 @@ namespace ToeicMaster.API.Controllers
                         {
                             Id = gPart.Key,
                             Name = gPart.First().PartName,
-                            // Chú ý mapping thêm PartNumber nếu DTO của bạn có trường này
                             Groups = gPart
                                 .GroupBy(r => r.GroupId)
                                 .Select(gGroup => new GroupDto
@@ -312,35 +318,47 @@ namespace ToeicMaster.API.Controllers
             );
         }
 
-        // 4. GET RESULT
-        [HttpGet("results/{attemptIdOrGuid}")]
+        // 4. GET RESULT - Public endpoint (UUID only)
+        [HttpGet("results/{attemptGuid:guid}")]
         [Authorize]
-        public async Task<IActionResult> GetTestResult(string attemptIdOrGuid)
+        public async Task<IActionResult> GetTestResult(Guid attemptGuid)
         {
-            TestAttempt? attempt = null;
-            
-            // Try parsing as Guid first (new way)
-            if (Guid.TryParse(attemptIdOrGuid, out var guid))
-            {
-                attempt = await _efContext
-                    .TestAttempts.Include(t => t.Test)
-                    .FirstOrDefaultAsync(a => a.AttemptGuid == guid);
-            }
-            // Fallback to int (legacy support)
-            else if (int.TryParse(attemptIdOrGuid, out var id))
-            {
-                attempt = await _efContext
-                    .TestAttempts.Include(t => t.Test)
-                    .FirstOrDefaultAsync(a => a.Id == id);
-            }
+            var attempt = await _efContext
+                .TestAttempts.Include(t => t.Test)
+                .FirstOrDefaultAsync(a => a.AttemptGuid == attemptGuid);
             
             if (attempt == null)
                 return NotFound("Không tìm thấy bài làm.");
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || attempt.UserId != int.Parse(userIdStr))
-                return Forbid();
+                return NotFound("Không tìm thấy bài làm."); // Return 404 to prevent enumeration attacks
 
+            var result = await BuildResultDataAsync(attempt);
+            return Ok(result);
+        }
+
+#if DEBUG
+        // Internal endpoint for testing (Development only)
+        [HttpGet("internal/results/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetTestResultById(int id)
+        {
+            var attempt = await _efContext
+                .TestAttempts.Include(t => t.Test)
+                .FirstOrDefaultAsync(a => a.Id == id);
+            
+            if (attempt == null)
+                return NotFound("Không tìm thấy bài làm.");
+
+            var result = await BuildResultDataAsync(attempt);
+            return Ok(result);
+        }
+#endif
+
+        // Shared method to build result data
+        private async Task<TestResultDetailDto> BuildResultDataAsync(TestAttempt attempt)
+        {
             // Lấy tất cả câu hỏi của bài thi
             var allQuestions = await _efContext
                 .Questions.Include(q => q.Answers)
@@ -356,7 +374,7 @@ namespace ToeicMaster.API.Controllers
                 .UserAnswers.Where(ua => ua.AttemptId == attempt.Id)
                 .ToDictionaryAsync(ua => ua.QuestionId, ua => ua);
 
-            var result = new TestResultDetailDto
+            return new TestResultDetailDto
             {
                 AttemptId = attempt.Id,
                 TimeTaken = attempt.TimeTaken,
@@ -407,7 +425,6 @@ namespace ToeicMaster.API.Controllers
                     })
                     .ToList(),
             };
-            return Ok(result);
         }
 
         [HttpPost("{testId}/generate-explanations")]

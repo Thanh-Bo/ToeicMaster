@@ -12,8 +12,10 @@ interface GrammarTopicCardProps {
 }
 
 export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps) {
-  const defaultHref = groupId 
-    ? `/grammar/groups/${groupId}/topics/${topic.id}` 
+  const defaultHref = topic.groupGuid && topic.topicGuid
+    ? `/grammar/groups/${topic.groupGuid}/topics/${topic.topicGuid}`
+    : topic.groupGuid
+    ? `/grammar/groups/${topic.groupGuid}/topics/${topic.id}`
     : `/grammar/topics/${topic.id}`;
   const finalHref = href || defaultHref;
   const router = useRouter();

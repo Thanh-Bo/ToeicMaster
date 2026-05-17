@@ -56,12 +56,15 @@ namespace ToeicMaster.API.Models
     public class GrammarTopicDto
     {
         public int Id { get; set; }
+        public Guid TopicGuid { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public string? Level { get; set; }
         public string? LevelRange { get; set; }
         public string? Category { get; set; }
+        public int GroupId { get; set; }
+        public Guid GroupGuid { get; set; }
 
         // Progress tracking
         public int TotalRules { get; set; }
@@ -79,6 +82,7 @@ namespace ToeicMaster.API.Models
     public class GrammarGroupDto
     {
         public int Id { get; set; }
+        public Guid GroupGuid { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         public int Order { get; set; }

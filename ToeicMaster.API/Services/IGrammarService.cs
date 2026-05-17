@@ -11,6 +11,7 @@ public interface IGrammarService
     // ==========================================
     Task<List<GrammarGroupDto>> GetAllGrammarGroupsAsync();
     Task<GrammarGroupDto?> GetGrammarGroupByIdAsync(int id);
+    Task<GrammarGroupDto?> GetGrammarGroupByGuidAsync(Guid groupGuid);
     Task<GrammarGroup> CreateGrammarGroupAsync(AddGrammarGroupRequest request);
     Task<GrammarGroup?> UpdateGrammarGroupAsync(int id, UpdateGrammarGroupRequest request);
     Task<bool> DeleteGrammarGroupAsync(int id);
@@ -20,7 +21,9 @@ public interface IGrammarService
     // ==========================================
     Task<List<GrammarTopicDto>> GetAllGrammarTopicsAsync(int? userId = null);
     Task<List<GrammarTopicDto>> GetGrammarsByGroupIdAsync(int groupId, int? userId = null);
+    Task<List<GrammarTopicDto>> GetGrammarsByGroupGuidAsync(Guid groupGuid, int? userId = null);
     Task<GrammarTopicDto?> GetGrammarTopicByIdAsync(int id, int? userId = null);
+    Task<GrammarTopicDto?> GetGrammarTopicByGuidAsync(Guid topicGuid, int? userId = null);
     Task<GrammarTopic> CreateGrammarTopicAsync(int groupId, AddGrammarTopicRequest request);
     Task<List<GrammarTopic>> CreateGrammarTopicsAsync(int groupId, List<AddGrammarTopicRequest> requests);
     Task<GrammarTopic?> UpdateGrammarTopicAsync(int id, UpdateGrammarTopicRequest request);

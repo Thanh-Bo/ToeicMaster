@@ -281,7 +281,7 @@ export default function HistoryTab() {
 
                         {/* Right - Action */}
                         <Link
-                          href={`/results/${item.attemptGuid ?? item.attemptId}`}
+                          href={`/results/${item.attemptGuid}`}
                           className="inline-flex items-center justify-center gap-1.5 px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium text-sm hover:opacity-90 transition w-full md:w-auto"
                         >
                           <Eye className="w-4 h-4" />

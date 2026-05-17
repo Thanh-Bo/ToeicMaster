@@ -18,26 +18,28 @@ interface GrammarGroup {
 export default function GroupDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const groupId = parseInt(params.groupId as string);
+  const groupGuid = params.groupId as string;
 
   const [group, setGroup] = useState<GrammarGroup | null>(null);
   const [topics, setTopics] = useState<GrammarTopic[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadGroupAndTopics();
-  }, [groupId]);
+    if (groupGuid) {
+      loadGroupAndTopics();
+    }
+  }, [groupGuid]);
 
   const loadGroupAndTopics = async () => {
     try {
       setLoading(true);
       
-      // Load group details
-      const groupData = await grammarService.getGroupById(groupId);
+      // Load group details using UUID
+      const groupData = await grammarService.getGroupById(groupGuid);
       setGroup(groupData);
 
-      // Load topics for this group
-      const topicsData = await grammarService.getTopicsByGroup(groupId);
+      // Load topics for this group using UUID
+      const topicsData = await grammarService.getTopicsByGroup(groupGuid);
       setTopics(topicsData || []);
     } catch (error) {
       console.error("Error loading group details:", error);
@@ -152,8 +154,8 @@ export default function GroupDetailPage() {
               return (
                 <Link
                   key={topic.id}
-                  href={`/grammar/groups/${groupId}/topics/${topic.id}`}
-                  className="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border-1 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                  href={`/grammar/groups/${groupGuid}/topics/${topic.topicGuid || topic.id}`}
+                  className="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 cursor-pointer"
                 >
                   {/* Image */}
                   {topic.imageUrl && (
