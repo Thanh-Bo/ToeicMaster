@@ -2,8 +2,38 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 import { 
-  PlayCircle, Award, FileText, Megaphone, CheckCircle, BarChart3, 
-  Mic2, Plane, DollarSign, Building2, Users, Presentation, Book, Clock, Zap, X, Check
+  FileSignature,
+  Megaphone,
+  ShieldCheck,
+  BriefcaseBusiness,
+  MicVocal,
+  Plane,
+  Landmark,
+  Building2,
+  UserRoundSearch,
+  Presentation,
+  FlaskConical,
+  Truck,
+  Headphones,
+  BadgeCheck,
+  Globe2,
+  Boxes,
+  MessagesSquare,
+  ClipboardList,
+  Handshake,
+  Search,
+  ShoppingCart,
+  Calculator,
+  Shield,
+  Home,
+  Factory,
+  HeartPulse,
+  Scale,
+  UtensilsCrossed,
+  Package,
+  Laptop,Clock, Zap, X, Check,
+  Award,
+  PlayCircle
 } from 'lucide-react';
 
 interface Props {
@@ -177,32 +207,252 @@ export default function TopicCard({ topic }: Props) {
 
   // Map topic IDs or description to icons
   const iconMap: Record<string, React.ReactNode> = {
-    FileText: <FileText size={32} className="text-blue-600 dark:text-blue-400" />,
-    Megaphone: <Megaphone size={32} className="text-orange-600 dark:text-orange-400" />,
-    CheckCircle: <CheckCircle size={32} className="text-green-600 dark:text-green-400" />,
-    BarChart3: <BarChart3 size={32} className="text-purple-600 dark:text-purple-400" />,
-    Mic2: <Mic2 size={32} className="text-pink-600 dark:text-pink-400" />,
-    Plane: <Plane size={32} className="text-sky-600 dark:text-sky-400" />,
-    DollarSign: <DollarSign size={32} className="text-emerald-600 dark:text-emerald-400" />,
-    Building2: <Building2 size={32} className="text-gray-600 dark:text-gray-400" />,
-    Users: <Users size={32} className="text-indigo-600 dark:text-indigo-400" />,
-    Presentation: <Presentation size={32} className="text-red-600 dark:text-red-400" />,
-    Book: <Book size={32} className="text-slate-600 dark:text-slate-400" />,
-  };
+  FileSignature: (
+    <FileSignature
+      size={32}
+      className="text-blue-600 dark:text-blue-400"
+    />
+  ),
+
+  Megaphone: (
+    <Megaphone
+      size={32}
+      className="text-orange-600 dark:text-orange-400"
+    />
+  ),
+
+  ShieldCheck: (
+    <ShieldCheck
+      size={32}
+      className="text-green-600 dark:text-green-400"
+    />
+  ),
+
+  BriefcaseBusiness: (
+    <BriefcaseBusiness
+      size={32}
+      className="text-purple-600 dark:text-purple-400"
+    />
+  ),
+
+  MicVocal: (
+    <MicVocal
+      size={32}
+      className="text-pink-600 dark:text-pink-400"
+    />
+  ),
+
+  Plane: (
+    <Plane
+      size={32}
+      className="text-sky-600 dark:text-sky-400"
+    />
+  ),
+
+  Landmark: (
+    <Landmark
+      size={32}
+      className="text-emerald-600 dark:text-emerald-400"
+    />
+  ),
+
+  Building2: (
+    <Building2
+      size={32}
+      className="text-gray-600 dark:text-gray-400"
+    />
+  ),
+
+  UserRoundSearch: (
+    <UserRoundSearch
+      size={32}
+      className="text-indigo-600 dark:text-indigo-400"
+    />
+  ),
+
+  Presentation: (
+    <Presentation
+      size={32}
+      className="text-red-600 dark:text-red-400"
+    />
+  ),
+
+  FlaskConical: (
+    <FlaskConical
+      size={32}
+      className="text-pink-600 dark:text-pink-400"
+    />
+  ),
+
+  Truck: (
+    <Truck
+      size={32}
+      className="text-amber-600 dark:text-amber-400"
+    />
+  ),
+
+  Headphones: (
+    <Headphones
+      size={32}
+      className="text-cyan-600 dark:text-cyan-400"
+    />
+  ),
+
+  BadgeCheck: (
+    <BadgeCheck
+      size={32}
+      className="text-lime-600 dark:text-lime-400"
+    />
+  ),
+
+  Globe2: (
+    <Globe2
+      size={32}
+      className="text-teal-600 dark:text-teal-400"
+    />
+  ),
+
+  Boxes: (
+    <Boxes
+      size={32}
+      className="text-yellow-700 dark:text-yellow-400"
+    />
+  ),
+
+  MessagesSquare: (
+    <MessagesSquare
+      size={32}
+      className="text-violet-600 dark:text-violet-400"
+    />
+  ),
+
+  ClipboardList: (
+    <ClipboardList
+      size={32}
+      className="text-fuchsia-600 dark:text-fuchsia-400"
+    />
+  ),
+
+  Handshake: (
+    <Handshake
+      size={32}
+      className="text-rose-600 dark:text-rose-400"
+    />
+  ),
+
+  Search: (
+    <Search
+      size={32}
+      className="text-blue-500 dark:text-blue-300"
+    />
+  ),
+
+  ShoppingCart: (
+    <ShoppingCart
+      size={32}
+      className="text-green-500 dark:text-green-300"
+    />
+  ),
+
+  Calculator: (
+    <Calculator
+      size={32}
+      className="text-orange-500 dark:text-orange-300"
+    />
+  ),
+
+  Shield: (
+    <Shield
+      size={32}
+      className="text-red-500 dark:text-red-300"
+    />
+  ),
+
+  Home: (
+    <Home
+      size={32}
+      className="text-stone-600 dark:text-stone-400"
+    />
+  ),
+
+  Factory: (
+    <Factory
+      size={32}
+      className="text-zinc-700 dark:text-zinc-400"
+    />
+  ),
+
+  HeartPulse: (
+    <HeartPulse
+      size={32}
+      className="text-pink-500 dark:text-pink-300"
+    />
+  ),
+
+  Scale: (
+    <Scale
+      size={32}
+      className="text-neutral-700 dark:text-neutral-300"
+    />
+  ),
+
+  UtensilsCrossed: (
+    <UtensilsCrossed
+      size={32}
+      className="text-yellow-600 dark:text-yellow-300"
+    />
+  ),
+
+  Package: (
+    <Package
+      size={32}
+      className="text-orange-700 dark:text-orange-400"
+    />
+  ),
+
+  Laptop: (
+    <Laptop
+      size={32}
+      className="text-cyan-700 dark:text-cyan-300"
+    />
+  ),
+};
+
 
   // Try to get icon from description first, fall back to topic ID-based assignment
   const iconsByTopicId: Record<number, string> = {
-    1: 'FileText',       // Office & General
-    2: 'Megaphone',      // Marketing & Communications
-    3: 'CheckCircle',    // Meetings & Planning
-    4: 'BarChart3',      // Finance & Reports
-    5: 'DollarSign',     // Banking & Money
-    6: 'Building2',      // Office & Management
-    7: 'Users',          // HR & Personnel
-    8: 'Presentation',   // Presentations
-    9: 'Plane',          // Travel & Tourism
-    10: 'Book',          // General Education
-  };
+  1: 'FileSignature',     // Contracts
+  2: 'Megaphone',         // Marketing
+  3: 'ShieldCheck',       // Warranties
+  4: 'BriefcaseBusiness', // Business Planning
+  5: 'MicVocal',          // Conferences
+  6: 'Plane',             // Travel & Tourism
+  7: 'Landmark',          // Banking & Finance
+  8: 'Building2',         // Office & Management
+  9: 'UserRoundSearch',   // Hiring & HR
+  10: 'Presentation',     // Meetings & Presentations
+
+  11: 'FlaskConical',     // Product Development
+  12: 'Truck',            // Supply Chain & Logistics
+  13: 'Headphones',       // Customer Service
+  14: 'BadgeCheck',       // Quality Control
+  15: 'Globe2',           // International Trade
+  16: 'Boxes',            // Inventory Management
+  17: 'MessagesSquare',   // Corporate Communications
+  18: 'ClipboardList',    // Project Management
+  19: 'Handshake',        // Sales & Negotiation
+  20: 'Search',           // Market Research
+  21: 'ShoppingCart',     // E-commerce & Digital
+  22: 'Calculator',       // Accounting & Auditing
+  23: 'Shield',           // Insurance & Risk
+  24: 'Home',             // Real Estate
+  25: 'Factory',          // Manufacturing
+  26: 'HeartPulse',       // Healthcare Business
+  27: 'Scale',            // Legal & Compliance
+  28: 'UtensilsCrossed',  // Restaurant & Hospitality
+  29: 'Package',          // Shipping & Delivery
+  30: 'Laptop',           // Technology & IT
+};
 
   const iconName = iconNameFromDesc || iconsByTopicId[topic.id] || 'Book';
   const icon = iconMap[iconName] || iconMap['Book'];

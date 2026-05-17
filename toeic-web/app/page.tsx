@@ -30,6 +30,7 @@ export default function HomePage() {
   const [testCount, setTestCount] = useState<number | null>(null);
   const [grammarTopicsCount, setGrammarTopicsCount] = useState<number | null>(null);
   const [grammarQuestionsCount, setGrammarQuestionsCount] = useState<number | null>(null);
+  const [vocabTopicsCount, setVocabTopicsCount] = useState<number | null>(null);
   const [vocabCount, setVocabCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -81,6 +82,8 @@ export default function HomePage() {
       try {
         // Fetch vocabulary topics and count total words
         const vocabTopics = await vocabularyService.getTopics();
+        setVocabTopicsCount(vocabTopics.length);
+        
         let totalVocab = 0;
         
         for (const topic of vocabTopics) {
@@ -90,6 +93,7 @@ export default function HomePage() {
         
         setVocabCount(totalVocab);
       } catch {
+        setVocabTopicsCount(null);
         setVocabCount(null);
       }
     };
@@ -115,6 +119,11 @@ export default function HomePage() {
     },
     {
       icon: <ALargeSmall className="w-5 h-5" />,
+      value: vocabTopicsCount !== null ? `${vocabTopicsCount}+` : "...",
+      label: "Chủ đề Từ vựng",
+    },
+    {
+      icon: <BookOpen className="w-5 h-5" />,
       value: vocabCount !== null ? `${vocabCount}+` : "...",
       label: "Từ vựng",
     },

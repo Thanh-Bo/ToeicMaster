@@ -1,4 +1,4 @@
-Tạo 12 từ vựng TOEIC chủ đề Market Research với định dạng **CSV** để import vào Excel:
+Tạo 12 từ vựng TOEIC chủ đề Technology & IT với định dạng **CSV** để import vào Excel:
 
 Yêu cầu:
 - Level: Intermediate (450-700)

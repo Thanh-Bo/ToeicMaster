@@ -4,7 +4,7 @@ Bạn là giáo viên TOEIC chuyên từ vựng tiếng Anh.
 NHIỆM VỤ:
 Tạo câu hỏi trắc nghiệm từ vựng Part 5 TOEIC.
 
-CHỦ ĐỀ: Market Research  - Easy Level
+CHỦ ĐỀ:  Technology & IT    - Easy Level
 
 MỨC ĐỘ: easy (A2-B1)
 

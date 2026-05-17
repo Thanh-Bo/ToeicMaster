@@ -17,6 +17,7 @@ export default function VocabularyPage() {
   const [error, setError] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"practice" | "progress">("practice");
+  const [selectedLevel, setSelectedLevel] = useState<"all" | "basic" | "intermediate" | "advanced">("all");
 
   useEffect(() => {
     fetchTopics();
@@ -35,9 +36,11 @@ export default function VocabularyPage() {
     }
   };
 
-  const filteredTopics = topics.filter((topic) =>
-    topic.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredTopics = topics.filter((topic) => {
+    const matchesSearch = topic.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLevel = selectedLevel === "all" || topic.level.toLowerCase() === selectedLevel;
+    return matchesSearch && matchesLevel;
+  });
 
   if (loading) {
     return (
@@ -110,33 +113,64 @@ export default function VocabularyPage() {
           <VocabularyProgressTab />
         ) : (
           <>
-            {/* Search Section */}
+            {/* Search Section with Level Filter */}
             <div className="mb-6">
-              <div className="relative max-w-xl">
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                {/* Search Box */}
+                <div className="relative max-w-md w-full">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm chủ đề..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 dark:border-zinc-700 rounded-lg
+                      bg-white dark:bg-zinc-800 text-gray-900 dark:text-white
+                      placeholder-gray-500 dark:placeholder-gray-400
+                      focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 transition-all
+                      text-sm font-medium shadow-sm"
                   />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm chủ đề..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 dark:border-zinc-700 rounded-lg
-                    bg-white dark:bg-zinc-800 text-gray-900 dark:text-white
-                    placeholder-gray-500 dark:placeholder-gray-400
-                    focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 transition-all
-                    text-sm font-medium shadow-sm"
-                />
+                </div>
+
+                {/* Level Filter Buttons */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { key: "all", label: "Tất cả", color: "gray" },
+                    { key: "basic", label: "Basic", color: "emerald" },
+                    { key: "intermediate", label: "Intermediate", color: "blue" },
+                    { key: "advanced", label: "Advanced", color: "purple" },
+                  ].map((filter) => (
+                    <button
+                      key={filter.key}
+                      onClick={() => setSelectedLevel(filter.key as typeof selectedLevel)}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                        selectedLevel === filter.key
+                          ? filter.color === "gray"
+                            ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 shadow-md"
+                            : filter.color === "emerald"
+                            ? "bg-emerald-600 text-white dark:bg-emerald-500 shadow-md"
+                            : filter.color === "blue"
+                            ? "bg-blue-600 text-white dark:bg-blue-500 shadow-md"
+                            : "bg-purple-600 text-white dark:bg-purple-500 shadow-md"
+                          : `bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700 hover:shadow-sm`
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
