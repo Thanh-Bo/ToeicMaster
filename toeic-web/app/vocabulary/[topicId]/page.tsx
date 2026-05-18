@@ -38,6 +38,7 @@ export default function TopicStudyPage() {
   }>({ matchingGame: false, test: false });
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Start session when entering page
   useEffect(() => {
@@ -250,23 +251,23 @@ export default function TopicStudyPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 p-2 md:p-4">
       {/* Header Section */}
       <div className="max-w-3xl mx-auto mb-4">
         {/* Back Button */}
         <button
           onClick={() => {
-            // Only show alert if user hasn't completed ANY phase yet
-            if (!completedPhases.matchingGame && !completedPhases.test) {
-              const currentLevel = words[0]?.userVocabulary?.level || 1;
-              const nextLevel = Math.min(currentLevel + 1, 5);
-              
-              if (window.confirm(`Bạn chưa hoàn thành Ghép thẻ hoặc Kiểm tra để tiến đến Giai đoạn ${nextLevel}.\n\nNhấn "OK" để thoát, "Cancel" để ở lại.`)) {
-                router.back();
-              }
+            // Check if user has completed any phase
+            const hasCompletedAnyPhase = completedPhases.matchingGame || completedPhases.test;
+            
+            if (!hasCompletedAnyPhase) {
+              // Show custom modal instead of window.confirm
+              setShowExitModal(true);
               return;
             }
-            router.back();
+            // Navigate to vocabulary page
+            router.push("/vocabulary");
           }}
           className="flex items-center gap-2 px-2.5 py-1.5 mb-3 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all font-semibold group"
         >
@@ -750,5 +751,47 @@ export default function TopicStudyPage() {
         )}
       </div>
     </div>
+
+      {/* Exit Confirmation Modal - Works in all browsers */}
+      {showExitModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+            
+
+            {/* Title */}
+            <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+              Chưa hoàn thành bài học
+            </h2>
+
+            {/* Message */}
+            <p className="text-center text-gray-600 dark:text-gray-400 mb-2">
+              Bạn chưa hoàn thành Ghép thẻ hoặc Kiểm tra để tiến đến Giai đoạn tiếp theo.
+            </p>
+            <p className="text-center text-sm text-gray-500 dark:text-gray-500 mb-6">
+              Bạn có chắc chắn muốn thoát?
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowExitModal(false)}
+                className="flex-1 py-3 px-4 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white transition-all"
+              >
+                Ở lại
+              </button>
+              <button
+                onClick={() => {
+                  setShowExitModal(false);
+                  router.push("/vocabulary");
+                }}
+                className="flex-1 py-3 px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all"
+              >
+                Thoát
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
