@@ -72,10 +72,10 @@ export default function VocabularyPage() {
         <div className="mb-6">
           <div className="flex items-start gap-3 mb-2">
             <div className="flex-1">
-              <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2 leading-tight">
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2 leading-tight">
                 Từ Vựng TOEIC
               </h3>
-              <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-3xl leading-relaxed">
                 Phát triển vốn từ vựng chuyên sâu với các chủ đề TOEIC
               </p>
             </div>

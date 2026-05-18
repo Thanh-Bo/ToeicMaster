@@ -285,12 +285,12 @@ export default function TopicStudyPage() {
         {/* Progress Bar Card */}
         <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm p-3 rounded-xl shadow-md border border-gray-200 dark:border-zinc-800">
           {/* Title */}
-          <h1 className="text-base md:text-lg font-bold text-gray-900 dark:text-white mb-3">
+          <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-3 truncate">
             {topicTitle}
           </h1>
 
           {/* Process Steps */}
-          <div className="flex justify-between items-center gap-3">
+          <div className="flex justify-between items-center gap-2 sm:gap-3">
             {[
               { phase: "LEARN", number: "1", label: "Học từ", icon: BookText  },
               { phase: "PRACTICE_GAME", number: "2", label: "Ghép thẻ", icon: Gamepad2 },

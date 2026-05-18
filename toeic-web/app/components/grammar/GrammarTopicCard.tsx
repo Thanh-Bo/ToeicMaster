@@ -29,11 +29,11 @@ export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps
   return (
     <div
       onClick={handleClick}
-      className="group flex flex-col gap-4 p-6 rounded-xl border-1 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 cursor-pointer h-full "
+      className="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border-1 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 cursor-pointer h-full "
     >
       {/* Image */}
       {topic.imageUrl && (
-        <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
+        <div className="w-full h-24 sm:h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
           <img
             src={topic.imageUrl}
             alt={topic.title}
@@ -44,8 +44,8 @@ export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps
       
 
       {/* Category Badge */}
-      <div className="inline-flex items-center gap-2 w-fit">
-        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+      <div className="inline-flex items-center gap-2 w-fit flex-wrap">
+        <span className="text-xs font-semibold px-2 sm:px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
           {topic.category}
         </span>
         <span className="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400">
@@ -54,14 +54,14 @@ export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps
       </div>
 
       {/* Title - fixed height for alignment */}
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 line-clamp-2 min-h-[3.5rem]">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem]">
         {topic.title}
       </h3>
 
       {/* Stats & Progress */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 sm:gap-3">
         {/* Stats */}
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-xs sm:text-sm">
           <span className="text-gray-600 dark:text-gray-400">
             {topic.learnedRules} / {topic.totalRules} quy tắc
           </span>
@@ -79,7 +79,7 @@ export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-zinc-700 overflow-hidden">
+        <div className="w-full h-1.5 sm:h-2 rounded-full bg-gray-200 dark:bg-zinc-700 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-300 ${
               progressPercent >= 75
@@ -96,7 +96,7 @@ export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps
       </div>
 
       {/* CTA Button */}
-      <button className="w-full px-4 py-2.5 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white transition-all duration-200 hover:shadow-md">
+      <button className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white transition-all duration-200 hover:shadow-md text-sm sm:text-base">
         {topic.canReviewNow ? "Ôn tập ngay" : "Học quy tắc"}
       </button>
       

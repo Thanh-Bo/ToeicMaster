@@ -74,20 +74,20 @@ export function GrammarTopicDetail({
     <div className="min-h-screen bg-white dark:bg-zinc-900">
       {/* Header with Back Button and Tabs */}
       <div className="border-b border-gray-200 dark:border-zinc-700 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           {/* Back Button and Title */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <Link
               href="/grammar"
-              className="p-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 dark:text-gray-300" />
             </Link>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white flex-1 truncate">
+            <h1 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-white flex-1 truncate">
               {grammar.ruleName}
             </h1>
             {grammar.difficulty && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+              <span className="text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex-shrink-0">
                 Độ khó: {grammar.difficulty}/5
               </span>
             )}
@@ -97,7 +97,7 @@ export function GrammarTopicDetail({
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab("lesson")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 ${
                 activeTab === "lesson"
                   ? "bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border-1 border-blue-400 dark:border-blue-600"
                   : "border-1 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-zinc-600"
@@ -127,7 +127,7 @@ export function GrammarTopicDetail({
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {activeTab === "lesson" && <GrammarLessonTab grammar={grammar} topicId={topicId} />}
         {activeTab === "practice" && (
           <GrammarPracticeTab 

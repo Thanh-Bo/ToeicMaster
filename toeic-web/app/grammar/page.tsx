@@ -154,27 +154,27 @@ export default function GrammarHub() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div className="flex gap-4 mb-8 border-b border-gray-200 dark:border-zinc-700">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-700">
           <button
             onClick={() => setActiveTab("practice")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-2 transition text-sm sm:text-base ${
               activeTab === "practice"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <BookOpen className="w-5 h-5" />
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             Học
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-2 transition text-sm sm:text-base ${
               activeTab === "progress"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <BarChart2 className="w-4 h-4" />
+            <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" />
             Tiến độ
           </button>
         </div>
@@ -183,8 +183,8 @@ export default function GrammarHub() {
         {activeTab === "progress" ? (
           <div className="space-y-6">
             {/* Time Period Filter */}
-            <div className="flex items-center gap-2 mb-6">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 w-full sm:w-auto">
                 Thời gian:
               </span>
               {[
@@ -197,7 +197,7 @@ export default function GrammarHub() {
                 <button
                   key={period.value}
                   onClick={() => setProgressPeriod(period.value)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                     progressPeriod === period.value
                       ? "bg-blue-500 text-white"
                       : "bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"

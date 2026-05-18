@@ -42,51 +42,51 @@ export function GrammarLessonTab({ grammar, topicId }: GrammarLessonTabProps) {
   const currentExample = grammar.grammarExamples?.[currentExampleIndex];
 
   return (
-    <div className="space-y-8 pb-8">
+    <div className="space-y-4 sm:space-y-8 pb-4 sm:pb-8">
       {/* 1. Structure */}
       {grammar.structure && (
-        <div className="rounded-xl p-6 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30">
-          <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-3">
+        <div className="rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30">
+          <div className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 sm:mb-3">
             CẤU TRÚC
           </div>
-          <div className="text-xl text-gray-900 dark:text-white leading-relaxed prose dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_li]:mb-3 [&_strong]:font-bold [&_strong]:text-gray-950 dark:[&_strong]:text-white  break-words whitespace-pre-wrap">
+          <div className="text-base sm:text-xl text-gray-900 dark:text-white leading-relaxed prose dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_li]:mb-3 [&_strong]:font-bold [&_strong]:text-gray-950 dark:[&_strong]:text-white  break-words whitespace-pre-wrap">
             {grammar.structure}
           </div>
         </div>  
       )}
 
       {/* 2. Meaning */}
-      <div className="rounded-xl p-6 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
-        <div className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3 uppercase">
+      <div className="rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+        <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 uppercase">
           Ý NGHĨA
         </div>
-        <div className="text-base text-gray-900 dark:text-white leading-relaxed prose dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_li]:mb-3 [&_strong]:font-bold [&_strong]:text-gray-950 dark:[&_strong]:text-white">
+        <div className="text-sm sm:text-base text-gray-900 dark:text-white leading-relaxed prose dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_li]:mb-3 [&_strong]:font-bold [&_strong]:text-gray-950 dark:[&_strong]:text-white">
           <ReactMarkdown>{grammar.meaning}</ReactMarkdown>
         </div>
       </div>
 
       {/* 3. Main Example */}
       {grammar.example && (
-        <div className="rounded-xl p-6 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
-          <div className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3 uppercase">
+        <div className="rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+          <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 uppercase">
             Ví dụ
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {/* English Example */}
             <div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Tiếng Anh:</p>
-              <p className="text-lg text-gray-900 dark:text-white font-medium">
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-1">Tiếng Anh:</p>
+              <p className="text-base sm:text-lg text-gray-900 dark:text-white font-medium">
                 {grammar.example}
               </p>
               {grammar.audioUrl && (
                 <button
                   onClick={() => playAudio(grammar.audioUrl)}
-                  className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                  className="mt-2 inline-flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors text-sm"
                 >
                   {isPlayingAudio ? (
-                    <Volume2 className="w-4 h-4 animate-pulse" />
+                    <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
                   ) : (
-                    <Play className="w-4 h-4" />
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
                   Nghe phát âm
                 </button>
@@ -96,8 +96,8 @@ export function GrammarLessonTab({ grammar, topicId }: GrammarLessonTabProps) {
             {/* Vietnamese Translation */}
             {grammar.exampleTranslation && (
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Tiếng Việt:</p>
-                <p className="text-lg text-gray-700 dark:text-gray-300">
+                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-1">Tiếng Việt:</p>
+                <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300">
                   {grammar.exampleTranslation}
                 </p>
               </div>

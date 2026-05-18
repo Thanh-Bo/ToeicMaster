@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { PWAUpdatePrompt } from "./components/PWAUpdatePrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +62,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <PWAUpdatePrompt />
       </body>
     </html>
   );

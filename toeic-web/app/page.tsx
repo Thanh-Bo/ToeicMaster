@@ -52,46 +52,31 @@ export default function HomePage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch grammar groups and count topics
+        // Fetch grammar groups
         const groups = await grammarService.getAllGroups();
-        let totalTopics = 0;
-        let totalQuestions = 0;
         
-        for (const group of groups) {
-          const topics = await grammarService.getTopicsByGroup(group.id);
-          totalTopics += topics.length;
-          
-          // Count questions for each topic
-          for (const topic of topics) {
-            try {
-              const questionsData = await grammarService.getQuestionsByTopic(topic.id, 'easy', 1);
-              totalQuestions += questionsData.total || 0;
-            } catch {
-              // Skip if can't fetch questions
-            }
-          }
-        }
+        // Fetch all topics song song (giới hạn 10 groups đầu để tránh quá nhiều request)
+        const topicsPromises = groups.slice(0, 10).map(group => 
+          grammarService.getTopicsByGroup(group.id)
+        );
+        const topicsArrays = await Promise.all(topicsPromises);
+        const allTopics = topicsArrays.flat();
+        setGrammarTopicsCount(allTopics.length);
         
-        setGrammarTopicsCount(totalTopics);
-        setGrammarQuestionsCount(totalQuestions);
+        // Ước tính số câu hỏi: mỗi topic ~10 câu (không cần gọi API từng topic)
+        setGrammarQuestionsCount(allTopics.length * 10);
       } catch {
         setGrammarTopicsCount(null);
         setGrammarQuestionsCount(null);
       }
 
       try {
-        // Fetch vocabulary topics and count total words
+        // Fetch vocabulary topics
         const vocabTopics = await vocabularyService.getTopics();
         setVocabTopicsCount(vocabTopics.length);
         
-        let totalVocab = 0;
-        
-        for (const topic of vocabTopics) {
-          const words = await vocabularyService.getWordsByTopic(topic.topicGuid);
-          totalVocab += words.length;
-        }
-        
-        setVocabCount(totalVocab);
+        // Ước tính từ vựng: mỗi topic ~12 từ (không cần gọi API từng topic)
+        setVocabCount(vocabTopics.length * 12);
       } catch {
         setVocabTopicsCount(null);
         setVocabCount(null);
@@ -217,10 +202,10 @@ export default function HomePage() {
         </div>
 
         {/* Heading */}
-        <h1 className="text-5xl md:text-7xl font-bold text-blue-500 dark:text-blue-400 leading-tight mb-4">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-blue-500 dark:text-blue-400 leading-tight mb-4">
           Luyện TOEIC hiệu quả
         </h1>
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white mb-6">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white mb-6">
           Đạt mục tiêu điểm số nhanh hơn
         </h2>
 
@@ -254,8 +239,8 @@ export default function HomePage() {
           )}
         </div>
       </section>
-      <section className="max-w-5xl mx-auto px-4 py-12 ">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="max-w-5xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {mainSections.map((section, i) => (
             <Link
               key={i}
@@ -278,29 +263,29 @@ export default function HomePage() {
         </div>
       </section>
       {/* ── 2. STATS BAR ── */}
-      <section className="py-10 border-t border-gray-200 dark:border-zinc-800">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      <section className="py-8 sm:py-10 border-t border-gray-200 dark:border-zinc-800">
+        <div className="text-center mb-6 sm:mb-8 px-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
             Thống kê 
           </h2>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
             Số liệu về nền tảng TOEIC Master
           </p>
         </div>
-        <div className="flex justify-center">
-          <div className="inline-flex divide-x divide-gray-200 dark:divide-zinc-700 border-2 border-gray-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+        <div className="flex justify-center px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full max-w-4xl">
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="flex flex-col items-center text-center gap-1.5 px-10 py-6"
+              className="flex flex-col items-center text-center gap-1.5 px-4 sm:px-6 py-4 sm:py-6 bg-white dark:bg-zinc-900 border-2 border-gray-200 dark:border-zinc-700 rounded-xl"
             >
               <div className="text-gray-900 dark:text-white mb-1">
                 {stat.icon}
               </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                 {stat.value}
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 {stat.label}
               </span>
             </div>
@@ -321,24 +306,24 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, i) => (
               <Link
                 key={i}
                 href={feature.href}
-                className="group flex flex-col gap-4 p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
+                className="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200"
               >
                 {/* Icon and Title in same row */}
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0">
                     {feature.icon}
                   </div>
-                  <h3 className=" font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 pt-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 border-b-2 border-transparent group-hover:border-blue-500 pt-1 text-sm sm:text-base">
                     {feature.title}
                   </h3>
                 </div>
                 {/* Description */}
-                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                   {feature.description}
                 </p>
               </Link>
@@ -360,7 +345,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
             {/* // Grammar Feature 1 */}
             <Link
               href="/grammar"
@@ -424,28 +409,30 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-2 md:gap-0">
             {steps.map((step, i) => (
-              <div key={i} className="flex md:flex-1 items-center w-full">
+              <div key={i} className="flex sm:flex-1 items-center w-full">
                 {/* Step Card */}
-                <div className="flex-1 flex flex-col items-center text-center gap-3 px-4 group hover:scale-105 transition-transform duration-200">
-                  <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow duration-200 border border-blue-600 dark:border-blue-900">
-                    <div className="text-white">{step.icon}</div>
+                <div className="flex-1 flex flex-row sm:flex-col items-center text-left sm:text-center gap-4 sm:gap-3 px-2 sm:px-4 group hover:scale-105 transition-transform duration-200">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow duration-200 border border-blue-600 dark:border-blue-900 flex-shrink-0">
+                    <div className="text-white scale-75 sm:scale-100">{step.icon}</div>
                   </div>
-                  <span className="text-lg font-mono font-bold text-blue-500 dark:text-blue-400">
-                    {step.step}
-                  </span>
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-[180px]">
-                    {step.description}
-                  </p>
+                  <div className="flex-1">
+                    <span className="text-base sm:text-lg font-mono font-bold text-blue-500 dark:text-blue-400 block sm:mb-1">
+                      {step.step}
+                    </span>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 mb-1">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-none sm:max-w-[180px]">
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Divider Arrow */}
                 {i < steps.length - 1 && (
-                  <ChevronRight className="hidden md:block w-5 h-5 text-blue-400 dark:text-blue-700 flex-shrink-0 animate-pulse" />
+                  <ChevronRight className="hidden sm:block w-5 h-5 text-blue-400 dark:text-blue-700 flex-shrink-0 animate-pulse" />
                 )}
               </div>
             ))}
