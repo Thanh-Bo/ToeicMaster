@@ -459,7 +459,7 @@ export default function TopicCard({ topic }: Props) {
 
   return (
     <>
-      <Link href={`/vocabulary/${topic.topicGuid}`}>
+      <Link href={`/vocabulary/${topic.topicGuid || topic.id}`}>
       <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm rounded-2xl shadow-lg dark:shadow-2xl/40 border border-gray-200 dark:border-zinc-800 hover:shadow-2xl dark:hover:shadow-2xl/50 transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1 cursor-pointer">
         {/* Top Gradient Border Accent */}
         <div className="h-1.5 bg-linear-to-br from-blue-500 via-blue-600 to-blue-400 group-hover:via-blue-500 transition-all"></div>
@@ -609,7 +609,7 @@ export default function TopicCard({ topic }: Props) {
                 e.stopPropagation();
                 setShowWarningModal(true);
               } else {
-                window.location.href = `/vocabulary/${topic.topicGuid}`;
+                window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }
             }}
             className={`w-full py-2.5 px-4 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg active:scale-95 group/btn ${
@@ -673,7 +673,7 @@ export default function TopicCard({ topic }: Props) {
             <button
               onClick={() => {
                 setShowWarningModal(false);
-                window.location.href = `/vocabulary/${topic.topicGuid}`;
+                window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }}
               className="flex-1 py-3 px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all flex items-center justify-center gap-2"
             >

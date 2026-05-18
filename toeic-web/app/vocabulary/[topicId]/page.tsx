@@ -77,8 +77,15 @@ export default function TopicStudyPage() {
 
   useEffect(() => {
     const fetchWords = async () => {
+      // Guard: ensure topicId is valid
+      if (!topicId || topicId === "undefined") {
+        setError("Không tìm thấy chủ đề");
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const data = await vocabularyService.getWordsByTopic(topicId as string);
+        const data = await vocabularyService.getWordsByTopic(topicId);
         setWords(data);
 
         // Lấy tên topic
@@ -92,7 +99,7 @@ export default function TopicStudyPage() {
       }
     };
 
-    if (topicId) fetchWords();
+    fetchWords();
   }, [topicId]);
 
   if (loading) {
