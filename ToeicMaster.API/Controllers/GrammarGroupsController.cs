@@ -97,7 +97,7 @@ public class GrammarGroupsController : ControllerBase
                 return BadRequest(new { error = "Tiêu đề không được để trống" });
 
             var group = await _grammarService.CreateGrammarGroupAsync(request);
-            return CreatedAtAction(nameof(GetGrammarGroupById), new { id = group.Id }, group);
+            return CreatedAtAction(nameof(GetGrammarGroupByGuid), new { groupGuid = group.GroupGuid }, group);
         }
         catch (Exception ex)
         {

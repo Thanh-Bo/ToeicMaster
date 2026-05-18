@@ -166,7 +166,7 @@ public class GrammarController : ControllerBase
                     return BadRequest(new { error = "Tiêu đề không được để trống", received = singleRequest });
 
                 var topic = await _grammarService.CreateGrammarTopicAsync(groupId, singleRequest);
-                return CreatedAtAction(nameof(GetGrammarTopicById), new { groupId = groupId, id = topic.Id }, topic);
+                return Ok(new { message = "Tạo chủ đề thành công", topic });
             }
 
             return BadRequest(new { error = "Dữ liệu không hợp lệ" });
