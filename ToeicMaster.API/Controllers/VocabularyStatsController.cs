@@ -275,4 +275,109 @@ public class VocabularyStatsController : ControllerBase
         streak.LastActivityDate = today;
         await _context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// GET /api/v1/users/{userId}/vocabulary/analysis-by-level
+    /// Get vocabulary analysis grouped by level (Basic, Intermediate, Advanced) with period filter
+    /// </summary>
+    [HttpGet("analysis-by-level")]
+    public async Task<IActionResult> GetAnalysisByLevel(int userId, [FromQuery] string period = "all")
+    {
+        try
+        {
+            // Verify user is requesting their own data
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId != userId)
+                return Forbid();
+
+            // Calculate start date based on period
+            var now = DateTime.UtcNow;
+            DateTime? startDate = period.ToLower() switch
+            {
+                "week" or "7" => now.AddDays(-7),
+                "month" or "30" => now.AddDays(-30),
+                "quarter" or "90" => now.AddDays(-90),
+                "year" or "365" => now.AddDays(-365),
+                "all" or _ => (DateTime?)null
+            };
+
+            // Get all topics with their vocabularies
+            var topicsQuery = _context.Topics
+                .Include(t => t.Vocabularies)
+                .AsQueryable();
+
+            var allTopics = await topicsQuery.ToListAsync();
+
+            // Get user progress for vocab topics
+            var userVocabQuery = _context.UserVocabs
+                .Where(uv => uv.UserId == userId);
+
+            if (startDate.HasValue)
+                userVocabQuery = userVocabQuery.Where(uv => uv.LastReviewedAt >= startDate.Value);
+
+            var userVocabProgress = await userVocabQuery.ToListAsync();
+
+            // Group by level
+            var levels = new[] { "Basic", "Intermediate", "Advanced" };
+            var levelNames = new Dictionary<string, string>
+            {
+                { "Basic", "Từ vựng Cơ bản" },
+                { "Intermediate", "Từ vựng Trung cấp" },
+                { "Advanced", "Từ vựng Nâng cao" }
+            };
+
+            var result = new List<object>();
+
+            foreach (var level in levels)
+            {
+                var levelTopics = allTopics.Where(t => t.Level == level).ToList();
+                var topicAnalyses = new List<object>();
+
+                foreach (var topic in levelTopics)
+                {
+                    var totalVocab = topic.Vocabularies.Count;
+                    var userProgress = userVocabProgress.FirstOrDefault(uv => uv.TopicId == topic.Id);
+                    
+                    // Learned vocab = all vocab in topic if user has progress (Status > 0)
+                    var learnedVocab = userProgress?.Status > 0 ? totalVocab : 0;
+                    var currentLevel = userProgress?.Level ?? 0;
+
+                    topicAnalyses.Add(new
+                    {
+                        topicId = topic.Id,
+                        topicGuid = topic.TopicGuid.ToString(),
+                        topicName = topic.Title,
+                        totalVocab = totalVocab,
+                        learnedVocab = learnedVocab,
+                        currentLevel = currentLevel,
+                        maxLevel = 5
+                    });
+                }
+
+                var totalVocabInLevel = levelTopics.Sum(t => t.Vocabularies.Count);
+                var learnedVocabInLevel = topicAnalyses.Sum(t => (int)t.GetType().GetProperty("learnedVocab").GetValue(t));
+                var progressPercent = totalVocabInLevel > 0 
+                    ? Math.Round((double)learnedVocabInLevel / totalVocabInLevel * 100, 1) 
+                    : 0;
+
+                result.Add(new
+                {
+                    level = level,
+                    levelName = levelNames[level],
+                    totalTopics = levelTopics.Count,
+                    totalVocab = totalVocabInLevel,
+                    learnedVocab = learnedVocabInLevel,
+                    progressPercent = progressPercent,
+                    topics = topicAnalyses
+                });
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting vocab analysis by level for user {userId}: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi lấy phân tích từ vựng theo level" });
+        }
+    }
 }

@@ -335,6 +335,26 @@ export interface VocabStats {
   progressPercent: number;
 }
 
+// Vocabulary Analysis by Level Types
+export interface VocabTopicAnalysis {
+  topicId: number;
+  topicName: string;
+  totalVocab: number;
+  learnedVocab: number;
+  currentLevel: number;
+  maxLevel: number;
+}
+
+export interface VocabLevelAnalysis {
+  level: 'Basic' | 'Intermediate' | 'Advanced';
+  levelName: string;
+  totalTopics: number;
+  totalVocab: number;
+  learnedVocab: number;
+  progressPercent: number;
+  topics: VocabTopicAnalysis[];
+}
+
 export interface Flashcard {
   id: number;
   word: string;

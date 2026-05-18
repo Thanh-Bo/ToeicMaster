@@ -145,14 +145,14 @@ function StatsCards({ stats }: { stats: any }) {
     {
       icon: BookOpen,
       value: stats.totalLessonsLearned,
-      label: "Bài học",
-      subtext: `/ ${stats.totalLessonsAvailable}`,
+      label: "Chủ đề đã học",
+      subtext: ``,
       color: "blue",
     },
     {
       icon: Target,
       value: stats.totalQuestionsPracticed,
-      label: "Câu luyện tập",
+      label: "Câu đã luyện tập",
       subtext: null,
       color: "green",
     },

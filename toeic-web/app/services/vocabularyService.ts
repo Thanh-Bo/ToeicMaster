@@ -150,15 +150,38 @@ export const vocabularyService = {
   // STATS APIs
   // ==========================================
 
-  // Get vocabulary stats (total topics, words learned, review due, time, streak)
-  getVocabStats: async (userId: number): Promise<{
+  // Get vocabulary stats (total topics, words learned, review due, time, streak, accuracy)
+  getVocabStats: async (userId: number, period: string = "all"): Promise<{
     totalTopicsLearned: number;
     totalVocabLearned: number;
     reviewDue: number;
     totalTimeMinutes: number;
+    totalQuestionsAnswered: number;
+    accuracy: number;
     streak: { current: number; longest: number };
   }> => {
-    const response = await axiosClient.get(`/users/${userId}/vocabulary/stats`);
+    const response = await axiosClient.get(`/users/${userId}/vocabulary/stats`, { params: { period } });
+    return response.data;
+  },
+
+  // Get vocabulary analysis by level with period filter
+  getVocabAnalysisByLevel: async (userId: number, period: string = "all"): Promise<{
+    level: 'Basic' | 'Intermediate' | 'Advanced';
+    levelName: string;
+    totalTopics: number;
+    totalVocab: number;
+    learnedVocab: number;
+    progressPercent: number;
+    topics: {
+      topicId: number;
+      topicName: string;
+      totalVocab: number;
+      learnedVocab: number;
+      currentLevel: number;
+      maxLevel: number;
+    }[];
+  }[]> => {
+    const response = await axiosClient.get(`/users/${userId}/vocabulary/analysis-by-level`, { params: { period } });
     return response.data;
   },
 
