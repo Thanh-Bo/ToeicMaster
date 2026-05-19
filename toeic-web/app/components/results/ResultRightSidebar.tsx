@@ -60,23 +60,46 @@ export default function ResultRightSidebar({
 
   return (
     <div className="sticky top-20 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-y-auto custom-scrollbar max-h-[calc(100vh-5rem)]">
-      <div className="p-5">
+      <div className="p-3 sm:p-5">
         {/* --- KẾT QUẢ TỔNG QUAN --- */}
-        <div className="text-center mb-6">
-        <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 font-medium uppercase tracking-wider">
+        <div className="text-center mb-4 sm:mb-6">
+        <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs mb-1 sm:mb-2 font-medium uppercase tracking-wider">
           Tổng điểm
         </p>
-        <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 font-mono">
+        <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-1 sm:mb-2 font-mono">
           {totalScore}
-          <span className="text-lg text-gray-400 dark:text-gray-500 font-normal">/990</span>
+          <span className="text-base sm:text-lg text-gray-400 dark:text-gray-500 font-normal">/990</span>
         </div>
-        <p className="text-gray-600 dark:text-gray-400 text-[10px] font-bold mb-4">
+        <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-[10px] font-bold mb-2 sm:mb-4">
           ({correctCount}/{totalQuestions} câu đúng)
         </p>
 
         {/* Progress circle */}
-        <div className="relative w-24 h-24 mx-auto mb-3">
-          <svg className="w-24 h-24 transform -rotate-90">
+        <div className="relative w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2 sm:mb-3">
+          <svg className="w-16 h-16 sm:w-24 sm:h-24 transform -rotate-90">
+            <circle
+              cx="32"
+              cy="32"
+              r="28"
+              fill="none"
+              stroke="#d1d5db"
+              strokeWidth="4"
+              className="sm:hidden"
+            />
+            <circle
+              cx="32"
+              cy="32"
+              r="28"
+              fill="none"
+              stroke="#22c55e"
+              strokeWidth="4"
+              strokeDasharray={`${2 * Math.PI * 28}`}
+              strokeDashoffset={`${
+                2 * Math.PI * 28 * (1 - percentage / 100)
+              }`}
+              strokeLinecap="round"
+              className="sm:hidden"
+            />
             <circle
               cx="48"
               cy="48"
@@ -84,6 +107,7 @@ export default function ResultRightSidebar({
               fill="none"
               stroke="#d1d5db"
               strokeWidth="6"
+              className="hidden sm:block"
             />
             <circle
               cx="48"
@@ -97,10 +121,11 @@ export default function ResultRightSidebar({
                 2 * Math.PI * 40 * (1 - percentage / 100)
               }`}
               strokeLinecap="round"
+              className="hidden sm:block"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-bold text-xl text-gray-900 dark:text-white">
+            <span className="font-bold text-base sm:text-xl text-gray-900 dark:text-white">
               {percentage}%
             </span>
            
@@ -108,11 +133,11 @@ export default function ResultRightSidebar({
         </div>
 
         {/* TIMER CARD - Option 1 */}
-        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 mb-4 text-center">
-          <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-semibold uppercase tracking-widest flex items-center justify-center gap-2">
-            <Clock size={16} /> Thời gian làm bài
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg sm:rounded-xl p-3 sm:p-6 mb-2 sm:mb-4 text-center">
+          <p className="text-gray-600 dark:text-gray-300 text-[10px] sm:text-xs mb-2 sm:mb-3 font-semibold uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2">
+            <Clock size={14} className="sm:w-4 sm:h-4" /> Thời gian làm bài
           </p>
-          <div className="text-5xl font-black text-gray-900 dark:text-white font-mono mb-2">
+          <div className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white font-mono mb-1 sm:mb-2">
             {formatTime(timeTaken)}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -121,21 +146,21 @@ export default function ResultRightSidebar({
         </div>
 
         {/* Stats row */}
-        <div className="flex justify-center gap-4 text-xs mt-4">
+        <div className="flex justify-center gap-2 sm:gap-4 text-xs mt-2 sm:mt-4">
           <div className="text-center">
-            <span className="block text-green-600 dark:text-green-400 font-bold text-lg">
+            <span className="block text-green-600 dark:text-green-400 font-bold text-base sm:text-lg">
               {correctCount}
             </span>
             <span className="text-gray-600 dark:text-gray-400">Đúng</span>
           </div>
           <div className="text-center">
-            <span className="block text-red-500 dark:text-red-400 font-bold text-lg">
+            <span className="block text-red-500 dark:text-red-400 font-bold text-base sm:text-lg">
               {incorrectCount}
             </span>
             <span className="text-gray-600 dark:text-gray-400">Sai</span>
           </div>
           <div className="text-center">
-            <span className="block text-gray-500 dark:text-gray-400 font-bold text-lg">
+            <span className="block text-gray-500 dark:text-gray-400 font-bold text-base sm:text-lg">
               {skippedCount}
             </span>
             <span className="text-gray-600 dark:text-gray-400">Bỏ qua</span>
@@ -143,26 +168,26 @@ export default function ResultRightSidebar({
         </div>
       </div>
 
-      <hr className="border-gray-300 dark:border-zinc-700 my-4" />
+      <hr className="border-gray-300 dark:border-zinc-700 my-3 sm:my-4" />
 
       {/* --- CHÚ THÍCH MÀU SẮC --- */}
-      <div className="mb-4 text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-3 justify-center">
+      <div className="mb-3 sm:mb-4 text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-2 sm:gap-3 justify-center">
         <div className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-green-100 dark:bg-green-900 border border-green-500 dark:border-green-700 rounded-sm"></span>{" "}
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-100 dark:bg-green-900 border border-green-500 dark:border-green-700 rounded-sm"></span>{" "}
           Đúng
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-red-100 dark:bg-red-900 border border-red-500 dark:border-red-700 rounded-sm"></span>{" "}
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-100 dark:bg-red-900 border border-red-500 dark:border-red-700 rounded-sm"></span>{" "}
           Sai
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-gray-300 dark:bg-zinc-600 border border-gray-400 dark:border-zinc-600 rounded-sm"></span>{" "}
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gray-300 dark:bg-zinc-600 border border-gray-400 dark:border-zinc-600 rounded-sm"></span>{" "}
           Bỏ qua
         </div>
       </div>
 
       {/* --- DANH SÁCH CÂU HỎI THEO PART --- */}
-      <div className="pr-2 space-y-6">
+      <div className="pr-1 sm:pr-2 space-y-4 sm:space-y-6">
         {parts?.map((part) => (
           <div key={part.id}>
             {/* Tên Part */}
@@ -171,7 +196,7 @@ export default function ResultRightSidebar({
             </h4>
             
             {/* Grid câu hỏi của Part đó */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
               {part.groups
                 .flatMap((g: any) => g.questions)
                 .map((rawQ: any) => {

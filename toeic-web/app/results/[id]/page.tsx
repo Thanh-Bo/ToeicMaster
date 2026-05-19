@@ -634,82 +634,82 @@ export default function ResultPage() {
         </div>
       </header>
 
-      <div className="w-full mx-auto px-4 mt-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
+      <div className="w-full mx-auto px-3 sm:px-4 mt-4 sm:mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
+          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
               Tổng điểm
             </p>
-            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
               {result.totalScore}
-              <span className="text-lg text-gray-400 dark:text-gray-500">
+              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500">
                 /990
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
+          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
               Điểm số
             </p>
-            <p className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-1 sm:gap-2">
               <span className="flex items-center gap-1">
-                <Headphones size={25} /> {result.listeningScore || 0}
+                <Headphones size={16} className="sm:w-[25px] sm:h-[25px]" /> {result.listeningScore || 0}
               </span>
               <span className="text-gray-400 dark:text-gray-500">/</span>
               <span className="flex items-center gap-1">
-                <BookOpen size={25} /> {result.readingScore || 0}
+                <BookOpen size={16} className="sm:w-[25px] sm:h-[25px]" /> {result.readingScore || 0}
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Headphones size={14} /> Listening
+          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+              <Headphones size={12} className="sm:w-3.5 sm:h-3.5" /> Listening
             </p>
-            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
               {listeningCorrect}
-              <span className="text-lg text-gray-400 dark:text-gray-500">
+              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500">
                 /{listeningQuestions.length}
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-              <BookOpen size={14} /> Reading
+          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+              <BookOpen size={12} className="sm:w-3.5 sm:h-3.5" /> Reading
             </p>
-            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
               {readingCorrect}
-              <span className="text-lg text-gray-400 dark:text-gray-500">
+              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500">
                 /{readingQuestions.length}
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-5 rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-1">
+          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
               Tỉ lệ đúng
             </p>
-            <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
               {percentage}%
             </p>
           </div>
         </div>
       </div>
 
-      <div className=" px-4 mt-8 flex flex-col lg:flex-row gap-8">
+      <div className="px-3 sm:px-4 mt-6 sm:mt-8 flex flex-col lg:flex-row gap-4 sm:gap-8">
         <div className="w-full space-y-10">
           {partGroups.map((part) => (
             <div key={part.partNumber} className="mb-10">
-              <div className="flex items-center gap-4 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {part.partName}
                 </h2>
                 <div className="h-1 flex-1 bg-gray-300 dark:bg-zinc-900 rounded-full"></div>
                 {part.partNumber <= 4 ? (
-                  <span className="border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                    <Headphones size={14} /> Listening
+                  <span className="border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit">
+                    <Headphones size={12} className="sm:w-3.5 sm:h-3.5" /> Listening
                   </span>
                 ) : (
-                  <span className="border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                    <BookOpen size={14} /> Reading
+                  <span className="border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit">
+                    <BookOpen size={12} className="sm:w-3.5 sm:h-3.5" /> Reading
                   </span>
                 )}
               </div>

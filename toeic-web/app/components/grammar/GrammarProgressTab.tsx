@@ -93,31 +93,33 @@ function StreakCard({ streak }: { streak: any }) {
   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-950/50 flex items-center justify-center">
-            <Flame className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+    <div className="rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 sm:p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Streak Info */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-100 dark:bg-orange-950/50 flex items-center justify-center flex-shrink-0">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {streak.currentStreak} ngày liên tục
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Kỷ lục: {streak.longestStreak} ngày · Tổng:{" "}
               {streak.totalStudyDays} ngày học
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Weekly Activity */}
+        <div className="flex items-center justify-center gap-1 sm:gap-2">
           {weekDays.map((day, index) => {
             const activity = streak.weeklyActivity?.[index];
             const isActive = activity?.hasActivity;
             return (
               <div key={day} className="text-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-medium ${
                     isActive
                       ? "bg-green-500 text-white"
                       : "bg-gray-100 dark:bg-zinc-800 text-gray-400"
@@ -125,13 +127,14 @@ function StreakCard({ streak }: { streak: any }) {
                 >
                   {day.charAt(0)}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{day}</div>
+                <div className="text-[10px] sm:text-xs text-gray-500 mt-1 hidden sm:block">{day}</div>
               </div>
             );
           })}
         </div>
 
-        <button className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors">
+        {/* Action Button */}
+        <button className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors whitespace-nowrap">
           {streak.hasActivityToday ? "Đã học hôm nay!" : "Học ngay"}
         </button>
       </div>

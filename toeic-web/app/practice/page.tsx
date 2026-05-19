@@ -92,62 +92,65 @@ export default function PracticePage() {
       />
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Tabs Section */}
-        <div className="flex gap-4 mb-8 border-b border-gray-200 dark:border-zinc-700">
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-700">
           <button
             onClick={() => setActiveTab("practice")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
               activeTab === "practice"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <BookOpen className="w-5 h-5" />
-            Học
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span>Học</span>
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
               activeTab === "progress"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <BarChart2 className="w-4 h-4" />
-            Tiến độ
+            <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Tiến độ</span>
+            <span className="sm:hidden">Tiến độ</span>
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
               activeTab === "history"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <History className="w-4 h-4" />
-            Lịch sử
+            <History className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Lịch sử</span>
+            <span className="sm:hidden">Lịch sử</span>
           </button>
           <button
             onClick={() => setActiveTab("bookmarks")}
-            className={`px-4 py-3 font-medium border-b-2 flex items-center gap-2 transition ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
               activeTab === "bookmarks"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <Bookmark className="w-4 h-4" />
-            Đã lưu
+            <Bookmark className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Đã lưu</span>
+            <span className="sm:hidden">Đã lưu</span>
           </button>
         </div>
 
         {/* Title Section (only show on practice tab) */}
         {activeTab === "practice" && (
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Chinh phục TOEIC Full Test
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               Luyện đề TOEIC với đề thi thật và chấm điểm tự động
             </p>
           </div>

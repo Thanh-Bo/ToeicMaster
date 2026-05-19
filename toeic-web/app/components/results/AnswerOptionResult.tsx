@@ -45,15 +45,15 @@ export const AnswerOptionResult = ({
 
   return (
     <div
-      className={`flex items-center px-4 py-3 border rounded-xl transition-all ${containerClass}`}
+      className={`flex items-center px-3 sm:px-4 py-2 sm:py-3 border rounded-lg sm:rounded-xl transition-all ${containerClass}`}
     >
       <span
-        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold mr-3 border shrink-0 ${badgeClass}`}
+        className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 border shrink-0 ${badgeClass}`}
       >
         {label}
       </span>
       <span
-        className={`text-base flex-1 ${
+        className={`text-sm sm:text-base flex-1 ${
           isCorrect || isUserSelected
             ? "text-gray-900 dark:text-gray-100"
             : "text-gray-900 dark:text-gray-100"

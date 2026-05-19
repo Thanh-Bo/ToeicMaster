@@ -55,13 +55,13 @@ export default function ResultQuestionItem({
 
   return (
     <div
-      className={`p-4 rounded-xl transition-colors ${
+      className={`p-3 sm:p-4 rounded-xl transition-colors ${
         currentQuestionId === q.questionId ? "" : ""
       }`}
     >
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
         <span
-          className={`shrink-0 w-10 h-10 font-bold rounded-full flex items-center justify-center text-sm shadow-sm
+          className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 font-bold rounded-full flex items-center justify-center text-xs sm:text-sm shadow-sm
             ${
               q.isCorrect
                 ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700"
@@ -72,24 +72,24 @@ export default function ResultQuestionItem({
         >
           {q.questionNo}
         </span>
-        <div className="flex-1 pt-1">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex-1 pt-0.5 sm:pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
             {partNum === 1 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm italic">
                 Chọn đáp án mô tả đúng bức tranh
               </p>
             ) : partNum === 2 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm italic">
                 Chọn câu trả lời phù hợp nhất
               </p>
             ) : (
-              <p className="font-medium text-gray-900 dark:text-white text-lg leading-relaxed">
+              <p className="font-medium text-gray-900 dark:text-white text-sm sm:text-lg leading-relaxed">
                 {q.content}
               </p>
             )}
             {!q.userSelected && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 whitespace-nowrap">
-                <AlertCircle size={14} /> Not Answered
+              <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 whitespace-nowrap w-fit">
+                <AlertCircle size={12} className="sm:w-3.5 sm:h-3.5" /> Not Answered
               </span>
             )}
           </div>
@@ -97,8 +97,8 @@ export default function ResultQuestionItem({
       </div>
 
       <div
-        className={`space-y-2 ml-12 mb-4 ${
-          partNum === 1 || partNum === 2 ? "space-y-2" : ""
+        className={`space-y-1.5 sm:space-y-2 ml-10 sm:ml-12 mb-3 sm:mb-4 ${
+          partNum === 1 || partNum === 2 ? "space-y-1.5 sm:space-y-2" : ""
         }`}
       >
         {partNum === 1 || partNum === 2
@@ -212,17 +212,17 @@ export default function ResultQuestionItem({
 
       {/* --- KHU VỰC HIỂN THỊ GIẢI THÍCH --- */}
       {q.isExplanationOpen && (
-        <div className=" bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-12 mt-4  p-5 rounded-xl animate-fadeIn relative">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-10 sm:ml-12 mt-3 sm:mt-4 p-3 sm:p-5 rounded-lg sm:rounded-xl animate-fadeIn relative">
           {/* GIẢI THÍCH NGẮN */}
           {q.shortExplanation && (
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Languages size={14} /> Dịch câu hỏi
+                <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1">
+                  <Languages size={12} className="sm:w-3.5 sm:h-3.5" /> Dịch câu hỏi
                 </h4>
               </div>
               <p
-                className="text-zinc-900 dark:text-zinc-200 text-base leading-relaxed"
+                className="text-zinc-900 dark:text-zinc-200 text-sm sm:text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: q.shortExplanation }}
               ></p>
             </div>
@@ -230,24 +230,24 @@ export default function ResultQuestionItem({
 
           {/* Nút Xem Chi Tiết & GIẢI THÍCH CHI TIẾT */}
           {q.fullExplanation && (
-            <div className="border-t border-blue-200 dark:border-blue-800 pt-3">
+            <div className="border-t border-blue-200 dark:border-blue-800 pt-2 sm:pt-3">
               <button
                 onClick={() => onToggleDetail(q.questionId)}
                 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1 hover:text-blue-800 dark:hover:text-blue-300"
               >
                 {q.isDetailOpen ? (
                   <>
-                    <ChevronUp size={14} /> Ẩn chi tiết
+                    <ChevronUp size={12} className="sm:w-3.5 sm:h-3.5" /> Ẩn chi tiết
                   </>
                 ) : (
                   <>
-                    <ChevronDown size={14} /> Xem chi tiết
+                    <ChevronDown size={12} className="sm:w-3.5 sm:h-3.5" /> Xem chi tiết
                   </>
                 )}
               </button>
 
               {q.isDetailOpen && (
-                <div className="text-base text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
+                <div className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
                   <div
                     dangerouslySetInnerHTML={{
                       __html: q.fullExplanation,

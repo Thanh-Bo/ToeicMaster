@@ -318,8 +318,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 dark:bg-gray-950 text-white p-4 z-50">
+      {/* Sidebar - Desktop only */}
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 dark:bg-gray-950 text-white p-4 z-50 hidden lg:block">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3 px-2">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-lg">
@@ -377,8 +377,30 @@ export default function AdminPage() {
         </div>
       </aside>
 
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-900 dark:bg-gray-950 text-white p-4 z-40 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold">
+            T
+          </div>
+          <span className="font-bold">Admin</span>
+        </div>
+        <select
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value as Tab)}
+          className="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm border border-gray-700"
+        >
+          <option value="dashboard">Dashboard</option>
+          <option value="users">Quản lý Users</option>
+          <option value="tests">Quản lý Đề thi</option>
+          <option value="questions">Quản lý Câu hỏi</option>
+          <option value="vocabulary">Quản lý Vocabulary</option>
+          <option value="feedback">Quản lý Feedback</option>
+        </select>
+      </div>
+
       {/* Main Content */}
-      <main className="ml-64 p-8">
+      <main className="lg:ml-64 p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8">
         {/* Notifications */}
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 space-y-2 z-50 max-w-md">
           {notifications.map(notif => (
@@ -396,47 +418,47 @@ export default function AdminPage() {
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2 sm:gap-3">
               {activeTab === "dashboard" && (
                 <>
-                  <BarChart3 size={28} />
+                  <BarChart3 size={24} className="sm:w-7 sm:h-7" />
                   Dashboard
                 </>
               )}
               {activeTab === "users" && (
                 <>
-                  <Users size={28} />
+                  <Users size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Users
                 </>
               )}
               {activeTab === "tests" && (
                 <>
-                  <FileText size={28} />
+                  <FileText size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Đề thi
                 </>
               )}
               {activeTab === "questions" && (
                 <>
-                  <HelpCircle size={28} />
+                  <HelpCircle size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Câu hỏi
                 </>
               )}
               {activeTab === "vocabulary" && (
                 <>
-                  <BookOpen size={28} />
+                  <BookOpen size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Vocabulary
                 </>
               )}
               {activeTab === "feedback" && (
                 <>
-                  <MessageSquare size={28} />
+                  <MessageSquare size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Feedback
                 </>
               )}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400">Xin chào, {user.fullName}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Xin chào, {user.fullName}</p>
           </div>
 
           {(activeTab === "users" || activeTab === "tests" || activeTab === "test-actions") && (
@@ -445,7 +467,7 @@ export default function AdminPage() {
               placeholder="Tìm kiếm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           )}
         </div>

@@ -154,7 +154,7 @@ export default function GrammarHub() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-700">
+        <div className="flex flex-row gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-700">
           <button
             onClick={() => setActiveTab("practice")}
             className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-2 transition text-sm sm:text-base ${
@@ -255,32 +255,32 @@ export default function GrammarHub() {
                       {/* Group Header - Clickable to toggle */}
                       <button
                         onClick={() => toggleGroup(group.groupGuid)}
-                        className="w-full flex items-center gap-4 p-4 sm:p-6 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        className="w-full flex items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-6 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
                       >
                         {/* Icon */}
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
                           {getGroupIcon(group.order)}
                         </div>
 
                         {/* Title & Description */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
                               {group.title}
                             </h3>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 w-fit">
                               {group.totalTopics} chủ đề
                             </span>
                           </div>
                           {group.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
                               {group.description}
                             </p>
                           )}
                         </div>
 
                         {/* Toggle Icon */}
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 mt-1 sm:mt-0">
                           {isExpanded ? (
                             <ChevronDown className="w-5 h-5 text-gray-400" />
                           ) : (
