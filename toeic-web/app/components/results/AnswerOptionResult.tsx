@@ -45,15 +45,15 @@ export const AnswerOptionResult = ({
 
   return (
     <div
-      className={`flex items-center px-3 sm:px-4 py-2 sm:py-3 border rounded-lg sm:rounded-xl transition-all ${containerClass}`}
+      className={`flex items-start md:items-center gap-2 md:gap-3 px-2 xs:px-3 sm:px-4 py-2 sm:py-3 border rounded-lg sm:rounded-xl transition-all ${containerClass}`}
     >
       <span
-        className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 border shrink-0 ${badgeClass}`}
+        className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-md sm:rounded-lg flex items-center justify-center text-xs font-bold border shrink-0 ${badgeClass}`}
       >
         {label}
       </span>
       <span
-        className={`text-sm sm:text-base flex-1 ${
+        className={`text-xs xs:text-sm sm:text-base md:text-base flex-1 break-words ${
           isCorrect || isUserSelected
             ? "text-gray-900 dark:text-gray-100"
             : "text-gray-900 dark:text-gray-100"
@@ -61,7 +61,7 @@ export const AnswerOptionResult = ({
       >
         {cleanContent}
       </span>
-      {statusText}
+      {statusText && <div className="text-[10px] xs:text-xs sm:text-xs font-bold whitespace-nowrap ml-auto">{statusText}</div>}
     </div>
   );
 };

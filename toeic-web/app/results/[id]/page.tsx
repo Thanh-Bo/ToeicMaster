@@ -715,7 +715,7 @@ export default function ResultPage() {
               </div>
 
               {part.partNumber === 1 && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {part.groups.map((group) => (
                     <div
                       key={group.groupId}
@@ -723,7 +723,7 @@ export default function ResultPage() {
                     >
                       <div className="flex flex-col lg:flex-row">
                         {/* Left column: audio + image */}
-                        <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
+                        <div className="w-full lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
                           {group.audioUrl && (
                             <AudioPlayer
                               src={
@@ -736,7 +736,7 @@ export default function ResultPage() {
                             />
                           )}
                           {group.imageUrl && (
-                            <div className="flex items-center justify-center px-4 pb-4 pt-3">
+                            <div className="flex items-center justify-center px-3 py-3 md:px-4 md:pb-4 md:pt-3">
                               <img
                                 src={
                                   group.imageUrl.startsWith("http")
@@ -744,14 +744,14 @@ export default function ResultPage() {
                                     : `${BASE_URL}${group.imageUrl}`
                                 }
                                 alt="Part 1"
-                                className="max-h-100 w-auto rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm"
+                                className="max-h-64 md:max-h-100 w-auto rounded-xl border border-gray-300 dark:border-zinc-600 shadow-sm object-contain"
                                 loading="lazy"
                               />
                             </div>
                           )}
                         </div>
                         {/* Right column: questions */}
-                        <div className="lg:w-1/2 p-6 space-y-4">
+                        <div className="w-full lg:w-1/2 p-4 md:p-6 space-y-3 md:space-y-4">
                           {group.questions.map((q) => (
                             <div
                               key={q.questionId}
@@ -783,7 +783,7 @@ export default function ResultPage() {
               )}
 
               {part.partNumber === 2 && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {part.groups.map((group, idx) => (
                     <div
                       key={group.groupId}
@@ -791,7 +791,7 @@ export default function ResultPage() {
                     >
                       <div className="flex flex-col lg:flex-row">
                         {/* Left: audio player flush */}
-                        <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
+                        <div className="w-full lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
                           {group.audioUrl && (
                             <AudioPlayer
                               src={
@@ -805,7 +805,7 @@ export default function ResultPage() {
                           )}
                         </div>
                         {/* Right: questions in a column */}
-                        <div className="lg:w-1/2 p-6 space-y-4">
+                        <div className="w-full lg:w-1/2 p-4 md:p-6 space-y-3 md:space-y-4">
                           {group.questions.map((q) => (
                             <div
                               key={q.questionId}
@@ -837,7 +837,7 @@ export default function ResultPage() {
               )}
 
               {(part.partNumber === 3 || part.partNumber === 4) && (
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   {part.groups.map((group) => (
                     <div
                       key={group.groupId}
@@ -848,7 +848,7 @@ export default function ResultPage() {
                           group.groupContent ||
                           group.audioUrl ||
                           group.transcript) && (
-                          <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 flex flex-col">
+                          <div className="w-full lg:w-1/2 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 flex flex-col">
                             {group.audioUrl && (
                               <AudioPlayer
                                 src={
@@ -863,7 +863,7 @@ export default function ResultPage() {
                             {(group.imageUrl ||
                               group.groupContent ||
                               group.transcript) && (
-                              <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                              <div className="lg:sticky lg:top-20 px-3 md:px-6 pb-4 md:pb-6 pt-2 md:pt-3 space-y-3 md:space-y-4 max-h-[60vh] lg:max-h-[70vh] overflow-y-auto custom-scrollbar">
                                 {group.imageUrl && (
                                   <img
                                     src={
@@ -872,12 +872,12 @@ export default function ResultPage() {
                                         : `${BASE_URL}${group.imageUrl}`
                                     }
                                     alt="Part 3"
-                                    className="rounded-lg shadow-sm max-h-100 w-auto"
+                                    className="rounded-lg shadow-sm max-h-64 md:max-h-100 w-auto object-contain"
                                   />
                                 )}
                                 {group.groupContent && (
                                   <div
-                                    className="prose prose-sm max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-4 rounded-lg border border-gray-200 dark:border-zinc-600"
+                                    className="prose prose-sm max-w-none bg-white dark:bg-zinc-900 dark:[&_p]:text-white dark:[&_*]:text-white p-3 md:p-4 rounded-lg border border-gray-200 dark:border-zinc-600 text-sm md:text-base"
                                     dangerouslySetInnerHTML={{
                                       __html: group.groupContent,
                                     }}
@@ -1026,9 +1026,9 @@ export default function ResultPage() {
                             group.groupContent ||
                             group.audioUrl ||
                             group.transcript
-                              ? "lg:w-1/2"
+                              ? "w-full lg:w-1/2"
                               : "w-full"
-                          } p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar`}
+                          } p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto max-h-[60vh] lg:max-h-[80vh] custom-scrollbar`}
                         >
                           {group.questions.map((q) => (
                             <div
@@ -1063,7 +1063,7 @@ export default function ResultPage() {
               )}
 
               {part.partNumber === 5 && (
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {part.groups.map((group) => (
                     <div key={group.groupId}>
                       {group.questions.map((q) => (
@@ -1074,10 +1074,10 @@ export default function ResultPage() {
                         >
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-0">
                             {/* LEFT: Câu hỏi + Đáp án */}
-                            <div className="p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-700">
-                              <div className="flex gap-3 mb-4">
+                            <div className="p-4 md:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-700">
+                              <div className="flex gap-2 md:gap-3 mb-3 md:mb-4">
                                 <span
-                                  className={`shrink-0 w-10 h-10 font-bold rounded-full flex items-center justify-center text-sm shadow-sm
+                                  className={`shrink-0 w-8 h-8 md:w-10 md:h-10 font-bold rounded-full flex items-center justify-center text-xs md:text-sm shadow-sm
                                     ${
                                       q.isCorrect
                                         ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700"
@@ -1088,15 +1088,15 @@ export default function ResultPage() {
                                 >
                                   {q.questionNo}
                                 </span>
-                                <div className="flex-1 pt-1">
-                                  <p className="font-medium text-gray-900 dark:text-white text-lg leading-relaxed">
+                                <div className="flex-1 pt-0.5 md:pt-1">
+                                  <p className="font-medium text-gray-900 dark:text-white text-base md:text-lg leading-relaxed">
                                     {q.content}
                                   </p>
                                 </div>
                               </div>
 
                               {/* Đáp án */}
-                              <div className="space-y-2 ml-12">
+                              <div className="space-y-2 ml-10 md:ml-12">
                                 {["A", "B", "C", "D"].map((label) => (
                                   <AnswerOptionResult
                                     key={label}
@@ -1115,14 +1115,14 @@ export default function ResultPage() {
                             </div>
 
                             {/* RIGHT: Sticky - Nút + Giải thích */}
-                            <div className="p-6 lg:sticky lg:top-4 lg:max-h-[90vh] overflow-y-auto custom-scrollbar">
+                            <div className="p-4 md:p-6 lg:sticky lg:top-4 lg:max-h-[90vh] overflow-y-auto custom-scrollbar">
                               {/* Nút Bookmark + Xem giải thích */}
-                              <div className="flex flex-wrap gap-3 mb-6">
+                              <div className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-6">
                                 {/* Nút Bookmark */}
                                 <button
                                   onClick={() => handleClickBookmark(q)}
                                   disabled={bookmarkLoading === q.questionId}
-                                  className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors
+                                  className={`inline-flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-bold px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition-colors
                                       ${
                                         bookmarkedQuestions.has(q.questionId)
                                           ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300"
@@ -1130,14 +1130,14 @@ export default function ResultPage() {
                                       }`}
                                 >
                                   {bookmarkLoading === q.questionId ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <Loader2 className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
                                   ) : bookmarkedQuestions.has(q.questionId) ? (
                                     <>
-                                      <Bookmark size={16} /> Đã lưu
+                                      <Bookmark size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Đã lưu</span>
                                     </>
                                   ) : (
                                     <>
-                                      <Tag size={16} /> Đánh dấu
+                                      <Tag size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Đánh dấu</span>
                                     </>
                                   )}
                                 </button>
@@ -1147,7 +1147,7 @@ export default function ResultPage() {
                                   onClick={() =>
                                     handleViewExplanation(q.questionId)
                                   }
-                                  className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors 
+                                  className={`inline-flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-bold px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition-colors 
                                       ${
                                         q.isExplanationOpen
                                           ? "bg-red-600 hover:bg-red-700 text-white"
@@ -1156,16 +1156,16 @@ export default function ResultPage() {
                                 >
                                   {loadingExplainIds.has(q.questionId) ? (
                                     <>
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                      Phân tích...
+                                      <Loader2 className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
+                                      <span className="hidden sm:inline">Phân tích...</span>
                                     </>
                                   ) : q.isExplanationOpen ? (
                                     <>
-                                      <X size={16} /> Đóng
+                                      <X size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Đóng</span>
                                     </>
                                   ) : (
                                     <>
-                                      <Sparkles size={16} /> Giải thích
+                                      <Sparkles size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Giải thích</span>
                                     </>
                                   )}
                                 </button>
@@ -1173,13 +1173,13 @@ export default function ResultPage() {
 
                               {/* Phần giải thích */}
                               {q.isExplanationOpen && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 md:p-4 space-y-2 md:space-y-3">
                                   {q.shortExplanation && (
                                     <div>
                                       <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                                        <Languages size={14} /> Dịch câu hỏi
+                                        <Languages size={12} className="md:w-3.5 md:h-3.5" /> Dịch câu hỏi
                                       </h4>
-                                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
+                                      <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
                                         <div
                                           dangerouslySetInnerHTML={{
                                             __html: q.shortExplanation,
@@ -1190,7 +1190,7 @@ export default function ResultPage() {
                                   )}
 
                                   {q.fullExplanation && (
-                                    <div className="border-t border-blue-200 dark:border-blue-800 pt-3">
+                                    <div className="border-t border-blue-200 dark:border-blue-800 pt-2 md:pt-3">
                                       <button
                                         onClick={() =>
                                           handleToggleDetail(q.questionId)
@@ -1199,18 +1199,17 @@ export default function ResultPage() {
                                       >
                                         {q.isDetailOpen ? (
                                           <>
-                                            <ChevronUp size={14} /> Ẩn chi tiết
+                                            <ChevronUp size={12} className="md:w-3.5 md:h-3.5" /> <span>Ẩn chi tiết</span>
                                           </>
                                         ) : (
                                           <>
-                                            <ChevronDown size={14} /> Xem chi
-                                            tiết
+                                            <ChevronDown size={12} className="md:w-3.5 md:h-3.5" /> <span>Xem chi tiết</span>
                                           </>
                                         )}
                                       </button>
 
                                       {q.isDetailOpen && (
-                                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert  [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
+                                        <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert  [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
                                           <div
                                             dangerouslySetInnerHTML={{
                                               __html: q.fullExplanation,
@@ -1232,7 +1231,7 @@ export default function ResultPage() {
               )}
 
               {(part.partNumber === 6 || part.partNumber === 7) && (
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   {part.groups.map((group) => (
                     <div
                       key={group.groupId}
@@ -1240,7 +1239,7 @@ export default function ResultPage() {
                     >
                       <div className="flex flex-col lg:flex-row">
                         <div
-                          className={`lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-6 transition-all duration-300 ${
+                          className={`w-full lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-4 md:p-6 transition-all duration-300 ${
                             translations[group.groupId] &&
                             !hiddenPassageTranslations.has(group.groupId)
                               ? "lg:max-h-[160vh]"
@@ -1248,8 +1247,8 @@ export default function ResultPage() {
                           }`}
                         >
                           <div className="lg:sticky lg:top-4 space-y-3">
-                            <div className="mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                              <BookOpen size={16} /> Reading Passage
+                            <div className="mb-2 md:mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                              <BookOpen size={14} className="md:w-4 md:h-4" /> Reading Passage
                             </div>
                             {group.imageUrl && (
                               <img
@@ -1259,13 +1258,13 @@ export default function ResultPage() {
                                     : `${BASE_URL}${group.imageUrl}`
                                 }
                                 alt="Passage"
-                                className="w-full rounded-lg border border-gray-300 dark:border-zinc-800 shadow-sm mb-4"
+                                className="w-full rounded-lg border border-gray-300 dark:border-zinc-800 shadow-sm mb-3 md:mb-4"
                                 loading="lazy"
                               />
                             )}
                             {group.groupContent && (
                               <div
-                                className={`reading-content text-base overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${
+                                className={`reading-content text-sm md:text-base overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-3 md:p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_p]:mb-2 md:[&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-2 md:[&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-2 md:[&_th]:px-3 [&_th]:py-1 md:[&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-2 md:[&_td]:px-3 [&_td]:py-1 md:[&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${
                                   translations[group.groupId] &&
                                   !hiddenPassageTranslations.has(group.groupId)
                                     ? "max-h-[70vh]"
@@ -1279,7 +1278,7 @@ export default function ResultPage() {
 
                             {/* Nút Dịch đoạn văn */}
                             {group.groupContent && (
-                              <div className="mt-3">
+                              <div className="mt-2 md:mt-3">
                                 {!translations[group.groupId] ? (
                                   <button
                                     onClick={() =>
@@ -1291,19 +1290,18 @@ export default function ResultPage() {
                                     disabled={
                                       !!loadingTranslateIds[group.groupId]
                                     }
-                                    className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-1.5 md:gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-2.5 md:px-3 py-1 md:py-1.5 transition-colors disabled:opacity-50"
                                   >
                                     {!!loadingTranslateIds[group.groupId] ? (
                                       <>
                                         <Loader2
-                                          size={13}
-                                          className="animate-spin"
+                                          size={12} className="md:w-3 md:h-3 animate-spin"
                                         />{" "}
                                         Đang dịch...
                                       </>
                                     ) : (
                                       <>
-                                        <Languages size={13} /> Dịch đoạn văn
+                                        <Languages size={12} className="md:w-3 md:h-3" /> Dịch đoạn văn
                                       </>
                                     )}
                                   </button>
@@ -1311,7 +1309,7 @@ export default function ResultPage() {
                                   <div>
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
-                                        <Languages size={13} /> Bản dịch tiếng
+                                        <Languages size={12} className="md:w-3 md:h-3" /> Bản dịch tiếng
                                         Việt
                                       </span>
                                       <div className="flex items-center gap-2">
@@ -1321,7 +1319,7 @@ export default function ResultPage() {
                                               group.groupId,
                                             )
                                           }
-                                          className="flex items-center gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                                          className="flex items-center gap-1.5 md:gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-2.5 md:px-3 py-1 md:py-1.5 transition-colors disabled:opacity-50"
                                         >
                                           {hiddenPassageTranslations.has(
                                             group.groupId,
@@ -1335,7 +1333,7 @@ export default function ResultPage() {
                                       group.groupId,
                                     ) && (
                                       <div
-                                        className="max-h-[55vh]  text-base reading-content overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 [&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
+                                        className="max-h-[50vh] md:max-h-[55vh] text-sm md:text-base reading-content overflow-y-auto custom-scrollbar p-3 md:p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 leading-6 [&_p]:mb-2 md:[&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-2 md:[&_table]:my-3 [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-2 md:[&_th]:px-3 [&_th]:py-1 md:[&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-2 md:[&_td]:px-3 [&_td]:py-1 md:[&_td]:py-2 [&_b]:font-semibold [&_b]:text-gray-900 dark:[&_b]:text-gray-100"
                                         dangerouslySetInnerHTML={{
                                           __html:
                                             translations[group.groupId] || "",
@@ -1350,11 +1348,11 @@ export default function ResultPage() {
                         </div>
 
                         <div
-                          className={`lg:w-5/10 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600 overflow-y-auto custom-scrollbar transition-all duration-300 ${
+                          className={`w-full lg:w-5/10 p-4 md:p-6 space-y-4 md:space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600 overflow-y-auto custom-scrollbar transition-all duration-300 ${
                             translations[group.groupId] &&
                             !hiddenPassageTranslations.has(group.groupId)
-                              ? "max-h-[100vh]"
-                              : "max-h-[80vh]"
+                              ? "max-h-[80vh] lg:max-h-[100vh]"
+                              : "max-h-[60vh] lg:max-h-[80vh]"
                           }`}
                         >
                           {group.questions.map((q) => (

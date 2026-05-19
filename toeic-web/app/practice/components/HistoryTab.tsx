@@ -226,7 +226,7 @@ export default function HistoryTab() {
           {/* History List */}
           {filteredAndSortedHistory.length > 0 && (
             <div className="rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden">
-              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-zinc-700">
+              <div className="px-3 sm:px-6 py-2 sm:py-4 border-b border-gray-200 dark:border-zinc-700">
                 <h2 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Chi tiết các lần làm bài</h2>
               </div>
               <div className="divide-y divide-gray-100 dark:divide-zinc-800">
@@ -237,28 +237,79 @@ export default function HistoryTab() {
                   return (
                     <div
                       key={item.attemptId}
-                      className="p-4 sm:p-5 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200"
+                      className="p-3 sm:p-5 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                        {/* Left - Test Info */}
-                        <div className="flex items-start gap-3 sm:gap-4 flex-1">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-xs sm:text-sm flex-shrink-0">
+                      {/* Mobile Layout: Stack vertically */}
+                      <div className="flex flex-col gap-3 sm:hidden">
+                        {/* Row 1: Number + Title + Date */}
+                        <div className="flex items-start gap-2">
+                          <div className="w-7 h-7 rounded-lg border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-xs flex-shrink-0">
                             {startIndex + index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">{item.testTitle}</h3>
-                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
-                              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">{item.testTitle}</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(item.completedAt)}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Row 2: Score Circle + Button */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="relative w-10 h-10">
+                              <svg className="w-10 h-10 transform -rotate-90" viewBox="0 0 80 80">
+                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="none" className="text-gray-100 dark:text-zinc-800" />
+                                <circle
+                                  cx="40" cy="40" r="36"
+                                  stroke={strokeColor}
+                                  strokeWidth="6"
+                                  fill="none"
+                                  strokeDasharray={circumference}
+                                  strokeDashoffset={circumference * (1 - pct / 100)}
+                                  strokeLinecap="round"
+                                  className="transition-all duration-500"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className={`text-xs font-bold ${getScoreTextColor(pct)}`}>{pct}%</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{item.correctAnswers}/{item.totalQuestions}</p>
+                          </div>
+                          
+                          <Link
+                            href={`/results/${item.attemptGuid}`}
+                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium text-xs hover:opacity-90 transition"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            Chi tiết
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Desktop Layout: Horizontal */}
+                      <div className="hidden sm:flex sm:flex-row sm:items-center sm:justify-between gap-4">
+                        {/* Left - Test Info */}
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className="w-10 h-10 rounded-lg border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-sm flex-shrink-0">
+                            {startIndex + index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 dark:text-white text-base truncate">{item.testTitle}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />
                               {formatDate(item.completedAt)}
                             </p>
                           </div>
                         </div>
 
                         {/* Middle - Circular Score */}
-                        <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-4">
                           <div className="flex flex-col items-center">
-                            <div className="relative w-12 h-12 sm:w-16 sm:h-16">
-                              <svg className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90" viewBox="0 0 80 80">
+                            <div className="relative w-16 h-16">
+                              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 80 80">
                                 <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="4" fill="none" className="text-gray-100 dark:text-zinc-800" />
                                 <circle
                                   cx="40" cy="40" r="36"
@@ -272,7 +323,7 @@ export default function HistoryTab() {
                                 />
                               </svg>
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <span className={`text-xs sm:text-sm font-bold ${getScoreTextColor(pct)}`}>{pct}%</span>
+                                <span className={`text-sm font-bold ${getScoreTextColor(pct)}`}>{pct}%</span>
                               </div>
                             </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{item.correctAnswers}/{item.totalQuestions}</p>
@@ -282,11 +333,10 @@ export default function HistoryTab() {
                         {/* Right - Action */}
                         <Link
                           href={`/results/${item.attemptGuid}`}
-                          className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium text-xs sm:text-sm hover:opacity-90 transition w-full sm:w-auto"
+                          className="inline-flex items-center justify-center gap-1.5 px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium text-sm hover:opacity-90 transition"
                         >
-                          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">Xem chi tiết</span>
-                          <span className="sm:hidden">Chi tiết</span>
+                          <Eye className="w-4 h-4" />
+                          Xem chi tiết
                         </Link>
                       </div>
                     </div>
@@ -295,7 +345,7 @@ export default function HistoryTab() {
               </div>
 
               {/* Bottom Info */}
-              <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-zinc-700">
+              <div className="px-3 sm:px-6 py-2 sm:py-4 border-t border-gray-200 dark:border-zinc-700">
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   Hiển thị <span className="font-semibold">{startIndex + 1}</span> - <span className="font-semibold">{Math.min(endIndex, filteredAndSortedHistory.length)}</span> trên <span className="font-semibold">{filteredAndSortedHistory.length}</span>
                 </p>

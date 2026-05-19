@@ -460,23 +460,23 @@ export default function TopicCard({ topic }: Props) {
   return (
     <>
       <Link href={`/vocabulary/${topic.topicGuid || topic.id}`}>
-      <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm rounded-2xl shadow-lg dark:shadow-2xl/40 border border-gray-200 dark:border-zinc-800 hover:shadow-2xl dark:hover:shadow-2xl/50 transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1 cursor-pointer">
+      <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md dark:shadow-2xl/40 border border-gray-200 dark:border-zinc-800 hover:shadow-xl dark:hover:shadow-2xl/50 transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1 cursor-pointer">
         {/* Top Gradient Border Accent */}
-        <div className="h-1.5 bg-linear-to-br from-blue-500 via-blue-600 to-blue-400 group-hover:via-blue-500 transition-all"></div>
+        <div className="h-1 sm:h-1.5 bg-linear-to-br from-blue-500 via-blue-600 to-blue-400 group-hover:via-blue-500 transition-all"></div>
 
-        <div className="p-7 flex-1 flex flex-col">
+        <div className="p-4 sm:p-7 flex-1 flex flex-col">
           {/* Header: Icon + Level + Progress */}
-          <div className="flex justify-between items-start mb-5 gap-4">
-            <div className="flex items-start gap-4 flex-1">
+          <div className="flex justify-between items-start mb-3 sm:mb-5 gap-3 sm:gap-4">
+            <div className="flex items-start gap-2 sm:gap-4 flex-1">
               {/* Icon */}
-              <div className="p-3 rounded-xl bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 group-hover:shadow-lg transition-all flex-shrink-0">
-                {icon}
+              <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 group-hover:shadow-lg transition-all flex-shrink-0">
+                <div className="w-6 h-6 sm:w-8 sm:h-8">{icon}</div>
               </div>
               
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{topic.title}</h3>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-xs font-black px-3 py-1.5 rounded-full transition-colors ${
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">{topic.title}</h3>
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <span className={`text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-colors ${
                     topic.level === 'Basic' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
                     topic.level === 'Intermediate' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
                     'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
@@ -491,19 +491,19 @@ export default function TopicCard({ topic }: Props) {
           
           {/* Description */}
           {descriptionText && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-5 line-clamp-2 font-medium">{descriptionText}</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-5 line-clamp-2 font-medium">{descriptionText}</p>
           )}
           
           {/* PHASE 1: 5-Level SRS Progress Bar */}
           <div className="mt-auto">
             {/* Header: Current Level */}
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Cấp độ ghi nhớ</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{topic.currentLevel}/5</span>
+            <div className="flex justify-between items-center mb-2 sm:mb-3">
+              <span className="text-[10px] sm:text-xs font-bold text-gray-600 dark:text-gray-400">Cấp độ ghi nhớ</span>
+              <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">{topic.currentLevel}/5</span>
             </div>
             
             {/* 5-Block Progress Visualization - PHASE 3: Animations */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-1 sm:gap-2 mb-3 sm:mb-4">
               {[1, 2, 3, 4, 5].map((level, idx) => {
                 // Màu sắc cho từng level
                 const levelColors = {
@@ -519,11 +519,11 @@ export default function TopicCard({ topic }: Props) {
                 return (
                   <div
                     key={level}
-                    className={`flex-1 h-8 rounded-lg border-2 transition-all duration-500 ${
+                    className={`flex-1 h-5 sm:h-8 rounded-md sm:rounded-lg border-2 transition-all duration-500 ${
                       level <= topic.currentLevel
                         ? `bg-linear-to-br ${colors.light} ${colors.dark}`
                         : 'bg-gray-100 dark:bg-zinc-700 border-gray-300 dark:border-zinc-600 hover:border-gray-400 dark:hover:border-zinc-500'
-                    } flex items-center justify-center text-xs font-bold ${
+                    } flex items-center justify-center text-[10px] sm:text-xs font-bold ${
                       level <= topic.currentLevel ? 'text-white' : 'text-gray-500 dark:text-gray-400'
                     } hover:scale-105 transition-transform cursor-default`}
                     style={{
@@ -535,7 +535,7 @@ export default function TopicCard({ topic }: Props) {
                     title={`Level ${level}${topic.wordCounts && topic.wordCounts[level] > 0 ? `: ${topic.wordCounts[level]} từ` : ''}`}
                   >
                     {level <= topic.currentLevel && (
-                      <span className="text-xs font-bold">{level}</span>
+                      <span className="text-[10px] sm:text-xs font-bold">{level}</span>
                     )}
                   </div>
                 );
@@ -558,24 +558,24 @@ export default function TopicCard({ topic }: Props) {
             `}</style>
 
             {/* Status: Ready / Cooldown / Mastered - PHASE 2: Enhanced State Detection */}
-            <div className="flex items-center gap-2 mb-3 text-xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 text-[10px] sm:text-xs">
               {topic.currentLevel === 5 ? (
                 <>
-                  <Award className="text-yellow-500 dark:text-yellow-400 animate-bounce" size={16} />
+                  <Award className="text-yellow-500 dark:text-yellow-400 animate-bounce" size={14} />
                   <span className="font-semibold text-yellow-700 dark:text-yellow-300">Đã thành thạo 🎉</span>
                 </>
               ) : topic.canReviewNow ? (
                 <>
                   <Zap 
                     className="text-amber-500 dark:text-amber-400"
-                    size={16}
+                    size={14}
                     style={{ animation: 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
                   />
                   <span className="font-semibold text-amber-700 dark:text-amber-300">Cần ôn ngay ⚡</span>
                 </>
               ) : (
                 <>
-                  <Clock className="text-gray-500 dark:text-gray-400" size={16} />
+                  <Clock className="text-gray-500 dark:text-gray-400" size={14} />
                   <span className="font-semibold text-gray-600 dark:text-gray-400 tabular-nums">
                     {timeRemaining && topic.nextReviewAt ? `Nên làm lại sau ${timeRemaining}` : 'Đang chờ...'}
                   </span>
@@ -584,15 +584,15 @@ export default function TopicCard({ topic }: Props) {
             </div>
 
             {/* Word count info */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-500">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-500">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
               <span>{topic.totalWords} từ </span>
             </div>
           </div>
         </div>
 
         {/* Footer Button - PHASE 2: Enhanced CTA Text */}
-        <div className="px-7 py-5 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 relative">
+        <div className="px-4 sm:px-7 py-3 sm:py-5 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 relative">
           {/* PHASE 4: Confetti Canvas */}
           {showConfetti && (
             <canvas
@@ -612,7 +612,7 @@ export default function TopicCard({ topic }: Props) {
                 window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }
             }}
-            className={`w-full py-2.5 px-4 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg active:scale-95 group/btn ${
+            className={`w-full py-2 sm:py-2.5 px-3 sm:px-4 text-white font-bold rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-md hover:shadow-lg active:scale-95 group/btn text-xs sm:text-sm ${
               topic.currentLevel === 5
                 ? 'bg-linear-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 shadow-yellow-500/30'
                 : topic.canReviewNow
@@ -620,7 +620,7 @@ export default function TopicCard({ topic }: Props) {
                 : 'bg-linear-to-br from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
             }`}
           >
-            <PlayCircle size={18} className="group-hover/btn:scale-110 transition-transform" />
+            <PlayCircle size={16} className="group-hover/btn:scale-110 transition-transform sm:w-[18px] sm:h-[18px]" />
             
             {/* PHASE 2: Smart CTA Text */}
             {topic.currentLevel === 5
@@ -633,41 +633,41 @@ export default function TopicCard({ topic }: Props) {
 
     {/* Warning Modal - Show when trying to review before scheduled time */}
     {showWarningModal && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-sm p-8 mx-4 animate-in fade-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 sm:p-8 mx-4 animate-in fade-in zoom-in-95 duration-300">
           {/* Icon */}
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <Clock className="text-orange-600 dark:text-orange-400" size={32} />
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <Clock className="text-orange-600 dark:text-orange-400" size={24} />
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+          <h2 className="text-lg sm:text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
             Chưa đến lịch ôn tập
           </h2>
 
           {/* Message */}
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-2">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-2 text-sm">
             Lịch ôn tập của bạn là:
           </p>
-          <p className="text-center text-lg font-bold text-orange-600 dark:text-orange-400 mb-6">
+          <p className="text-center text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400 mb-4 sm:mb-6">
             {timeRemaining}
           </p>
 
           {/* Description */}
-          <p className="text-center text-sm text-gray-500 dark:text-gray-500 mb-8">
+          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-500 mb-6 sm:mb-8">
             Hãy chờ đến thời gian nếu muốn hiệu quả tối đa. Bạn có thể làm bài ngay nếu muốn.
           </p>
 
           {/* Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() => setShowWarningModal(false)}
               
-              className="flex-1 py-3 px-4 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
             >
-              <X size={20} />
+              <X size={18} />
               Hủy
             </button>
             <button
@@ -675,9 +675,9 @@ export default function TopicCard({ topic }: Props) {
                 setShowWarningModal(false);
                 window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }}
-              className="flex-1 py-3 px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
             >
-              <Check size={20} />
+              <Check size={18} />
               Làm ngay
             </button>
           </div>

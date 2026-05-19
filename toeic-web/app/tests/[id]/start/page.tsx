@@ -321,13 +321,13 @@ export default function ExamPage() {
           </button>
 
           {/* Center: Title + Timer (mobile) */}
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate max-w-50 md:max-w-md">
+          <div className="flex flex-col items-center gap-1 md:gap-3 md:flex-row">
+            <h1 className="text-sm md:text-lg font-bold text-gray-900 dark:text-white truncate max-w-[120px] sm:max-w-[200px] md:max-w-md">
               {testData.title}
             </h1>
             {/* Mobile Timer Badge */}
             <div
-              className={`lg:hidden px-3 py-1 rounded-full font-bold text-sm ${
+              className={`lg:hidden px-2 py-0.5 md:px-3 md:py-1 rounded-full font-bold text-xs md:text-sm ${
                 timeLeft <= 300
                   ? "bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 animate-pulse"
                   : "bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300"
@@ -339,7 +339,7 @@ export default function ExamPage() {
           </div>
 
           {/* Right: Progress + Submit */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <div className="hidden md:flex items-center gap-2 text-sm text-gray-400">
               <span className="font-bold text-gray-900 dark:text-white">
                 {answeredCount}
@@ -350,7 +350,7 @@ export default function ExamPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-gray-900 dark:bg-white hover:opacity-90 text-white dark:text-gray-900 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+              className="bg-gray-900 dark:bg-white hover:opacity-90 text-white dark:text-gray-900 px-3 py-1.5 md:px-4 rounded-lg text-xs md:text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap"
             >
               {submitting ? "Đang nộp..." : "Nộp bài"}
             </button>
@@ -400,7 +400,7 @@ export default function ExamPage() {
 
                 {/* === PART 1: Photographs === */}
                 {partNum === 1 && (
-                  <div className="space-y-8">
+                  <div className="space-y-6 md:space-y-8">
                     {part.groups.map((group, idx) => (
                       <div
                         key={group.id}
@@ -408,7 +408,7 @@ export default function ExamPage() {
                       >
                         <div className="flex flex-col md:flex-row">
                           {/* Left: audio flush + image */}
-                          <div className="md:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 dark:border-zinc-600">
+                          <div className="w-full md:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 dark:border-zinc-600">
                             {group.audioUrl && (
                               <AudioPlayer
                                 src={
@@ -421,7 +421,7 @@ export default function ExamPage() {
                               />
                             )}
                             {group.imageUrl && (
-                              <div className="flex items-center justify-center px-4 pb-4 pt-3">
+                              <div className="flex items-center justify-center px-3 py-3 md:px-4 md:pb-4 md:pt-3">
                                 <img
                                   src={
                                     group.imageUrl.startsWith("http")
@@ -429,23 +429,23 @@ export default function ExamPage() {
                                       : `${BASE_URL}${group.imageUrl}`
                                   }
                                   alt="Part 1"
-                                  className="rounded-lg shadow-sm max-h-100 w-auto"
+                                  className="rounded-lg shadow-sm max-h-64 md:max-h-100 w-auto object-contain"
                                 />
                               </div>
                             )}
                           </div>
                           {/* Right: answers */}
-                          <div className="md:w-1/2 bg-white dark:bg-zinc-900 p-6 space-y-6">
+                          <div className="w-full md:w-1/2 bg-white dark:bg-zinc-900 p-4 md:p-6 space-y-4 md:space-y-6">
                             {group.questions.map((q) => (
                               <div
                                 key={q.id}
                                 id={`question-${q.id}`}
                                 onClick={() => setCurrentQuestionId(q.id)}
-                                className="p-4 rounded-xl"
+                                className="p-2 md:p-4 rounded-xl"
                               >
-                                <div className="flex items-center gap-3 mb-3">
+                                <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
                                   <span
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold text-xs md:text-sm ${
                                       userAnswers[q.id]
                                         ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                         : "bg-zinc-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300"
@@ -453,18 +453,18 @@ export default function ExamPage() {
                                   >
                                     {q.questionNo}
                                   </span>
-                                  <p className="text-gray-700 dark:text-gray-400 text-sm">
+                                  <p className="text-gray-700 dark:text-gray-400 text-xs md:text-sm">
                                     Chọn đáp án đúng:
                                   </p>
                                 </div>
-                                <div className="flex flex-col gap-3 ml-11">
+                                <div className="grid grid-cols-2 md:flex md:flex-col gap-2 md:gap-3 md:ml-11">
                                   {["A", "B", "C", "D"].map((label) => (
                                     <button
                                       key={label}
                                       onClick={() =>
                                         handleSelectAnswer(q.id, label)
                                       }
-                                      className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
+                                      className={`p-3 md:p-4 rounded-xl border font-bold text-base md:text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
                                           ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
                                           : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
@@ -485,7 +485,7 @@ export default function ExamPage() {
 
                 {/* === PART 2: Question-Response === */}
                 {partNum === 2 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {part.groups.map((group, idx) => (
                       <div
                         key={group.id}
@@ -493,7 +493,7 @@ export default function ExamPage() {
                       >
                         <div className="flex flex-col lg:flex-row">
                           {/* Left: audio flush */}
-                          <div className="lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
+                          <div className="w-full lg:w-1/2 bg-gray-100 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600">
                             {group.audioUrl && (
                               <AudioPlayer
                                 src={
@@ -507,17 +507,17 @@ export default function ExamPage() {
                             )}
                           </div>
                           {/* Right: questions column */}
-                          <div className="lg:w-1/2 p-6 space-y-4">
+                          <div className="w-full lg:w-1/2 p-4 md:p-6 space-y-3 md:space-y-4">
                             {group.questions.map((q) => (
                               <div
                                 key={q.id}
                                 id={`question-${q.id}`}
                                 onClick={() => setCurrentQuestionId(q.id)}
-                                className="p-4 rounded-lg"
+                                className="p-2 md:p-4 rounded-lg"
                               >
-                                <div className="flex gap-4 items-center mb-3">
+                                <div className="flex gap-2 md:gap-4 items-center mb-2 md:mb-3">
                                   <span
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold text-xs md:text-sm ${
                                       userAnswers[q.id]
                                         ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                         : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
@@ -525,18 +525,18 @@ export default function ExamPage() {
                                   >
                                     {q.questionNo}
                                   </span>
-                                  <span className="text-gray-600 dark:text-gray-400 italic text-sm">
+                                  <span className="text-gray-600 dark:text-gray-400 italic text-xs md:text-sm">
                                     Nghe và chọn đáp án
                                   </span>
                                 </div>
-                                <div className="flex flex-col gap-3 ml-12">
+                                <div className="grid grid-cols-3 md:flex md:flex-col gap-2 md:gap-3 md:ml-12">
                                   {["A", "B", "C"].map((label) => (
                                     <button
                                       key={label}
                                       onClick={() =>
                                         handleSelectAnswer(q.id, label)
                                       }
-                                      className={`p-4 rounded-xl border font-bold text-lg text-center transition-all ${
+                                      className={`p-3 md:p-4 rounded-xl border font-bold text-base md:text-lg text-center transition-all ${
                                         userAnswers[q.id] === label
                                           ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
                                           : "hover:bg-gray-100 dark:hover:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
@@ -560,7 +560,7 @@ export default function ExamPage() {
                   partNum === 4 ||
                   partNum === 6 ||
                   partNum === 7) && (
-                  <div className="space-y-8">
+                  <div className="space-y-6 md:space-y-8">
                     {part.groups.map((group) => (
                       <div
                         key={group.id}
@@ -571,7 +571,7 @@ export default function ExamPage() {
                           {(group.audioUrl ||
                             group.imageUrl ||
                             group.textContent) && (
-                            <div className="lg:w-1/2 bg-gray-50 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
+                            <div className="w-full lg:w-1/2 bg-gray-50 dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-zinc-600">
                               {/* Audio flush at top for listening parts */}
                               {(partNum === 3 || partNum === 4) &&
                                 group.audioUrl && (
@@ -587,7 +587,7 @@ export default function ExamPage() {
                                 )}
                               {/* Sticky image/text below audio */}
                               {(group.imageUrl || group.textContent) && (
-                                <div className="lg:sticky lg:top-20 px-6 pb-6 pt-3 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                                <div className="lg:sticky lg:top-20 px-3 md:px-6 pb-4 md:pb-6 pt-2 md:pt-3 space-y-3 md:space-y-4 max-h-[60vh] lg:max-h-[80vh] overflow-y-auto custom-scrollbar">
                                   {group.imageUrl && (
                                     <img
                                       src={
@@ -596,12 +596,12 @@ export default function ExamPage() {
                                           : `${BASE_URL}${group.imageUrl}`
                                       }
                                       alt="Part context"
-                                      className="rounded-lg shadow-sm max-h-100 w-auto"
+                                      className="rounded-lg shadow-sm max-h-64 md:max-h-100 w-auto object-contain"
                                     />
                                   )}
                                   {group.textContent && (
                                     <div
-                                      className="whitespace-pre-wrap reading-content max-w-none bg-white dark:bg-zinc-900 p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 leading-relaxed text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white **:text-gray-900 dark:**:text-white [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-3 [&_td]:py-2 [&_td]:whitespace-normal"
+                                      className="whitespace-pre-wrap reading-content max-w-none bg-white dark:bg-zinc-900 p-3 md:p-5 rounded-lg border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 leading-relaxed text-sm md:text-base [&_p]:mb-3 [&_p]:text-gray-900 dark:[&_p]:text-white **:text-gray-900 dark:**:text-white [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-2 md:[&_th]:px-3 [&_th]:py-1 md:[&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-2 md:[&_td]:px-3 [&_td]:py-1 md:[&_td]:py-2 [&_td]:whitespace-normal"
                                       dangerouslySetInnerHTML={{
                                         __html: group.textContent,
                                       }}
@@ -618,20 +618,20 @@ export default function ExamPage() {
                               group.audioUrl ||
                               group.imageUrl ||
                               group.textContent
-                                ? "lg:w-1/2"
+                                ? "w-full lg:w-1/2"
                                 : "w-full"
-                            } p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar`}
+                            } p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto max-h-[60vh] lg:max-h-[80vh] custom-scrollbar`}
                           >
                             {group.questions.map((q) => (
                               <div
                                 key={q.id}
                                 id={`question-${q.id}`}
                                 onClick={() => setCurrentQuestionId(q.id)}
-                                className="p-4 rounded-xl transition-colors"
+                                className="p-2 md:p-4 rounded-xl transition-colors"
                               >
-                                <div className="flex gap-3 mb-3">
+                                <div className="flex gap-2 md:gap-3 mb-2 md:mb-3">
                                   <span
-                                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                    className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold text-xs md:text-sm ${
                                       userAnswers[q.id]
                                         ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                         : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
@@ -639,7 +639,7 @@ export default function ExamPage() {
                                   >
                                     {q.questionNo}
                                   </span>
-                                  <div className="font-medium text-gray-900 dark:text-white pt-1">
+                                  <div className="font-medium text-gray-900 dark:text-white pt-0.5 md:pt-1 text-sm md:text-base">
                                     <div
                                       dangerouslySetInnerHTML={{
                                         __html: q.content,
@@ -647,7 +647,7 @@ export default function ExamPage() {
                                     />
                                   </div>
                                 </div>
-                                <div className="space-y-2 ml-11">
+                                <div className="space-y-2 ml-9 md:ml-11">
                                   {q.answers.map((ans) => (
                                     <AnswerOption
                                       key={ans.label}
@@ -673,24 +673,24 @@ export default function ExamPage() {
 
                 {/* === PART 5: Incomplete Sentences === */}
                 {partNum === 5 && (
-                  <div className="space-y-4">
+                  <div className="space-y-3 md:space-y-4">
                     {part.groups.map((group) => (
                       <div
                         key={group.id}
-                        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6"
+                        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-4 md:p-6"
                       >
                         {group.questions.map((q) => (
                           <div
                             key={q.id}
                             id={`question-${q.id}`}
                             onClick={() => setCurrentQuestionId(q.id)}
-                            className={`p-4 rounded-xl transition-colors ${
+                            className={`p-2 md:p-4 rounded-xl transition-colors ${
                               currentQuestionId === q.id ? "" : ""
                             }`}
                           >
-                            <div className="flex gap-3 mb-4">
+                            <div className="flex gap-2 md:gap-3 mb-3 md:mb-4">
                               <span
-                                className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold text-xs md:text-sm ${
                                   userAnswers[q.id]
                                     ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                                     : "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300"
@@ -698,7 +698,7 @@ export default function ExamPage() {
                               >
                                 {q.questionNo}
                               </span>
-                              <div className="font-medium text-gray-900 dark:text-white text-lg pt-1">
+                              <div className="font-medium text-gray-900 dark:text-white text-base md:text-lg pt-0.5 md:pt-1">
                                 <div
                                   dangerouslySetInnerHTML={{
                                     __html: q.content,
@@ -706,7 +706,7 @@ export default function ExamPage() {
                                 />
                               </div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-11">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 ml-9 md:ml-11">
                               {q.answers.map((ans) => (
                                 <AnswerOption
                                   key={ans.label}

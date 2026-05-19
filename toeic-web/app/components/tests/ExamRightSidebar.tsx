@@ -47,21 +47,21 @@ export default function ExamRightSidebar({
 
   return (
     <div className="sticky top-20 dark:text-white text-zinc-600 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-y-auto max-h-[calc(100vh-5rem)] custom-scrollbar">
-      <div className="p-5">
+      <div className="p-3 md:p-5">
         {/* 1. ĐỒNG HỒ & NỘP BÀI */}
         <div className="text-center mb-2">
-          {isUnlimited ? "Thời gian làm bài:" : "Thời gian còn lại:"}
+          <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+            {isUnlimited ? "Thời gian làm bài:" : "Thời gian còn lại:"}
+          </div>
 
           <div
-            className={`text-3xl font-bold mb-4 tracking-wider transition-colors
+            className={`text-2xl md:text-3xl font-bold mb-3 md:mb-4 tracking-wider transition-colors
           ${
             isLowTime
               ? "text-red-600 dark:text-red-400 animate-pulse"
               : "text-gray-800 dark:text-white"
           }`}
           >
-            {/* 👇 HIỂN THỊ ICON KHÁC NHAU 👇 */}
-            {isUnlimited}
             {formatTime(timeLeft)}
           </div>
 
@@ -74,20 +74,20 @@ export default function ExamRightSidebar({
           <button
             onClick={onSubmit}
             disabled={isSubmitting}
-            className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border flex items-center justify-center gap-2
+            className={`w-full py-2 md:py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-xs md:text-sm border flex items-center justify-center gap-2
             ${
               isLowTime
                 ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
                 : "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-700"
             }`}
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3 h-3 md:w-4 md:h-4" />
             {isSubmitting ? "Đang nộp..." : "Nộp bài"}
           </button>
 
           <button
             onClick={onStopTimer}
-            className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-sm border mt-2 flex items-center justify-center gap-2
+            className={`w-full py-2 md:py-2.5 rounded-lg font-bold transition-all duration-200 uppercase text-xs md:text-sm border mt-2 flex items-center justify-center gap-2
             ${
               isTimerPaused
                 ? "bg-green-500 text-white border-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
@@ -96,13 +96,15 @@ export default function ExamRightSidebar({
           >
             {isTimerPaused ? (
               <>
-                <Play className="w-4 h-4" />
-                Tiếp tục
+                <Play className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Tiếp tục</span>
+                <span className="sm:hidden">Chơi</span>
               </>
             ) : (
               <>
-                <Pause className="w-4 h-4" />
-                Tạm dừng
+                <Pause className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Tạm dừng</span>
+                <span className="sm:hidden">Dừng</span>
               </>
             )}
           </button>
@@ -114,43 +116,46 @@ export default function ExamRightSidebar({
               onClearAll();
             }
           }}
-          className="w-full py-2 rounded-lg font-bold transition-all duration-200 text-sm mb-4 uppercase flex items-center justify-center gap-2
+          className="w-full py-1.5 md:py-2 rounded-lg font-bold transition-all duration-200 text-xs md:text-sm mb-3 md:mb-4 uppercase flex items-center justify-center gap-2
           border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 hover:border-red-400 dark:hover:border-red-500 hover:text-red-600 dark:hover:text-red-400"
         >
-          <Trash2 className="w-4 h-4" />
-          Xóa tất cả
+          <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+          <span className="hidden sm:inline">Xóa tất cả</span>
+          <span className="sm:hidden">Xóa</span>
         </button>
         <button
           onClick={() => setShowFeedback(true)}
-          className="w-full py-2 rounded-lg font-bold transition-all duration-200 text-sm mb-4 uppercase flex items-center justify-center gap-2
+          className="w-full py-1.5 md:py-2 rounded-lg font-bold transition-all duration-200 text-xs md:text-sm mb-3 md:mb-4 uppercase flex items-center justify-center gap-2
           bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-700"
           title="Gửi ý kiến"
         >
-          <MessageCircle className="w-5 h-5" />
-          Gửi ý kiến
+          <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
+          <span className="hidden sm:inline">Gửi ý kiến</span>
+          <span className="sm:hidden">Ý kiến</span>
         </button>
         {showFeedback && (
           <FeedbackModal onClose={() => setShowFeedback(false)} />
         )}
 
-        <hr className="border-gray-100 dark:border-zinc-700 my-4" />
+        <hr className="border-gray-100 dark:border-zinc-700 my-3 md:my-4" />
 
         {/* 2. CHÚ THÍCH */}
-        <div className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mb-3 md:mb-4 text-xs text-gray-500 dark:text-gray-400">
           <span className="font-bold text-orange-500 dark:text-orange-400">
             Chú ý:{" "}
           </span>
-          Click vào số câu hỏi để nhảy đến | Nhấn phím A/B/C/D để chọn nhanh
+          <span className="hidden sm:inline">Click vào số câu hỏi để nhảy đến | Nhấn phím A/B/C/D để chọn nhanh</span>
+          <span className="sm:inline">Click số để nhảy | Phím A/B/C/D chọn</span>
         </div>
 
         {/* 3. DANH SÁCH CÂU HỎI (PALETTE) */}
-        <div className="space-y-6 pr-2">
+        <div className="space-y-4 md:space-y-6 pr-1 md:pr-2">
           {parts.map((part) => (
             <div key={part.id}>
-              <h4 className="font-bold text-gray-700 dark:text-gray-300 text-sm mb-3">
+              <h4 className="font-bold text-gray-700 dark:text-gray-300 text-xs md:text-sm mb-2 md:mb-3">
                 {part.name}
               </h4>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1.5 md:gap-2">
                 {part.groups
                   .flatMap((g: any) => g.questions)
                   .map((q: any) => {
@@ -161,7 +166,7 @@ export default function ExamRightSidebar({
                       <button
                         key={q.id}
                         onClick={() => onScrollToQuestion(q.id)}
-                        className={`h-8 w-8 text-xs font-medium rounded flex items-center justify-center border-2 transition-all
+                        className={`h-7 w-7 md:h-8 md:w-8 text-xs font-medium rounded flex items-center justify-center border-2 transition-all
                       ${
                         isCurrent
                           ? "ring-2 ring-gray-400 dark:ring-zinc-400 ring-offset-1 dark:ring-offset-zinc-900"

@@ -71,27 +71,27 @@ export default function VocabularyPage() {
         
 
         {/* Tabs */}
-        <div className="flex gap-3 mb-6 border-b border-gray-200 dark:border-zinc-700">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-gray-200 dark:border-zinc-700">
           <button
             onClick={() => setActiveTab("practice")}
-            className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
+            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
               activeTab === "practice"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <Book className="w-4 h-4" />
+            <Book className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Học 
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
+            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
               activeTab === "progress"
                 ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
                 : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            <BarChart2 className="w-4 h-4" />
+            <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Tiến độ
           </button>
         </div>
@@ -182,15 +182,15 @@ export default function VocabularyPage() {
 
             {/* Topics Grid */}
             {filteredTopics.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 animate-fade-in">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 animate-fade-in">
                 {filteredTopics.map((topic) => (
                   <TopicCard key={topic.id} topic={topic} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white dark:bg-zinc-800/30 backdrop-blur-sm rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
-                <div className="text-5xl mb-3">📭</div>
-                <p className="text-gray-500 dark:text-gray-400 text-base font-medium">
+              <div className="text-center py-12 sm:py-16 bg-white dark:bg-zinc-800/30 backdrop-blur-sm rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
+                <div className="text-4xl sm:text-5xl mb-3">📭</div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base font-medium">
                   {searchTerm
                     ? "Không tìm thấy chủ đề từ vựng phù hợp"
                     : "Chưa có chủ đề từ vựng"}

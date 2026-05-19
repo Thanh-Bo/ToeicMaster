@@ -16,7 +16,7 @@ export default function AnswerOption({
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left px-4 py-3 border rounded-xl transition-all flex items-center group
+      className={`w-full text-left px-3 py-2 md:px-4 md:py-3 border rounded-xl transition-all flex items-center group
         ${
           isSelected
             ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
@@ -24,7 +24,7 @@ export default function AnswerOption({
         }`}
     >
       <span
-        className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold mr-3 border
+        className={`shrink-0 w-6 h-6 md:w-8 md:h-8 rounded-lg flex items-center justify-center font-bold mr-2 md:mr-3 text-xs md:text-sm border
          ${
            isSelected
              ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border-transparent"
@@ -33,7 +33,7 @@ export default function AnswerOption({
       >
         {ans.label}
       </span>
-      <span className="text-sm">
+      <span className="text-xs md:text-sm leading-tight">
         {ans.content.replace(/^\([A-D]\)\s*/i, "").trim()}
       </span>
     </button>

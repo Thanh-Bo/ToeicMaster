@@ -39,6 +39,7 @@ export default function TopicStudyPage() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [numericTopicId, setNumericTopicId] = useState<number | null>(null);
 
   // Start session when entering page
   useEffect(() => {
@@ -88,10 +89,15 @@ export default function TopicStudyPage() {
         const data = await vocabularyService.getWordsByTopic(topicId);
         setWords(data);
 
-        // Lấy tên topic
+        // Lấy tên topic và numeric id
         const topics = await vocabularyService.getTopics();
-        const topic = topics.find((t) => t.id === Number(topicId));
-        setTopicTitle(topic?.title || "Topic");
+        const topic = topics.find((t) => t.topicGuid === topicId);
+        if (topic) {
+          setTopicTitle(topic.title);
+          setNumericTopicId(topic.id);
+        } else {
+          setError("Không tìm thấy chủ đề");
+        }
       } catch (err: any) {
         setError(err.message || "Lỗi khi tải từ vựng");
       } finally {
@@ -715,10 +721,10 @@ export default function TopicStudyPage() {
           </div>
         )}
 
-        {phase === "TEST" && (
+        {phase === "TEST" && numericTopicId && (
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md border border-gray-200 dark:border-zinc-800 p-4 md:p-6">
             <VocabularyTest
-              topicId={Number(topicId)}
+              topicId={numericTopicId}
               topicTitle={topicTitle}
               skipLevelUp={completedPhases.matchingGame} // Skip nếu đã level up từ Matching Game
               onComplete={async () => {

@@ -55,13 +55,13 @@ export default function ResultQuestionItem({
 
   return (
     <div
-      className={`p-3 sm:p-4 rounded-xl transition-colors ${
+      className={`p-2 xs:p-3 sm:p-4 rounded-lg xs:rounded-xl transition-colors ${
         currentQuestionId === q.questionId ? "" : ""
       }`}
     >
-      <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
+      <div className="flex gap-2 xs:gap-2.5 sm:gap-3 mb-2 xs:mb-3 sm:mb-4">
         <span
-          className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 font-bold rounded-full flex items-center justify-center text-xs sm:text-sm shadow-sm
+          className={`shrink-0 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 font-bold rounded-full flex items-center justify-center text-xs xs:text-sm sm:text-sm shadow-sm
             ${
               q.isCorrect
                 ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700"
@@ -72,24 +72,24 @@ export default function ResultQuestionItem({
         >
           {q.questionNo}
         </span>
-        <div className="flex-1 pt-0.5 sm:pt-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+        <div className="flex-1 pt-0.5 xs:pt-0.5 sm:pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 xs:gap-1.5 sm:gap-2 mb-1 xs:mb-1.5 sm:mb-2">
             {partNum === 1 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm italic">
+              <p className="text-gray-500 dark:text-gray-400 text-xs xs:text-xs sm:text-sm italic">
                 Chọn đáp án mô tả đúng bức tranh
               </p>
             ) : partNum === 2 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm italic">
+              <p className="text-gray-500 dark:text-gray-400 text-xs xs:text-xs sm:text-sm italic">
                 Chọn câu trả lời phù hợp nhất
               </p>
             ) : (
-              <p className="font-medium text-gray-900 dark:text-white text-sm sm:text-lg leading-relaxed">
+              <p className="font-medium text-gray-900 dark:text-white text-xs xs:text-sm sm:text-base md:text-lg leading-relaxed">
                 {q.content}
               </p>
             )}
             {!q.userSelected && (
-              <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 whitespace-nowrap w-fit">
-                <AlertCircle size={12} className="sm:w-3.5 sm:h-3.5" /> Not Answered
+              <span className="inline-flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 sm:px-2.5 py-0.5 xs:py-0.5 sm:py-1 rounded-full text-[9px] xs:text-[10px] sm:text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 whitespace-nowrap w-fit">
+                <AlertCircle size={10} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> Not Answered
               </span>
             )}
           </div>
@@ -97,8 +97,8 @@ export default function ResultQuestionItem({
       </div>
 
       <div
-        className={`space-y-1.5 sm:space-y-2 ml-10 sm:ml-12 mb-3 sm:mb-4 ${
-          partNum === 1 || partNum === 2 ? "space-y-1.5 sm:space-y-2" : ""
+        className={`space-y-1.5 xs:space-y-1.5 sm:space-y-2 ml-8 xs:ml-10 sm:ml-12 mb-2 xs:mb-3 sm:mb-4 ${
+          partNum === 1 || partNum === 2 ? "space-y-1.5 xs:space-y-1.5 sm:space-y-2" : ""
         }`}
       >
         {partNum === 1 || partNum === 2
@@ -124,21 +124,21 @@ export default function ResultQuestionItem({
               return (
                 <div
                   key={label}
-                  className={`flex items-start gap-3 p-4 rounded-xl border font-medium text-sm ${btnClass}`}
+                  className={`flex items-start gap-2 xs:gap-2.5 sm:gap-3 p-2.5 xs:p-3 sm:p-4 rounded-lg xs:rounded-xl border font-medium text-xs xs:text-sm sm:text-sm ${btnClass}`}
                 >
-                  <span className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-base border-2 border-current">
+                  <span className="shrink-0 w-7 h-7 xs:w-7.5 xs:h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-full font-bold text-sm xs:text-base sm:text-base border-2 border-current">
                     {label}
                   </span>
-                  <div className="flex-1 pt-1">
-                    <div className="mt-1">
+                  <div className="flex-1 pt-0.5 xs:pt-0.5 sm:pt-1">
+                    <div className="mt-0.5 xs:mt-0.5 sm:mt-1">
                       {isCorrect && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold">
-                          <Check size={12} /> Đúng
+                        <span className="inline-flex items-center gap-0.5 xs:gap-1 text-[10px] xs:text-xs sm:text-xs font-bold">
+                          <Check size={10} className="xs:w-3 xs:h-3 sm:w-3" /> Đúng
                         </span>
                       )}
                       {isUserSelected && !isCorrect && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold">
-                          <X size={12} /> Sai
+                        <span className="inline-flex items-center gap-0.5 xs:gap-1 text-[10px] xs:text-xs sm:text-xs font-bold">
+                          <X size={10} className="xs:w-3 xs:h-3 sm:w-3" /> Sai
                         </span>
                       )}
                     </div>
@@ -157,12 +157,12 @@ export default function ResultQuestionItem({
       </div>
 
       {/* --- KHU VỰC NÚT TƯƠNG TÁC --- */}
-      <div className="ml-12 flex flex-wrap items-center gap-3">
+      <div className="ml-8 xs:ml-10 sm:ml-12 flex flex-wrap items-center gap-1.5 xs:gap-2 sm:gap-3">
         {/* Nút Bookmark: Gọi hàm từ Props */}
         <button
           onClick={() => onToggleBookmark(q.questionId)}
           disabled={isBookmarkLoading}
-          className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors
+          className={`inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-xs xs:text-sm sm:text-sm font-bold px-2 xs:px-3 sm:px-4 py-1.5 xs:py-2 sm:py-2 rounded-md xs:rounded-lg sm:rounded-lg transition-colors
               ${
                 isBookmarked
                   ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300"
@@ -170,14 +170,14 @@ export default function ResultQuestionItem({
               }`}
         >
           {isBookmarkLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3 xs:h-4 w-3 xs:w-4 animate-spin" />
           ) : isBookmarked ? (
             <>
-              <Bookmark size={16} /> Đã lưu
+              <Bookmark size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Đã lưu</span>
             </>
           ) : (
             <>
-              <Tag size={16} /> Đánh dấu
+              <Tag size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Đánh dấu</span>
             </>
           )}
         </button>
@@ -185,7 +185,7 @@ export default function ResultQuestionItem({
         {/* Nút Xem Giải Thích: Gọi hàm từ Props */}
         <button
           onClick={() => onViewExplanation(q.questionId)}
-          className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors 
+          className={`inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-xs xs:text-sm sm:text-sm font-bold px-2 xs:px-3 sm:px-4 py-1.5 xs:py-2 sm:py-2 rounded-md xs:rounded-lg sm:rounded-lg transition-colors 
               
               ${
                 q.isExplanationOpen
@@ -195,16 +195,16 @@ export default function ResultQuestionItem({
         >
           {isExplainLoading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Đang phân tích...
+              <Loader2 className="h-3 xs:h-4 w-3 xs:w-4 animate-spin" />
+              <span className="hidden xs:inline">Đang phân tích...</span>
             </>
           ) : q.isExplanationOpen ? (
             <>
-              <X size={16} /> Đóng giải thích
+              <X size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Đóng</span>
             </>
           ) : (
             <>
-              <Sparkles size={16} /> Xem giải thích
+              <Sparkles size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Xem giải thích</span>
             </>
           )}
         </button>
@@ -212,17 +212,17 @@ export default function ResultQuestionItem({
 
       {/* --- KHU VỰC HIỂN THỊ GIẢI THÍCH --- */}
       {q.isExplanationOpen && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-10 sm:ml-12 mt-3 sm:mt-4 p-3 sm:p-5 rounded-lg sm:rounded-xl animate-fadeIn relative">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-8 xs:ml-10 sm:ml-12 mt-2 xs:mt-3 sm:mt-4 p-2.5 xs:p-3 sm:p-5 rounded-lg xs:rounded-xl sm:rounded-xl animate-fadeIn relative">
           {/* GIẢI THÍCH NGẮN */}
           {q.shortExplanation && (
-            <div className="mb-3 sm:mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1">
-                  <Languages size={12} className="sm:w-3.5 sm:h-3.5" /> Dịch câu hỏi
+            <div className="mb-2 xs:mb-3 sm:mb-4">
+              <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 mb-1.5 xs:mb-2 sm:mb-2">
+                <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-0.5 xs:gap-1 sm:gap-1">
+                  <Languages size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden xs:inline">Dịch câu hỏi</span>
                 </h4>
               </div>
               <p
-                className="text-zinc-900 dark:text-zinc-200 text-sm sm:text-base leading-relaxed"
+                className="text-zinc-900 dark:text-zinc-200 text-xs xs:text-sm sm:text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: q.shortExplanation }}
               ></p>
             </div>
@@ -230,24 +230,24 @@ export default function ResultQuestionItem({
 
           {/* Nút Xem Chi Tiết & GIẢI THÍCH CHI TIẾT */}
           {q.fullExplanation && (
-            <div className="border-t border-blue-200 dark:border-blue-800 pt-2 sm:pt-3">
+            <div className="border-t border-blue-200 dark:border-blue-800 pt-1.5 xs:pt-2 sm:pt-3">
               <button
                 onClick={() => onToggleDetail(q.questionId)}
-                className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1 hover:text-blue-800 dark:hover:text-blue-300"
+                className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1.5 xs:mb-2 sm:mb-2 flex items-center gap-1 hover:text-blue-800 dark:hover:text-blue-300"
               >
                 {q.isDetailOpen ? (
                   <>
-                    <ChevronUp size={12} className="sm:w-3.5 sm:h-3.5" /> Ẩn chi tiết
+                    <ChevronUp size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden xs:inline">Ẩn chi tiết</span>
                   </>
                 ) : (
                   <>
-                    <ChevronDown size={12} className="sm:w-3.5 sm:h-3.5" /> Xem chi tiết
+                    <ChevronDown size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden xs:inline">Xem chi tiết</span>
                   </>
                 )}
               </button>
 
               {q.isDetailOpen && (
-                <div className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
+                <div className="text-xs xs:text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
                   <div
                     dangerouslySetInnerHTML={{
                       __html: q.fullExplanation,
