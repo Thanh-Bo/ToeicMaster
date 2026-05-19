@@ -63,11 +63,15 @@ namespace ToeicMaster.API.Controllers
                 _dbContext.Transactions.Add(transaction);
                 await _dbContext.SaveChangesAsync();
 
+                var transferDescription = $"TOEIC PREMIUM TX{transaction.Id}";
+                transaction.Content = transferDescription;
+                await _dbContext.SaveChangesAsync();
+
                 // Generate VietQR URL (cross-platform, no System.Drawing)
                 var (vietQrUrl, transferData) = _paymentService.GenerateVietQR(
                     userId,
                     request.Amount,
-                    request.Description,
+                    transferDescription,
                     transaction.Id
                 );
 
@@ -77,7 +81,7 @@ namespace ToeicMaster.API.Controllers
                 {
                     transactionId = transaction.Id,
                     amount = request.Amount,
-                    description = request.Description,
+                    description = transferDescription,
                     status = "PENDING",
                     qrUrl = vietQrUrl,  // direct VietQR image URL — use in <img src>
                     bankInfo = new
@@ -162,15 +166,32 @@ namespace ToeicMaster.API.Controllers
                 // Log webhook received
                 Console.WriteLine($"[WEBHOOK] Received payment webhook: TransactionRef={webhookData.TransactionReference}, Amount={webhookData.Amount}, Status={webhookData.Status}");
 
+                var transactionId = webhookData.TransactionId > 0
+                    ? webhookData.TransactionId
+                    : ExtractTransactionId(webhookData.TransactionReference, webhookData.Description);
+
+                if (transactionId == null)
+                {
+                    Console.WriteLine("[WEBHOOK] Missing transaction reference");
+                    return BadRequest(new { error = "Missing transaction reference" });
+                }
+
                 // Find transaction by reference
                 var transaction = await _dbContext.Transactions
                     .Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.Id == webhookData.TransactionId);
+                    .FirstOrDefaultAsync(t => t.Id == transactionId.Value);
 
                 if (transaction == null)
                 {
-                    Console.WriteLine($"[WEBHOOK] Transaction not found: {webhookData.TransactionId}");
+                    Console.WriteLine($"[WEBHOOK] Transaction not found: {transactionId}");
                     return NotFound(new { error = "Transaction not found" });
+                }
+
+                if (!string.Equals(webhookData.Status, "SUCCESS", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(webhookData.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"[WEBHOOK] Ignored non-success payment status: {webhookData.Status}");
+                    return BadRequest(new { error = "Payment status is not successful", status = webhookData.Status });
                 }
 
                 // Verify amount matches
@@ -183,7 +204,7 @@ namespace ToeicMaster.API.Controllers
                 // Check if already processed
                 if (transaction.Status == "COMPLETED" || transaction.Status == "SUCCESS")
                 {
-                    Console.WriteLine($"[WEBHOOK] Transaction already completed: {webhookData.TransactionId}");
+                    Console.WriteLine($"[WEBHOOK] Transaction already completed: {transactionId}");
                     return Ok(new { message = "Transaction already processed", transactionId = transaction.Id });
                 }
 
@@ -251,7 +272,7 @@ namespace ToeicMaster.API.Controllers
 
                 var transaction = await _dbContext.Transactions
                     .Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId);
+                    .FirstOrDefaultAsync(t => t.Id == transactionId);
 
                 if (transaction == null)
                     return NotFound(new { error = "Transaction not found" });
@@ -302,6 +323,29 @@ namespace ToeicMaster.API.Controllers
                 accountHolder = bankInfo.AccountHolder,
                 bankCode = bankInfo.BankCode
             });
+        }
+
+        private static int? ExtractTransactionId(params string?[] values)
+        {
+            foreach (var value in values)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    continue;
+
+                var txIndex = value.IndexOf("TX", StringComparison.OrdinalIgnoreCase);
+                if (txIndex < 0)
+                    continue;
+
+                var start = txIndex + 2;
+                var end = start;
+                while (end < value.Length && char.IsDigit(value[end]))
+                    end++;
+
+                if (end > start && int.TryParse(value[start..end], out var transactionId))
+                    return transactionId;
+            }
+
+            return null;
         }
     }
 

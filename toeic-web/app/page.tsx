@@ -7,6 +7,7 @@ import { useAuth } from "./contexts/AuthContext";
 import { testService } from "./services/testService";
 import { grammarService } from "./services/grammarService";
 import { vocabularyService } from "./services/vocabularyService";
+import { overallStatsService } from "./services/overallStatsService";
 import {
   Sparkles,
   BookOpen,
@@ -33,51 +34,20 @@ export default function HomePage() {
   const [vocabTopicsCount, setVocabTopicsCount] = useState<number | null>(null);
   const [vocabCount, setVocabCount] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchTestCount = async () => {
-      try {
-        const res = await testService.getList();
-        const data = res.data?.data ?? res.data;
-        if (Array.isArray(data)) {
-          setTestCount(data.length);
-        }
-      } catch {
-        setTestCount(null);
-      }
-    };
-    fetchTestCount();
-  }, []);
-
-  // Fetch grammar topics, questions and vocabulary counts
+  // Fetch all stats in a single API call
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch grammar groups
-        const groups = await grammarService.getAllGroups();
-        
-        // Fetch all topics song song (giới hạn 10 groups đầu để tránh quá nhiều request)
-        const topicsPromises = groups.slice(0, 10).map(group => 
-          grammarService.getTopicsByGroup(group.id)
-        );
-        const topicsArrays = await Promise.all(topicsPromises);
-        const allTopics = topicsArrays.flat();
-        setGrammarTopicsCount(allTopics.length);
-        
-        // Ước tính số câu hỏi: mỗi topic ~10 câu (không cần gọi API từng topic)
-        setGrammarQuestionsCount(allTopics.length * 10);
+        const stats = await overallStatsService.getOverallStats();
+        setTestCount(stats.testCount);
+        setGrammarTopicsCount(stats.grammarTopicsCount);
+        setGrammarQuestionsCount(stats.grammarQuestionsCount);
+        setVocabTopicsCount(stats.vocabTopicsCount);
+        setVocabCount(stats.vocabCount);
       } catch {
+        setTestCount(null);
         setGrammarTopicsCount(null);
         setGrammarQuestionsCount(null);
-      }
-
-      try {
-        // Fetch vocabulary topics
-        const vocabTopics = await vocabularyService.getTopics();
-        setVocabTopicsCount(vocabTopics.length);
-        
-        // Ước tính từ vựng: mỗi topic ~12 từ (không cần gọi API từng topic)
-        setVocabCount(vocabTopics.length * 12);
-      } catch {
         setVocabTopicsCount(null);
         setVocabCount(null);
       }

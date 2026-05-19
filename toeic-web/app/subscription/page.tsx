@@ -20,6 +20,13 @@ interface SubscriptionTier {
   popular?: boolean;
 }
 
+interface BankInfo {
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  bankCode: string;
+}
+
 const subscriptionTiers: SubscriptionTier[] = [
   {
     duration: 1,
@@ -56,22 +63,25 @@ const premiumBenefits = [
   { icon: <CheckCircle className="w-4 h-4" />, text: "Theo dõi tiến độ toàn hệ thống" },
 ];
 
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5298").replace(/\/api\/v1\/?$/, "");
+
 export default function PaymentPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       toast.error("Vui lòng đăng nhập để tiếp tục");
       router.push("/login");
     }
-  }, [user, router]);
+  }, [authLoading, user, router]);
 
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(subscriptionTiers[1]);
   const [loading, setLoading] = useState(false);
   const [qrUrl, setQrUrl] = useState<string>("");
-  const [bankInfo, setBankInfo] = useState<any>(null);
-  const [transactionId, setTransactionId] = useState<number | null>(null);
+  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string>("PENDING");
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
@@ -82,7 +92,7 @@ export default function PaymentPage() {
       const token = Cookies.get("token");
       if (!token) { toast.error("Vui lòng đăng nhập"); router.push("/login"); return; }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/initiate`, {
+      const response = await fetch(`${API_URL}/api/v1/payment/initiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ amount: selectedTier.basePrice, description: `Premium ${selectedTier.durationLabel}`, duration: selectedTier.duration }),
@@ -97,11 +107,10 @@ export default function PaymentPage() {
       const data = await response.json();
       setQrUrl(data.qrUrl);
       setBankInfo(data.bankInfo);
-      setTransactionId(data.transactionId);
       setPaymentStatus("PENDING");
       toast.success("Mã QR đã sẵn sàng! 🎉");
       startStatusPolling(data.transactionId);
-    } catch (error) {
+    } catch {
       toast.error("Lỗi kết nối. Vui lòng thử lại.");
     } finally {
       setLoading(false);
@@ -120,7 +129,7 @@ export default function PaymentPage() {
       setCheckingStatus(true);
       const token = Cookies.get("token");
       if (!token) return;
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/status/${txId}`, {
+      const response = await fetch(`${API_URL}/api/v1/payment/status/${txId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) return;
@@ -129,6 +138,7 @@ export default function PaymentPage() {
       if (data.isPaid) {
         if (statusCheckInterval) clearInterval(statusCheckInterval);
         toast.success("Thanh toán thành công! ✅");
+        await refreshUser();
         setPaymentStatus("COMPLETED");
       }
     } catch (error) {
@@ -146,7 +156,6 @@ export default function PaymentPage() {
   const resetPayment = () => {
     setQrUrl("");
     setBankInfo(null);
-    setTransactionId(null);
     setPaymentStatus("PENDING");
     if (statusCheckInterval) clearInterval(statusCheckInterval);
   };

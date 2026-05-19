@@ -1,11 +1,13 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5298";
+import Cookies from "js-cookie";
+
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5298").replace(/\/api\/v1\/?$/, "");
 
 export interface PaymentResponse {
   transactionId: number;
   amount: number;
   description: string;
   status: string;
-  qrCode: string;
+  qrUrl: string;
   bankInfo: {
     bankName: string;
     accountNumber: string;
@@ -30,9 +32,10 @@ class PaymentService {
    */
   async initiatePayment(
     amount: number,
-    description: string
+    description: string,
+    duration: number
   ): Promise<PaymentResponse> {
-    const token = localStorage.getItem("access_token");
+    const token = Cookies.get("token");
 
     const response = await fetch(`${API_URL}/api/v1/payment/initiate`, {
       method: "POST",
@@ -40,7 +43,7 @@ class PaymentService {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ amount, description }),
+      body: JSON.stringify({ amount, description, duration }),
     });
 
     if (!response.ok) {
@@ -55,7 +58,7 @@ class PaymentService {
    * Check payment status
    */
   async checkPaymentStatus(transactionId: number): Promise<PaymentStatusResponse> {
-    const token = localStorage.getItem("access_token");
+    const token = Cookies.get("token");
 
     const response = await fetch(
       `${API_URL}/api/v1/payment/status/${transactionId}`,
