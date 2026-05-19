@@ -8,7 +8,7 @@ services:
     startCommand: npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://api.luyendetoeic.online
+        value: https://api.toeicmasters.com
       - key: NODE_ENV
         value: production
     autoDeploy: false

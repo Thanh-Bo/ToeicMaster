@@ -58,8 +58,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(
                 "http://localhost:3000",
-                "https://luyendetoeic.online",
-                "https://www.luyendetoeic.online",
+                "https://toeicmasters.com",
+                "https://www.toeicmasters.com",
                 "https://toeic-master-sigma.vercel.app"  // Vercel default domain
             )
                   .AllowAnyHeader()
