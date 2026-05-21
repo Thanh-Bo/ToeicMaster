@@ -84,7 +84,7 @@ export default function PageHeader({
   };
 
   return (
-    <header className="bg-white dark:bg-zinc-900  text-gray-700 dark:text-white  sticky top-0 z-50 border-b  border-gray-200 dark:border-zinc-800">
+    <header className="bg-white dark:bg-zinc-950 text-gray-700 dark:text-white sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-8">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">

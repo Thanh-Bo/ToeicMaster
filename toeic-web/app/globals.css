@@ -50,7 +50,7 @@
 
 /* Dark mode - must come after media query to ensure it overrides */
 html.dark {
-  --background: #0f172a;
+  --background: #09090b;
   --foreground: #f1f5f9;
   
   /* Dark Mode Colors */

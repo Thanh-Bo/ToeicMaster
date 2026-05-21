@@ -81,7 +81,7 @@ export default function PracticePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white  dark:bg-zinc-900 ">
+    <div className="min-h-screen bg-white dark:bg-zinc-950">
       {/* HEADER */}
       <PageHeader
         navLinks={[

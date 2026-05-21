@@ -80,13 +80,13 @@ export default function TestOverviewPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white" />
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 ">
+    <div className="min-h-screen bg-white dark:bg-zinc-950">
       <PageHeader />
       <div className="max-w-3xl mx-auto space-y-6 px-4 py-10">
         {/* Header Card */}

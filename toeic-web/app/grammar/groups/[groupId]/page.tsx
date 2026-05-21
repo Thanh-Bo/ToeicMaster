@@ -70,7 +70,7 @@ export default function GroupDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <Loader className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
@@ -81,7 +81,7 @@ export default function GroupDetailPage() {
 
   if (!group) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-900">
+      <div className="min-h-screen bg-white dark:bg-zinc-950">
         <PageHeader />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <p className="text-gray-600 dark:text-gray-400">
@@ -93,7 +93,7 @@ export default function GroupDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900">
+    <div className="min-h-screen bg-white dark:bg-zinc-950">
       <PageHeader />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">

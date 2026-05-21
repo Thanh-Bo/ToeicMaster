@@ -33,7 +33,7 @@ export default function Footer({
   copyright = `© ${new Date().getFullYear()} TOEIC Master. All rights reserved.`,
 }: Props) {
   return (
-    <footer className="bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-400 py-12 mt-12 border-t border-gray-200 dark:border-zinc-800">
+    <footer className="bg-white dark:bg-zinc-950 text-gray-700 dark:text-gray-400 py-12 mt-12 border-t border-gray-200 dark:border-zinc-800">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo */}

@@ -529,7 +529,7 @@ export default function ResultPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white mx-auto mb-4"></div>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -576,8 +576,8 @@ export default function ResultPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 pb-24 lg:pb-10 font-sans">
-      <header className="bg-white dark:bg-zinc-900 shadow-sm border-b border-gray-200 dark:border-zinc-700 sticky top-0 z-50">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 pb-24 lg:pb-10 font-sans">
+      <header className="bg-white dark:bg-zinc-950 shadow-sm border-b border-gray-200 dark:border-zinc-700 sticky top-0 z-50">
         <div className="max-full px-4  flex justify-between items-center">
           <Link
             href="/"

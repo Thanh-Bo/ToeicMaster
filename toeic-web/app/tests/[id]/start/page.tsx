@@ -265,7 +265,7 @@ export default function ExamPage() {
   // --- RENDER ---
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white mx-auto mb-4"></div>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -284,9 +284,9 @@ export default function ExamPage() {
     );
 
   return (
-    <main className="min-h-screen bg-white dark:bg-zinc-900 pb-24 lg:pb-20 font-sans">
+    <main className="min-h-screen bg-white dark:bg-zinc-950 pb-24 lg:pb-20 font-sans">
       {/* HEADER Sticky */}
-      <header className="bg-white dark:bg-zinc-900 shadow-sm border-b border-gray-200 dark:border-zinc-700 p-3 sticky top-0 z-50">
+      <header className="bg-white dark:bg-zinc-950 shadow-sm border-b border-gray-200 dark:border-zinc-700 p-3 sticky top-0 z-50">
         <div className="w-full flex justify-between items-center px-4">
           <button
             onClick={() => {
@@ -751,7 +751,7 @@ export default function ExamPage() {
       </div>
 
       {/* MOBILE BOTTOM NAV */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 shadow-lg z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-700 shadow-lg z-50">
         <div className="flex items-center justify-between px-3 py-2 gap-2">
           <button
             onClick={() => setShowMobileNav(!showMobileNav)}
@@ -800,7 +800,7 @@ export default function ExamPage() {
           onClick={() => setShowMobileNav(false)}
         >
           <div
-            className="absolute bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 rounded-t-2xl p-4 max-h-[70vh] overflow-y-auto"
+            className="absolute bottom-0 left-0 right-0 bg-white dark:bg-zinc-950 rounded-t-2xl p-4 max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-bold mb-4 text-gray-900 dark:text-white">

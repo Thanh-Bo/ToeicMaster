@@ -10,7 +10,7 @@ export default function FeedbackPage() {
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-700 dark:text-gray-300">
       <PageHeader />
 
       <main className="max-w-6xl mx-auto px-4 py-12">

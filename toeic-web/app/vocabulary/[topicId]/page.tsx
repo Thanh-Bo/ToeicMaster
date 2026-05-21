@@ -110,7 +110,7 @@ export default function TopicStudyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
         <Loader className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
@@ -136,7 +136,7 @@ export default function TopicStudyPage() {
 
   if (words.length === 0) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Không có từ vựng</p>
       </div>
     );
@@ -265,7 +265,7 @@ export default function TopicStudyPage() {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 p-2 md:p-4">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 p-2 md:p-4">
       {/* Header Section */}
       <div className="max-w-3xl mx-auto mb-4">
         {/* Back Button */}

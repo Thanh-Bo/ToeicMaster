@@ -143,7 +143,7 @@ export default function GrammarHub() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900">
+    <div className="min-h-screen bg-white dark:bg-zinc-950">
       <PageHeader
         navLinks={[
           { href: "/grammar", label: "Grammar", icon: Library },
@@ -225,7 +225,7 @@ export default function GrammarHub() {
             </p>
 
             {loading ? (
-              <div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
+              <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
                 <div className="text-center">
                   <Loader className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">
