@@ -589,6 +589,12 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // Grammar Configuration
+        modelBuilder.Entity<Grammar>(entity =>
+        {
+            entity.Property(e => e.IsQuestionsPremiumRequired).HasDefaultValue(false);
+        });
+
         // Topic (Vocabulary) Configuration
         modelBuilder.Entity<Topic>(entity =>
         {

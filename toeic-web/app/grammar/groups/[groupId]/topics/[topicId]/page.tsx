@@ -21,6 +21,7 @@ export default function GrammarTopicDetailsPage() {
   }>({ easy: [], medium: [], hard: [] });
   const [loading, setLoading] = useState(true);
   const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionsLocked, setQuestionsLocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGrammarId, setSelectedGrammarId] = useState<number | null>(null);
 
@@ -61,6 +62,7 @@ export default function GrammarTopicDetailsPage() {
     // Reset cache if switching to a different grammar rule
     if (selectedGrammarId !== null && selectedGrammarId !== grammarId) {
       setQuestionsByMode({ easy: [], medium: [], hard: [] });
+      setQuestionsLocked(false);
     }
 
     
@@ -70,6 +72,7 @@ export default function GrammarTopicDetailsPage() {
       setSelectedGrammarId(grammarId);
 
       const questionsData = await grammarService.getQuestionsByGrammar(grammarId, mode);
+      setQuestionsLocked(Boolean(questionsData.isLocked));
 
       // Store questions keyed by mode — no overwriting other modes
       setQuestionsByMode(prev => ({
@@ -138,6 +141,7 @@ export default function GrammarTopicDetailsPage() {
       questionsByMode={questionsByMode}
       onLoadQuestions={loadQuestions}
       questionsLoading={questionsLoading}
+      questionsLocked={questionsLocked}
       selectedGrammarId={selectedGrammarId}
     />
   );

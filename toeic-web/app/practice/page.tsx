@@ -29,6 +29,8 @@ interface TestSummary {
   totalQuestions: number;
   totalParticipants?: number;
   completed?: boolean;
+  isExplanationPremiumRequired?: boolean;
+  canViewExplanation?: boolean;
   createdAt?: string;
 }
 

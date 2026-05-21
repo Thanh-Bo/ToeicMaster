@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Eye, Zap, Trash2, Loader } from "lucide-react";
+import { Plus, Eye, Zap, Trash2, Loader, Lock, Unlock } from "lucide-react";
 import type { AdminTest } from "@/app/types";
 
 interface TestsTabProps {
@@ -13,6 +13,7 @@ interface TestsTabProps {
   onOpenActionTab: (testId: number) => void;
   onDeleteTest: (testId: number) => void;
   onToggleExplanationAccess: (testId: number) => void;
+  savingExplanationAccess?: Record<number, boolean>;
 }
 
 export default function TestsTab({
@@ -25,6 +26,7 @@ export default function TestsTab({
   onOpenActionTab,
   onDeleteTest,
   onToggleExplanationAccess,
+  savingExplanationAccess = {},
 }: TestsTabProps) {
   return (
     <div className="space-y-4">
@@ -62,7 +64,7 @@ export default function TestsTab({
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Loại</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Thời gian</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Số câu</th>
-                <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Giải thích</th>
+                <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Khóa giải thích</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Trạng thái</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Thao tác</th>
               </tr>
@@ -73,18 +75,6 @@ export default function TestsTab({
                   <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 dark:text-gray-400 text-sm">#{t.id}</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 font-medium text-gray-800 dark:text-gray-100 text-sm">{t.title}</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4">
-                    <button
-                      onClick={() => onToggleExplanationAccess(t.id)}
-                      className={`px-2 py-1 rounded-full text-xs font-medium transition ${
-                        t.isExplanationPremiumRequired
-                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
-                          : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50"
-                      }`}
-                    >
-                      {t.isExplanationPremiumRequired ? "Premium" : "Free"}
-                    </button>
-                  </td>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       t.type === "FULL_TEST" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
                     }`}>
@@ -93,6 +83,33 @@ export default function TestsTab({
                   </td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-400 text-sm">{t.duration} phút</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-400 text-sm">{t.totalQuestions}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <button
+                      type="button"
+                      onClick={() => onToggleExplanationAccess(t.id)}
+                      disabled={savingExplanationAccess[t.id]}
+                      aria-pressed={t.isExplanationPremiumRequired}
+                      title={t.isExplanationPremiumRequired ? "Click để mở miễn phí giải thích" : "Click để khóa giải thích bằng Premium"}
+                      className={`inline-flex min-w-[132px] items-center justify-between gap-2 rounded-full px-2 py-1 text-xs font-semibold transition disabled:cursor-wait disabled:opacity-70 ${
+                        t.isExplanationPremiumRequired
+                          ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
+                          : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                      }`}
+                    >
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-white ${
+                        t.isExplanationPremiumRequired ? "bg-yellow-500" : "bg-emerald-500"
+                      }`}>
+                        {savingExplanationAccess[t.id] ? (
+                          <Loader size={13} className="animate-spin" />
+                        ) : t.isExplanationPremiumRequired ? (
+                          <Lock size={13} />
+                        ) : (
+                          <Unlock size={13} />
+                        )}
+                      </span>
+                      <span>{t.isExplanationPremiumRequired ? "Premium" : "Free"}</span>
+                    </button>
+                  </td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       t.isActive ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"

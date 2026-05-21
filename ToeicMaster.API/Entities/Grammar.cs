@@ -30,6 +30,8 @@ public class Grammar
 
     public int Difficulty { get; set; } // 1-5 scale
 
+    public bool IsQuestionsPremiumRequired { get; set; } = false;
+
     public string? NegativeExample { get; set; } // What NOT to do
 
     public string? NegativeExampleTranslation { get; set; } // Vietnamese translation of negative example

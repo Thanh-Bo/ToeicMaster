@@ -171,7 +171,7 @@ export const grammarService = {
   getQuestionsByGrammar: async (
     grammarId: number,
     mode?: 'easy' | 'medium' | 'hard'
-  ): Promise<{ items: QuestionGrammar[]; total: number }> => {
+  ): Promise<{ items: QuestionGrammar[]; total: number; isLocked?: boolean; message?: string }> => {
     const params: any = {};
     if (mode) {
       params.mode = mode;
@@ -185,6 +185,8 @@ export const grammarService = {
     return {
       items: response.data?.items || [],
       total: response.data?.total || 0,
+      isLocked: response.data?.isLocked || false,
+      message: response.data?.message,
     };
   },
 

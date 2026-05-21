@@ -537,6 +537,7 @@ export interface Grammar {
   imageUrl?: string;
   commonMistakes?: string;
   difficulty: number; // 1-5
+  isQuestionsPremiumRequired?: boolean;
   negativeExample?: string; // What NOT to do
   negativeExampleTranslation?: string; // Vietnamese translation of negative example
   testTip?: string; // TOEIC test strategy/tip
@@ -589,6 +590,7 @@ export interface QuestionGrammar {
   shortExplanation?: string;
   longExplanation?: string;
   mode?: string; // easy, medium, hard
+  explanationLocked?: boolean;
   answers: QuestionGrammarAnswer[];
 }
 

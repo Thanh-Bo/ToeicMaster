@@ -35,6 +35,7 @@ namespace ToeicMaster.API.Models
         public string? ImageUrl { get; set; }
         public string? CommonMistakes { get; set; }
         public int? Difficulty { get; set; }
+        public bool IsQuestionsPremiumRequired { get; set; }
         public string? NegativeExample { get; set; }
         public string? NegativeExampleTranslation { get; set; }
         public string? TestTip { get; set; }
@@ -119,6 +120,7 @@ namespace ToeicMaster.API.Models
         public string? ImageUrl { get; set; }
         public string? CommonMistakes { get; set; }
         public int? Difficulty { get; set; }
+        public bool? IsQuestionsPremiumRequired { get; set; }
         public string? NegativeExample { get; set; }
         public string? NegativeExampleTranslation { get; set; }
         public string? TestTip { get; set; }
@@ -138,6 +140,7 @@ namespace ToeicMaster.API.Models
         public string? ImageUrl { get; set; }
         public string? CommonMistakes { get; set; }
         public int? Difficulty { get; set; }
+        public bool? IsQuestionsPremiumRequired { get; set; }
         public int? TopicId { get; set; }
         public string? NegativeExample { get; set; }
         public string? NegativeExampleTranslation { get; set; }
@@ -293,6 +296,7 @@ namespace ToeicMaster.API.Models
         public string? ImageUrl { get; set; }
         public string? CommonMistakes { get; set; }
         public int? Difficulty { get; set; }
+        public bool? IsQuestionsPremiumRequired { get; set; }
         public string? NegativeExample { get; set; }
         public string? NegativeExampleTranslation { get; set; }
         public string? TestTip { get; set; }

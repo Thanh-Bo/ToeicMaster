@@ -56,7 +56,7 @@ namespace ToeicMaster.API.Controllers
                 SELECT Id, TestGuid, Title, Slug, Duration, TotalQuestions, IsExplanationPremiumRequired
                 FROM Tests
                 WHERE (@Search IS NULL OR Title LIKE '%' + @Search + '%')
-                ORDER BY Id DESC
+                ORDER BY Id ASC
                 OFFSET @Skip ROWS FETCH NEXT @Limit ROWS ONLY;
                 SELECT COUNT(*) FROM Tests WHERE (@Search IS NULL OR Title LIKE '%' + @Search + '%');";
 

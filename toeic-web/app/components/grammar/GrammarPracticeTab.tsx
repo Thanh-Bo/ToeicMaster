@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { QuestionGrammar } from "@/app/types";
 import { GrammarQuestion } from "./GrammarQuestion";
-import { ChevronLeft, ChevronRight, Trophy, Target, Zap, CheckCircle, Shuffle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trophy, Target, Zap, Crown } from "lucide-react";
 import { grammarService } from "@/app/services/grammarService";
 import { useAuth } from "@/app/contexts/AuthContext";
 
@@ -19,6 +19,8 @@ interface GrammarPracticeTabProps {
   grammarId?: number;
   topicId?: number;
   groupId?: number;
+  isLocked?: boolean;
+  requiresPremium?: boolean;
 }
 
 export function GrammarPracticeTab({ 
@@ -29,6 +31,7 @@ export function GrammarPracticeTab({
   grammarId,
   topicId,
   groupId,
+  isLocked = false,
 }: GrammarPracticeTabProps) {
   const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -36,7 +39,7 @@ export function GrammarPracticeTab({
   const [submittedAnswers, setSubmittedAnswers] = useState<Set<number>>(new Set());
   const [sessionStartTime] = useState(() => Date.now());
   const [sessionRecorded, setSessionRecorded] = useState(false);
-  const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+  const [questionStartTime, setQuestionStartTime] = useState<number>(() => Date.now());
 
   const questions = questionsByMode[selectedMode] || [];
 
@@ -63,7 +66,15 @@ export function GrammarPracticeTab({
          
           
           // Only include IDs that are defined
-          const sessionData: any = {
+          const sessionData: {
+            sessionType: "practice";
+            durationSeconds: number;
+            questionsAnswered: number;
+            correctAnswers: number;
+            grammarId?: number;
+            topicId?: number;
+            groupId?: number;
+          } = {
             sessionType: "practice",
             durationSeconds: durationSeconds,
             questionsAnswered: totalAttempted,
@@ -92,6 +103,7 @@ export function GrammarPracticeTab({
   }, [questions.length, totalAttempted, sessionRecorded, user?.id, grammarId, topicId, groupId, sessionStartTime, totalCorrect]);
 
   // Reset state when mode changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setCurrentQuestionIndex(0);
     setUserAnswers({});
@@ -99,6 +111,7 @@ export function GrammarPracticeTab({
     setSessionRecorded(false);
     setQuestionStartTime(Date.now());
   }, [selectedMode]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleAnswer = (questionIndex: number, selectedOption: string) => {
     setUserAnswers(prev => ({
@@ -137,8 +150,6 @@ export function GrammarPracticeTab({
 
   const currentQuestion = questions[currentQuestionIndex];
   const questionNumber = currentQuestionIndex + 1;
-  const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
-
   const modeConfig = {
     easy: { 
       label: 'Dễ', 
@@ -219,8 +230,20 @@ export function GrammarPracticeTab({
         </div>
       </div>
 
+      {isLocked && (
+        <div className="rounded-xl p-6 sm:p-8 border border-yellow-300 dark:border-yellow-500/40 bg-yellow-50 dark:bg-yellow-500/10 text-center">
+          <Crown className="mx-auto mb-3 h-8 w-8 text-yellow-600 dark:text-yellow-300" />
+          <p className="text-yellow-800 dark:text-yellow-200 font-semibold mb-2 text-sm sm:text-base">
+            Câu hỏi của quy tắc này dành cho Premium
+          </p>
+          <p className="text-yellow-700 dark:text-yellow-300 text-xs sm:text-sm">
+            Bài học vẫn miễn phí. Nâng cấp Premium để luyện tập câu hỏi của quy tắc này.
+          </p>
+        </div>
+      )}
+
       {/* No Questions Message - Responsive */}
-      {questions.length === 0 && !isLoading && (
+      {questions.length === 0 && !isLoading && !isLocked && (
         <div className="rounded-xl p-6 sm:p-8 border-1 border-dashed border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-950/20 text-center">
           <p className="text-yellow-700 dark:text-yellow-400 font-semibold mb-2 text-sm sm:text-base">
             Chưa có câu hỏi luyện tập

@@ -194,7 +194,7 @@ export default function ProfileInfoTab({
             Loại tài khoản
           </label>
           <p className="px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-xl text-gray-900 dark:text-gray-200 border border-gray-100 dark:border-zinc-700">
-            {user.isPremium ? "⭐ Premium" : "Miễn phí"}
+            {user.isPremium ? "Premium" : "Miễn phí"}
           </p>
         </div>
       </div>

@@ -1,6 +1,6 @@
-import Cookies from "js-cookie";
+import axiosClient from "./axiosClient";
 
-const BASE_URL = "http://localhost:5298/api/feedback";
+const BASE_URL = "/feedback";
 
 export interface CreateFeedbackRequest {
   feedbackType: "bug" | "feature" | "ui_ux" | "other";
@@ -45,103 +45,32 @@ export interface FeedbackListResponse {
 
 class FeedbackService {
   async createFeedback(request: CreateFeedbackRequest): Promise<FeedbackResponse> {
-    try {
-      const response = await fetch(`${BASE_URL}/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token") || ""}`,
-        },
-        body: JSON.stringify({
-          feedbackType: request.feedbackType,
-          title: request.title,
-          content: request.content,
-          email: request.email,
-          currentPage: request.currentPage || window.location.pathname,
-          priority: request.priority || 2,
-        }),
-      });
+    const response = await axiosClient.post<{ data: FeedbackResponse }>(`${BASE_URL}/create`, {
+      feedbackType: request.feedbackType,
+      title: request.title,
+      content: request.content,
+      email: request.email,
+      currentPage: request.currentPage || window.location.pathname,
+      priority: request.priority || 2,
+    });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to submit feedback");
-      }
-
-      const data = await response.json();
-      return data.data;
-    } catch (error) {
-      console.error("Error creating feedback:", error);
-      throw error;
-    }
+    return response.data.data;
   }
 
   async getAllFeedbacks(status?: string, feedbackType?: string): Promise<FeedbackListResponse[]> {
-    try {
-      const token = Cookies.get("token");
-      console.log("[FeedbackService] Token available:", !!token);
-      
-      const params = new URLSearchParams();
-      if (status) params.append("status", status);
-      if (feedbackType) params.append("feedbackType", feedbackType);
+    const response = await axiosClient.get<{ data: FeedbackListResponse[] }>(`${BASE_URL}/list`, {
+      params: {
+        status,
+        feedbackType,
+      },
+    });
 
-      const url = `${BASE_URL}/list?${params.toString()}`;
-      console.log("[FeedbackService] Fetching from:", url);
-
-      const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json", 
-          Authorization: `Bearer ${token || ""}`,
-        },
-      });
-      
-      console.log("[FeedbackService] Response status:", response.status);
-      console.log("[FeedbackService] Response headers:", response.headers);
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("[FeedbackService] Error response text:", text);
-        try {
-          const error = JSON.parse(text);
-          throw new Error(error.message || `Failed to fetch feedbacks (${response.status})`);
-        } catch {
-          throw new Error(`Failed to fetch feedbacks (${response.status}): ${text}`);
-        }
-      }
-
-      const text = await response.text();
-      console.log("[FeedbackService] Response text:", text);
-      
-      if (!text) {
-        console.warn("[FeedbackService] Empty response body");
-        return [];
-      }
-
-      const data = JSON.parse(text);
-      return data.data || [];
-    } catch (error: any) {
-      console.error("Error fetching feedbacks:", error.message);
-      throw error;
-    }
+    return response.data.data || [];
   }
 
   async getFeedbackById(id: number): Promise<FeedbackResponse> {
-    try {
-      const response = await fetch(`${BASE_URL}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token") || ""}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch feedback");
-      }
-
-      const data = await response.json();
-      return data.data;
-    } catch (error) {
-      console.error("Error fetching feedback:", error);
-      throw error;
-    }
+    const response = await axiosClient.get<{ data: FeedbackResponse }>(`${BASE_URL}/${id}`);
+    return response.data.data;
   }
 
   async updateFeedbackStatus(
@@ -150,50 +79,18 @@ class FeedbackService {
     adminResponse?: string,
     priority?: number
   ): Promise<FeedbackResponse> {
-    try {
-      const response = await fetch(`${BASE_URL}/update/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token") || ""}`,
-        },
-        body: JSON.stringify({
-          status,
-          adminResponse,
-          priority,
-        }),
-      });
+    const response = await axiosClient.put<{ data: FeedbackResponse }>(`${BASE_URL}/update/${id}`, {
+      status,
+      adminResponse,
+      priority,
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to update feedback");
-      }
-
-      const data = await response.json();
-      return data.data;
-    } catch (error) {
-      console.error("Error updating feedback:", error);
-      throw error;
-    }
+    return response.data.data;
   }
 
   async deleteFeedback(id: number): Promise<boolean> {
-    try {
-      const response = await fetch(`${BASE_URL}/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token") || ""}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete feedback");
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Error deleting feedback:", error);
-      throw error;
-    }
+    await axiosClient.delete(`${BASE_URL}/delete/${id}`);
+    return true;
   }
 }
 

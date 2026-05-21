@@ -500,6 +500,36 @@ public class AdminManagementController : ControllerBase
     /// <summary>
     /// Xóa bài test (soft delete - set isActive = false)
     /// </summary>
+    /// <summary>
+    /// Update whether practice questions for a grammar rule require Premium.
+    /// The lesson/rule content remains free; only questions are gated.
+    /// </summary>
+    [HttpPut("grammar/rules/{grammarId}/questions-access")]
+    public async Task<IActionResult> UpdateGrammarRuleQuestionsAccess(
+        int grammarId,
+        [FromBody] UpdateGrammarQuestionsAccessRequest request
+    )
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chá»‰ Admin má»›i Ä‘Æ°á»£c truy cáº­p");
+
+        var grammar = await _context.Grammars.FindAsync(grammarId);
+        if (grammar == null)
+            return NotFound("KhÃ´ng tÃ¬m tháº¥y grammar rule");
+
+        grammar.IsQuestionsPremiumRequired = request.IsQuestionsPremiumRequired;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            grammarId = grammar.Id,
+            isQuestionsPremiumRequired = grammar.IsQuestionsPremiumRequired,
+            message = grammar.IsQuestionsPremiumRequired
+                ? "CÃ¢u há»i cá»§a quy táº¯c nÃ y chá»‰ dÃ nh cho Premium"
+                : "CÃ¢u há»i cá»§a quy táº¯c nÃ y miá»…n phÃ­ cho má»i ngÆ°á»i"
+        });
+    }
+
     [HttpDelete("tests/{testId}")]
     public async Task<IActionResult> DeleteTest(int testId)
     {
@@ -1670,4 +1700,9 @@ public class UpdateQuestionRequest
 public class UpdateExplanationAccessRequest
 {
     public bool IsExplanationPremiumRequired { get; set; }
+}
+
+public class UpdateGrammarQuestionsAccessRequest
+{
+    public bool IsQuestionsPremiumRequired { get; set; }
 }

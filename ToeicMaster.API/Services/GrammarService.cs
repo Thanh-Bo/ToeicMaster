@@ -388,6 +388,7 @@ public class GrammarService : IGrammarService
                 ImageUrl = request.ImageUrl,
                 CommonMistakes = request.CommonMistakes,
                 Difficulty = request.Difficulty ?? 0,
+                IsQuestionsPremiumRequired = request.IsQuestionsPremiumRequired ?? false,
                 NegativeExample = request.NegativeExample,
                 NegativeExampleTranslation = request.NegativeExampleTranslation,
                 TestTip = request.TestTip,
@@ -453,6 +454,7 @@ public class GrammarService : IGrammarService
                         ImageUrl = rule.ImageUrl,
                         CommonMistakes = rule.CommonMistakes,
                         Difficulty = rule.Difficulty,
+                        IsQuestionsPremiumRequired = rule.IsQuestionsPremiumRequired,
                         NegativeExample = rule.NegativeExample,
                         NegativeExampleTranslation = rule.NegativeExampleTranslation,
                         TestTip = rule.TestTip,
@@ -501,6 +503,7 @@ public class GrammarService : IGrammarService
             if (request.ImageUrl != null) grammar.ImageUrl = request.ImageUrl;
             if (request.CommonMistakes != null) grammar.CommonMistakes = request.CommonMistakes;
             if (request.Difficulty.HasValue) grammar.Difficulty = request.Difficulty.Value;
+            if (request.IsQuestionsPremiumRequired.HasValue) grammar.IsQuestionsPremiumRequired = request.IsQuestionsPremiumRequired.Value;
             if (request.NegativeExample != null) grammar.NegativeExample = request.NegativeExample;
             if (request.NegativeExampleTranslation != null) grammar.NegativeExampleTranslation = request.NegativeExampleTranslation;
             if (request.TestTip != null) grammar.TestTip = request.TestTip;
@@ -548,6 +551,7 @@ public class GrammarService : IGrammarService
                     if (ruleItem.ImageUrl != null) grammar.ImageUrl = ruleItem.ImageUrl;
                     if (ruleItem.CommonMistakes != null) grammar.CommonMistakes = ruleItem.CommonMistakes;
                     if (ruleItem.Difficulty.HasValue) grammar.Difficulty = ruleItem.Difficulty.Value;
+                    if (ruleItem.IsQuestionsPremiumRequired.HasValue) grammar.IsQuestionsPremiumRequired = ruleItem.IsQuestionsPremiumRequired.Value;
                     if (ruleItem.NegativeExample != null) grammar.NegativeExample = ruleItem.NegativeExample;
                     if (ruleItem.NegativeExampleTranslation != null) grammar.NegativeExampleTranslation = ruleItem.NegativeExampleTranslation;
                     if (ruleItem.TestTip != null) grammar.TestTip = ruleItem.TestTip;
@@ -1383,6 +1387,7 @@ public class GrammarService : IGrammarService
             ImageUrl = grammar.ImageUrl,
             CommonMistakes = grammar.CommonMistakes,
             Difficulty = grammar.Difficulty,
+            IsQuestionsPremiumRequired = grammar.IsQuestionsPremiumRequired,
             NegativeExample = grammar.NegativeExample,
             NegativeExampleTranslation = grammar.NegativeExampleTranslation,
             TestTip = grammar.TestTip,

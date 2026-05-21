@@ -10,7 +10,7 @@ using ToeicMaster.API.Services;
 namespace ToeicMaster.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackService _feedbackService;

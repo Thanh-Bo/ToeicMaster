@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, BookOpen, ClipboardList } from "lucide-react";
+import { ChevronLeft, BookOpen, ClipboardList, Crown } from "lucide-react";
 import Link from "next/link";
 import { Grammar, QuestionGrammar } from "@/app/types";
 import { GrammarLessonTab } from "./GrammarLessonTab";
@@ -18,6 +18,7 @@ interface GrammarTopicDetailProps {
   onBack?: () => void;
   onLoadQuestions?: (grammarId: number, mode?: 'easy' | 'medium' | 'hard') => Promise<void>;
   questionsLoading?: boolean;
+  questionsLocked?: boolean;
 }
 
 type TabType = "lesson" | "practice";
@@ -26,9 +27,9 @@ export function GrammarTopicDetail({
   grammar, 
   topicId,
   questionsByMode,
-  onBack,
   onLoadQuestions,
   questionsLoading = false,
+  questionsLocked = false,
 }: GrammarTopicDetailProps) {
   const [activeTab, setActiveTab] = useState<TabType>("lesson");
   const [selectedMode, setSelectedMode] = useState<'easy' | 'medium' | 'hard'>('medium');
@@ -45,7 +46,7 @@ export function GrammarTopicDetail({
         );
       }
     }
-  }, [grammar.id, activeTab]); // Watch for grammar changes
+  }, [grammar.id, activeTab, onLoadQuestions, questionsByMode]); // Watch for grammar changes
 
   const handlePracticeTabClick = async () => {
     setActiveTab("practice");
@@ -89,6 +90,12 @@ export function GrammarTopicDetail({
             {grammar.difficulty && (
               <span className="text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex-shrink-0">
                 Độ khó: {grammar.difficulty}/5
+              </span>
+            )}
+            {grammar.isQuestionsPremiumRequired && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-500/40 flex-shrink-0">
+                <Crown className="h-3.5 w-3.5" />
+                Premium
               </span>
             )}
           </div>
@@ -137,6 +144,8 @@ export function GrammarTopicDetail({
             isLoading={questionsLoading}  
             grammarId={grammar.id}
             topicId={topicId}
+            isLocked={questionsLocked}
+            requiresPremium={grammar.isQuestionsPremiumRequired}
           />
         )}
       </div>

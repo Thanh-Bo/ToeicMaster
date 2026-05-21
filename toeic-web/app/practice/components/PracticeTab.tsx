@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Clock, BookOpen, Play, Zap, Filter } from "lucide-react";
+import { Clock, BookOpen, Play, Crown } from "lucide-react";
 
 interface TestSummary {
   id: number;
@@ -14,6 +13,8 @@ interface TestSummary {
   totalQuestions: number;
   totalParticipants?: number;
   completed?: boolean;
+  isExplanationPremiumRequired?: boolean;
+  canViewExplanation?: boolean;
   createdAt?: string;
 }
 
@@ -27,9 +28,21 @@ interface PracticeTabProps {
   onPrefixChange: (prefix: string) => void;
   uniquePrefixes: string[];
   getCountByPrefix: (prefix: string) => number;
-  LoadingSpinner: React.ComponentType<any>;
-  AlertMessage: React.ComponentType<any>;
-  EmptyState: React.ComponentType<any>;
+  LoadingSpinner: React.ComponentType<{
+    text?: string;
+    fullScreen?: boolean;
+    size?: "sm" | "md" | "lg";
+  }>;
+  AlertMessage: React.ComponentType<{
+    type: "success" | "error" | "warning" | "info";
+    message: string;
+    closable?: boolean;
+  }>;
+  EmptyState: React.ComponentType<{
+    icon?: string;
+    title: string;
+    description?: string;
+  }>;
 }
 
 export default function PracticeTab({
@@ -47,7 +60,7 @@ export default function PracticeTab({
   EmptyState,
 }: PracticeTabProps) {
   // Filter theo search query và prefix
-  let filteredTests = tests.filter((t) => {
+  const filteredTests = tests.filter((t) => {
     const matchesSearch = t.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -146,9 +159,20 @@ export default function PracticeTab({
               className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-4 sm:p-6 hover:shadow-md dark:hover:shadow-zinc-800/50 hover:scale-[1.02] transition-all duration-200 group"
             >
               {/* Title */}
-              <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 line-clamp-2">
-                {test.title}
-              </h3>
+              <div className="mb-3 sm:mb-4 flex min-h-[40px] items-start justify-between gap-3">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white line-clamp-2">
+                  {test.title}
+                </h3>
+                {test.isExplanationPremiumRequired && (
+                  <span
+                    className="inline-flex h-7 shrink-0 items-center justify-center rounded-full border border-yellow-300 bg-yellow-50 px-2 text-yellow-700 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-300"
+                    title="Giải thích cần Premium"
+                    aria-label="Giải thích cần Premium"
+                  >
+                    <Crown className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </div>
 
               {/* Test Info */}
               <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">

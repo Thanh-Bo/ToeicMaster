@@ -1,5 +1,6 @@
 import axiosClient from "./axiosClient";
 import { AdminTest, AdminUser, AdminQuestion, DashboardStats } from "@/app/types";
+import type { Grammar, GrammarTopic, QuestionGrammar } from "@/app/types";
 
 
 // ===== DASHBOARD =====
@@ -51,6 +52,46 @@ export const adminService = {
   ): Promise<void> => {
     await axiosClient.put(`/admin/tests/${testId}/explanation-access`, {
       isExplanationPremiumRequired,
+    });
+  },
+
+  // Grammar management
+  getGrammarGroups: async (): Promise<Array<{
+    id: number;
+    groupGuid: string;
+    title: string;
+    description?: string;
+    order: number;
+    totalTopics: number;
+  }>> => {
+    const response = await axiosClient.get("/grammar/groups");
+    return response.data || [];
+  },
+
+  getGrammarTopicsByGroup: async (groupGuid: string): Promise<GrammarTopic[]> => {
+    const response = await axiosClient.get(`/grammar/groups/${groupGuid}/topics`);
+    return response.data || [];
+  },
+
+  getGrammarRulesByTopic: async (topicId: number): Promise<Grammar[]> => {
+    const response = await axiosClient.get(`/grammar/groups/topics/${topicId}/grammars`);
+    return response.data || [];
+  },
+
+  getGrammarQuestionsByRule: async (grammarId: number): Promise<{ items: QuestionGrammar[]; total: number }> => {
+    const response = await axiosClient.get(`/grammar/grammars/${grammarId}/questions`);
+    return {
+      items: response.data?.items || [],
+      total: response.data?.total || 0,
+    };
+  },
+
+  updateGrammarRuleQuestionsAccess: async (
+    grammarId: number,
+    isQuestionsPremiumRequired: boolean
+  ): Promise<void> => {
+    await axiosClient.put(`/admin/grammar/rules/${grammarId}/questions-access`, {
+      isQuestionsPremiumRequired,
     });
   },
 

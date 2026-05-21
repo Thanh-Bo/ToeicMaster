@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   MessageSquare,
   BookOpen,
+  Library,
 } from "lucide-react";
 import VocabularyManagement from "../components/admin/VocabularyManagement";
 import AdminFeedbackPanel from "../components/feedback/AdminFeedbackPanel";
@@ -26,8 +27,9 @@ import QuestionsTab from "../components/admin/QuestionsTab";
 import VocabularyTab from "../components/admin/VocabularyTab";
 import FeedbackTab from "../components/admin/FeedbackTab";
 import TestActionsTab from "../components/admin/TestActionsTab";
+import GrammarAdminTab from "../components/admin/GrammarAdminTab";
 
-type Tab = "dashboard" | "users" | "tests" | "questions" | "vocabulary" | "test-actions" | "feedback";
+type Tab = "dashboard" | "users" | "tests" | "questions" | "vocabulary" | "grammar" | "test-actions" | "feedback";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -55,6 +57,7 @@ export default function AdminPage() {
   const [selectedTestForAction, setSelectedTestForAction] = useState<number | null>(null);
   const [backgroundTasks, setBackgroundTasks] = useState<{[key: string]: boolean}>({});
   const [notifications, setNotifications] = useState<Array<{id: string; message: string; type: 'info' | 'success' | 'error'}>>([]);
+  const [savingExplanationAccess, setSavingExplanationAccess] = useState<Record<number, boolean>>({});
 
   // Check admin access
   useEffect(() => {
@@ -163,8 +166,9 @@ export default function AdminPage() {
         } else {
           addNotification(response?.message || "Started processing", 'info');
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Background task error:", error);
+        // @ts-expect-error Preserve existing admin notification text while avoiding a broad catch type.
         addNotification(`❌ Lỗi: ${error.message || "Vui lòng thử lại."}`, 'error');
         setBackgroundTasks(prev => ({ ...prev, [taskKey]: false }));
       }
@@ -272,19 +276,42 @@ export default function AdminPage() {
   const handleToggleTestExplanationAccess = async (testId: number) => {
     const test = tests.find((t) => t.id === testId);
     if (!test) return;
+    if (savingExplanationAccess[testId]) return;
 
     const nextValue = !test.isExplanationPremiumRequired;
+    setSavingExplanationAccess((prev) => ({ ...prev, [testId]: true }));
+    setTests((prev) =>
+      prev.map((t) =>
+        t.id === testId
+          ? { ...t, isExplanationPremiumRequired: nextValue }
+          : t
+      )
+    );
+
     try {
       await adminService.updateTestExplanationAccess(testId, nextValue);
-      setTests((prev) =>
-        prev.map((t) =>
-          t.id === testId
-            ? { ...t, isExplanationPremiumRequired: nextValue }
-            : t
-        )
+      addNotification(
+        nextValue
+          ? `"${test.title}" yêu cầu Premium để xem giải thích`
+          : `"${test.title}" đã mở miễn phí phần giải thích`,
+        "success"
       );
     } catch (error) {
       console.error("Failed to update explanation access:", error);
+      setTests((prev) =>
+        prev.map((t) =>
+          t.id === testId
+            ? { ...t, isExplanationPremiumRequired: test.isExplanationPremiumRequired }
+            : t
+        )
+      );
+      addNotification("Không lưu được trạng thái Premium. Vui lòng thử lại.", "error");
+    } finally {
+      setSavingExplanationAccess((prev) => {
+        const next = { ...prev };
+        delete next[testId];
+        return next;
+      });
     }
   };
 
@@ -359,6 +386,7 @@ export default function AdminPage() {
             { key: "questions", label: "Quản lý Câu hỏi", icon: HelpCircle },
             { key: "vocabulary", label: "Quản lý Vocabulary", icon: BookOpen },
             { key: "feedback", label: "Quản lý Feedback", icon: MessageSquare },
+            { key: "grammar", label: "Quản lý Grammar", icon: Library },
           ].map((item) => {
             const IconComponent = item.icon;
             return (
@@ -415,6 +443,7 @@ export default function AdminPage() {
           <option value="questions">Quản lý Câu hỏi</option>
           <option value="vocabulary">Quản lý Vocabulary</option>
           <option value="feedback">Quản lý Feedback</option>
+          <option value="grammar">Quản lý Grammar</option>
         </select>
       </div>
 
@@ -468,6 +497,12 @@ export default function AdminPage() {
                 <>
                   <BookOpen size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Vocabulary
+                </>
+              )}
+              {activeTab === "grammar" && (
+                <>
+                  <Library size={24} className="sm:w-7 sm:h-7" />
+                  Quản lý Grammar
                 </>
               )}
               {activeTab === "feedback" && (
@@ -527,6 +562,7 @@ export default function AdminPage() {
                 onOpenActionTab={openActionTab}
                 onDeleteTest={handleDeleteTest}
                 onToggleExplanationAccess={handleToggleTestExplanationAccess}
+                savingExplanationAccess={savingExplanationAccess}
               />
             )}
 
@@ -543,6 +579,9 @@ export default function AdminPage() {
 
             {/* Vocabulary Tab */}
             {activeTab === "vocabulary" && <VocabularyTab />}
+
+            {/* Grammar Tab */}
+            {activeTab === "grammar" && <GrammarAdminTab />}
 
             {/* Feedback Tab */}
             {activeTab === "feedback" && <FeedbackTab />}

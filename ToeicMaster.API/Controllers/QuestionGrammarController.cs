@@ -55,6 +55,19 @@ public class QuestionGrammarController : ControllerBase
                await IsPremiumUserAsync(GetUserIdOrNull());
     }
 
+    private async Task<bool> CanViewGrammarQuestionsAsync(int grammarId)
+    {
+        var grammar = await _context.Grammars
+            .AsNoTracking()
+            .Where(g => g.Id == grammarId)
+            .Select(g => new { g.IsQuestionsPremiumRequired })
+            .FirstOrDefaultAsync();
+
+        return grammar == null ||
+               !grammar.IsQuestionsPremiumRequired ||
+               await IsPremiumUserAsync(GetUserIdOrNull());
+    }
+
     // ==========================================
     // 1. GET GRAMMAR QUESTIONS (by GrammarId)
     // ==========================================
@@ -97,6 +110,23 @@ public class QuestionGrammarController : ControllerBase
             // Get total count BEFORE pagination
             var totalCount = await _grammarService.GetGrammarQuestionCountAsync(grammarId, modeToUse);
 
+            var canViewQuestions = await CanViewGrammarQuestionsAsync(grammarId);
+            if (!canViewQuestions)
+            {
+                return Ok(new
+                {
+                    grammarId,
+                    mode = responseMode ?? "all",
+                    items = new List<QuestionGrammarDto>(),
+                    page,
+                    pageSize = pageSizeToUse,
+                    total = totalCount,
+                    totalPages = string.IsNullOrEmpty(mode) ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize),
+                    isLocked = true,
+                    message = "CÃ¢u há»i cá»§a quy táº¯c nÃ y chá»‰ dÃ nh cho tÃ i khoáº£n Premium"
+                });
+            }
+
             // Then get paginated questions
             var questions = await _grammarService.GetGrammarQuestionsByGrammarIdAsync(grammarId, modeToUse, page, pageSizeToUse);
 
@@ -111,7 +141,8 @@ public class QuestionGrammarController : ControllerBase
                 page,
                 pageSize = pageSizeToUse,
                 total = totalCount,  // ← Use total count BEFORE pagination
-                totalPages = string.IsNullOrEmpty(mode) ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize)
+                totalPages = string.IsNullOrEmpty(mode) ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize),
+                isLocked = false
             });
         }
         catch (Exception ex)

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Grammar, QuestionGrammar } from "@/app/types";
 import { GrammarTopicDetail } from "./GrammarTopicDetail";
 import { RandomPracticeTab } from "./RandomPracticeTab";
-import { ChevronLeft, BookOpen } from "lucide-react";
+import { ChevronLeft, BookOpen, Crown } from "lucide-react";
 import Link from "next/link";
 
 interface GrammarTopicRulesListProps {
@@ -18,6 +18,7 @@ interface GrammarTopicRulesListProps {
   };
   onLoadQuestions: (grammarId: number, mode?: 'easy' | 'medium' | 'hard') => Promise<void>;
   questionsLoading: boolean;
+  questionsLocked?: boolean;
   selectedGrammarId: number | null;
 }
 
@@ -28,27 +29,13 @@ export function   GrammarTopicRulesList({
   questionsByMode,
   onLoadQuestions,
   questionsLoading,
+  questionsLocked = false,
   selectedGrammarId,
 }: GrammarTopicRulesListProps) {
   const [selectedRuleId, setSelectedRuleId] = useState<number | null>(selectedGrammarId || rules[0]?.id || null);
   const [activeTab, setActiveTab] = useState<'rules' | 'random-practice'>('rules');
 
-  // Sync selectedRuleId with selectedGrammarId prop
-  useEffect(() => {
-    if (selectedGrammarId && selectedGrammarId !== selectedRuleId) {
-      setSelectedRuleId(selectedGrammarId);
-    }
-  }, [selectedGrammarId]);
-
   const selectedRule = rules.find((r) => r.id === selectedRuleId);
-
-  // Total questions loaded for the sidebar counter
-  const allQuestions = [
-    ...questionsByMode.easy,
-    ...questionsByMode.medium,
-    ...questionsByMode.hard,
-  ];
-
 
   if (!selectedRule) {
     return (
@@ -96,9 +83,6 @@ export function   GrammarTopicRulesList({
               </h2>
               <div className="space-y-1.5 sm:space-y-2 max-h-80 sm:max-h-96 overflow-y-auto">
                 {rules.map((rule) => {
-                  const ruleQuestionCount = allQuestions.filter(
-                    (q) => q.grammarId === rule.id || q.ruleId === rule.id
-                  ).length;
                   const isSelected = activeTab === 'rules' && rule.id === selectedRuleId;
 
                   return (
@@ -115,8 +99,16 @@ export function   GrammarTopicRulesList({
                           : "border-1 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600"
                       }`}
                     >
-                      <div className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white line-clamp-2">
-                        {rule.ruleName}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white line-clamp-2">
+                          {rule.ruleName}
+                        </div>
+                        {rule.isQuestionsPremiumRequired && (
+                          <Crown
+                            className="mt-0.5 h-3.5 w-3.5 shrink-0 text-yellow-500"
+                            aria-label="Câu hỏi Premium"
+                          />
+                        )}
                       </div>
                      
                     </button>
@@ -150,6 +142,7 @@ export function   GrammarTopicRulesList({
                 onBack={() => setActiveTab('rules')}
                 onLoadQuestions={onLoadQuestions}
                 questionsLoading={questionsLoading}
+                questionsLocked={questionsLocked}
               />
             )}
             
