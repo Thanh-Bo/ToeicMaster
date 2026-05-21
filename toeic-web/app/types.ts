@@ -60,6 +60,8 @@ export interface AdminUser {
   fullName: string;
   role: string;
   isActive: boolean;
+  isPremium?: boolean;
+  premiumExpiredAt?: string | null;
   createdAt: string;
   totalTests: number;
 }

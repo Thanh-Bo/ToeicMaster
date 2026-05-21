@@ -58,6 +58,7 @@ export default function AdminPage() {
   const [backgroundTasks, setBackgroundTasks] = useState<{[key: string]: boolean}>({});
   const [notifications, setNotifications] = useState<Array<{id: string; message: string; type: 'info' | 'success' | 'error'}>>([]);
   const [savingExplanationAccess, setSavingExplanationAccess] = useState<Record<number, boolean>>({});
+  const [savingPremiumUsers, setSavingPremiumUsers] = useState<Record<number, boolean>>({});
 
   // Check admin access
   useEffect(() => {
@@ -315,6 +316,52 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleUserPremium = async (targetUser: AdminUser) => {
+    if (targetUser.role === "Admin") return;
+    if (savingPremiumUsers[targetUser.id]) return;
+
+    const premiumActive =
+      Boolean(targetUser.isPremium) &&
+      Boolean(targetUser.premiumExpiredAt) &&
+      new Date(targetUser.premiumExpiredAt!).getTime() > Date.now();
+
+    setSavingPremiumUsers((prev) => ({ ...prev, [targetUser.id]: true }));
+
+    try {
+      const result = premiumActive
+        ? await adminService.revokeUserPremium(targetUser.id)
+        : await adminService.grantUserPremium(targetUser.id, 6);
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === targetUser.id
+            ? {
+                ...u,
+                isPremium: result.isPremium,
+                premiumExpiredAt: result.premiumExpiredAt,
+              }
+            : u
+        )
+      );
+
+      addNotification(
+        premiumActive
+          ? `${targetUser.fullName} Ä‘Ã£ chuyá»ƒn vá» Normal`
+          : `${targetUser.fullName} Ä‘Ã£ Ä‘Æ°á»£c Premium 6 thÃ¡ng`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Failed to toggle premium:", error);
+      addNotification("KhÃ´ng cáº­p nháº­t Ä‘Æ°á»£c Premium. Vui lÃ²ng thá»­ láº¡i.", "error");
+    } finally {
+      setSavingPremiumUsers((prev) => {
+        const next = { ...prev };
+        delete next[targetUser.id];
+        return next;
+      });
+    }
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -540,6 +587,8 @@ export default function AdminPage() {
               <UsersTab
                 filteredUsers={filteredUsers}
                 onToggleStatus={handleToggleUserStatus}
+                onTogglePremium={handleToggleUserPremium}
+                savingPremiumUsers={savingPremiumUsers}
                 currentPage={currentUsersPage}
                 onPageChange={setCurrentUsersPage}
                 totalUsers={totalUsers}

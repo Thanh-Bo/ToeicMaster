@@ -26,6 +26,31 @@ export const adminService = {
     await axiosClient.post(`/admin/users/${userId}/toggle-status`);
   },
 
+  grantUserPremium: async (userId: number, durationMonths: number = 6): Promise<{
+    isPremium: boolean;
+    premiumExpiredAt: string | null;
+  }> => {
+    const response = await axiosClient.post(`/premium/users/${userId}/grant`, {
+      durationMonths,
+      note: "Admin granted from users management",
+    });
+    return {
+      isPremium: response.data?.isPremium ?? true,
+      premiumExpiredAt: response.data?.premiumExpiredAt ?? null,
+    };
+  },
+
+  revokeUserPremium: async (userId: number): Promise<{
+    isPremium: boolean;
+    premiumExpiredAt: string | null;
+  }> => {
+    const response = await axiosClient.delete(`/premium/users/${userId}`);
+    return {
+      isPremium: response.data?.isPremium ?? false,
+      premiumExpiredAt: response.data?.premiumExpiredAt ?? null,
+    };
+  },
+
   // Tests
   getTests: async (): Promise<AdminTest[]> => {
     const response = await axiosClient.get<AdminTest[] | { items?: AdminTest[], data?: AdminTest[] }>("/admin/tests?pageSize=1000");

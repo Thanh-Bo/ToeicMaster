@@ -202,6 +202,7 @@ public class AdminManagementController : ControllerBase
                 u.CreatedAt,
                 u.LastLoginAt,
                 u.IsPremium,
+                u.PremiumExpiredAt,
                 TotalTests = u.TestAttempts.Count,
             })
             .ToListAsync();
