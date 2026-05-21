@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { QuestionGrammar } from "@/app/types";
-import { CheckCircle, Languages, Lightbulb, XCircle } from "lucide-react";
+import { CheckCircle, Crown, Languages, Lightbulb, XCircle } from "lucide-react";
 
 interface GrammarQuestionProps {
   question: QuestionGrammar;
@@ -18,7 +18,6 @@ interface GrammarQuestionProps {
 export function GrammarQuestion({
   question,
   questionNumber,
-  totalQuestions,
   onAnswer,
   onSubmit,
   showResult = false,
@@ -30,9 +29,11 @@ export function GrammarQuestion({
   );
 
   // Reset selected option when question changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setSelectedOption(userAnswer || null);
   }, [question.id, userAnswer]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const isCorrect = selectedOption === question.correctOption;
 
@@ -158,28 +159,48 @@ export function GrammarQuestion({
             )}
           </div>
 
-          {/* Short Explanation */}
-          {question.shortExplanation && (
-            <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm mb-3">
-              <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Languages size={12} className="sm:w-3.5 sm:h-3.5" /> Dịch câu hỏi
-              </h4>
-              <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: question.shortExplanation }}
-              />
-            </p>
-          )}
-
-          {/* Long Explanation */}
-          {question.longExplanation && (
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Lightbulb size={12} className="sm:w-3.5 sm:h-3.5" /> Giải thích
-              </h4>
-              <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: question.longExplanation }}
-              />
+          {question.explanationLocked ? (
+            <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-200">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Crown className="h-4 w-4" />
+                Cần Premium để xem giải thích
+              </div>
+              <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-300">
+                Bạn vẫn có thể luyện tập câu hỏi này. Nâng cấp Premium để xem giải thích.
+              </p>
+              <a
+                href="/subscription"
+                className="mt-3 inline-block px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold transition"
+              >
+                Nâng cấp ngay
+              </a>
             </div>
+          ) : (
+            <>
+              {/* Short Explanation */}
+              {question.shortExplanation && (
+                <div className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm mb-3">
+                  <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <Languages size={12} className="sm:w-3.5 sm:h-3.5" /> Dịch câu hỏi
+                  </h4>
+                  <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: question.shortExplanation }}
+                  />
+                </div>
+              )}
+
+              {/* Long Explanation */}
+              {question.longExplanation && (
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <Lightbulb size={12} className="sm:w-3.5 sm:h-3.5" /> Giải thích
+                  </h4>
+                  <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: question.longExplanation }}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -196,10 +217,11 @@ export function GrammarQuestion({
                 : "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-500 cursor-not-allowed"
             }`}
           >
-            Submit
+            Nộp bài
           </button>
         </div>
       )}
     </div>
   );
 }
+

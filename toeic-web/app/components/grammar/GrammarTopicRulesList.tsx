@@ -106,7 +106,7 @@ export function   GrammarTopicRulesList({
                         {rule.isQuestionsPremiumRequired && (
                           <Crown
                             className="mt-0.5 h-3.5 w-3.5 shrink-0 text-yellow-500"
-                            aria-label="Câu hỏi Premium"
+                            aria-label="Explanation Premium"
                           />
                         )}
                       </div>

@@ -377,7 +377,8 @@ export interface VocabularyTopic {
   description: string;
   totalWords: number;
   learnedWords: number;
-  wordCount : number ;
+  wordCount: number;
+  isExplanationPremiumRequired?: boolean;
 }
 
 
@@ -390,6 +391,7 @@ export interface QuestionVocab {
   correctOption: string; // Backend phải trả về cái này để chấm điểm
   shortExplanation?: string; // 1-sentence explanation from AI
   longExplanation?: string; // Detailed explanation with HTML formatting
+  explanationLocked?: boolean;
 }
 
 // 2. Cấu trúc Response từ API

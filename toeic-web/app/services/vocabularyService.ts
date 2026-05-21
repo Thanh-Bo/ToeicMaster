@@ -34,8 +34,24 @@ export const vocabularyService = {
 
   // Lấy Vocabulary questions của Topic
   getQuestionVocab: async (topicId: number): Promise<QuestionVocabResponse> => {
-    const response = await axiosClient.get(`/import/topics/${topicId}/question-vocab`);
-    return response.data;
+    const response = await axiosClient.get(`/questionvocab/topic/${topicId}`, {
+      params: { pageSize: 100 },
+    });
+    return {
+      topicId,
+      topicName: "",
+      totalQuestions: response.data?.total || 0,
+      questions: (response.data?.items || []).map((q: any) => ({
+        id: q.id,
+        questionNo: q.questionNo,
+        content: q.content,
+        correctOption: q.correctOption,
+        shortExplanation: q.shortExplanation,
+        longExplanation: q.longExplanation,
+        explanationLocked: q.explanationLocked,
+        options: q.answers || [],
+      })),
+    };
   },
 
 

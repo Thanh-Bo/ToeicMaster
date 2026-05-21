@@ -216,7 +216,7 @@ export default function GrammarAdminTab() {
                                         {rule.isQuestionsPremiumRequired && <Crown className="h-4 w-4 shrink-0 text-yellow-500" />}
                                       </div>
                                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                                        {questionCountsByRule[rule.id] || 0} questions · lesson always free
+                                        {questionCountsByRule[rule.id] || 0} questions · explanations can be premium
                                       </div>
                                     </div>
                                   </button>

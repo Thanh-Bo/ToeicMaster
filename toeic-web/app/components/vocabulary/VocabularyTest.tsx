@@ -10,6 +10,8 @@ import {
   Sparkles,
   Trophy,
   Languages,
+  Crown,
+  Lock,
 } from "lucide-react";
 import { QuestionVocab } from "@/app/types";
 import { playSound } from "@/app/lib/audio";
@@ -139,10 +141,14 @@ export default function VocabularyTest({
     }
 
     // Use explanation from database instead of generating
-    setExplanation({
-      short: currentQuestion.shortExplanation || "Không có giải thích",
-      long: currentQuestion.longExplanation || "",
-    });
+    if (currentQuestion.explanationLocked) {
+      setExplanation(null);
+    } else {
+      setExplanation({
+        short: currentQuestion.shortExplanation || "Không có giải thích",
+        long: currentQuestion.longExplanation || "",
+      });
+    }
   };
 
   const handleNext = () => {
@@ -341,30 +347,47 @@ export default function VocabularyTest({
 
         {hasSubmitted && (
           <>
-            {/* Explanation */}
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
-              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Languages size={14} /> Dịch câu hỏi
-              </div>
-
-              {generatingExplanation ? (
-                <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 text-xs">
-                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  Đang tạo...
+            {currentQuestion.explanationLocked ? (
+              <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-200">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Crown className="h-4 w-4" />
+                  Cần Premium để xem giải thích
                 </div>
-              ) : explanation ? (
-                <div className="space-y-1">
-                  <div
-                    className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400"
-                    dangerouslySetInnerHTML={{ __html: explanation.short }}
-                  />
-                </div>
-              ) : (
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Không có giải thích
+                <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-300">
+                  Bạn vẫn có thể làm bài kiểm tra và xem đáp án. Nâng cấp Premium để xem giải thích chi tiết.
                 </p>
-              )}
-            </div>
+                <a
+                  href="/subscription"
+                  className="mt-3 inline-block px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold transition"
+                >
+                  Nâng cấp ngay
+                </a>
+              </div>
+            ) : (
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Languages size={14} /> Dịch câu hỏi
+                </div>
+
+                {generatingExplanation ? (
+                  <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 text-xs">
+                    <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    Đang tạo...
+                  </div>
+                ) : explanation ? (
+                  <div className="space-y-1">
+                    <div
+                      className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400"
+                      dangerouslySetInnerHTML={{ __html: explanation.short }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Không có giải thích
+                  </p>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

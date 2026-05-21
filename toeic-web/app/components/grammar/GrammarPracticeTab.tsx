@@ -388,49 +388,7 @@ export function GrammarPracticeTab({
       )}
 
       
-      {/* Completion Message - Responsive */}
-      {/* {questions.length > 0 && totalAttempted === questions.length && (
-        <div className="rounded-xl p-4 sm:p-6 border-1 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30">
-          <div className="flex items-center gap-3 mb-4">
-            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 dark:text-green-400" />
-            <div>
-              <p className="text-base sm:text-lg font-bold text-green-700 dark:text-green-400">
-                 Hoàn thành!
-              </p>
-              <p className="text-xs sm:text-sm text-green-600 dark:text-green-500">
-                Bạn đã hoàn thành tất cả {questions.length} câu hỏi
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <div className="bg-white dark:bg-zinc-900 rounded-lg p-3 sm:p-4 text-center border-1 border-green-200 dark:border-green-900">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Kết quả</p>
-              <p className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400">
-                {totalCorrect}/{questions.length}
-              </p>
-            </div>
-            <div className="bg-white dark:bg-zinc-900 rounded-lg p-3 sm:p-4 text-center border-1 border-blue-200 dark:border-blue-900">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Độ chính xác</p>
-              <p className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {accuracy}%
-              </p>
-            </div>
-            <div className="bg-white dark:bg-zinc-900 rounded-lg p-3 sm:p-4 text-center border-1 border-purple-200 dark:border-purple-900">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Số câu sai</p>
-              <p className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
-                {questions.length - totalCorrect}
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Bạn có thể xem lại các câu hỏi bằng cách sử dụng nút điều hướng
-            </p>
-          </div>
-        </div>
-      )} */}
+      
     </div>
   );
 }

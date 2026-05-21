@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -55,7 +55,7 @@ public class QuestionGrammarController : ControllerBase
                await IsPremiumUserAsync(GetUserIdOrNull());
     }
 
-    private async Task<bool> CanViewGrammarQuestionsAsync(int grammarId)
+    private async Task<bool> CanViewGrammarQuestionExplanationsAsync(int grammarId)
     {
         var grammar = await _context.Grammars
             .AsNoTracking()
@@ -73,7 +73,7 @@ public class QuestionGrammarController : ControllerBase
     // ==========================================
 
     /// <summary>
-    /// Lấy danh sách câu hỏi ngữ pháp theo Grammar
+    /// Láº¥y danh sÃ¡ch cÃ¢u há»i ngá»¯ phÃ¡p theo Grammar
     /// GET: /api/v1/grammar/grammars/{grammarId}/questions
     /// </summary>
     [HttpGet]
@@ -87,7 +87,7 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (grammarId <= 0)
-                return BadRequest(new { error = "Grammar ID không hợp lệ" });
+                return BadRequest(new { error = "Grammar ID khÃ´ng há»£p lá»‡" });
 
             // Option A: If mode is null, return all questions without filtering by mode
             string? modeToUse = null;
@@ -109,29 +109,23 @@ public class QuestionGrammarController : ControllerBase
 
             // Get total count BEFORE pagination
             var totalCount = await _grammarService.GetGrammarQuestionCountAsync(grammarId, modeToUse);
-
-            var canViewQuestions = await CanViewGrammarQuestionsAsync(grammarId);
-            if (!canViewQuestions)
-            {
-                return Ok(new
-                {
-                    grammarId,
-                    mode = responseMode ?? "all",
-                    items = new List<QuestionGrammarDto>(),
-                    page,
-                    pageSize = pageSizeToUse,
-                    total = totalCount,
-                    totalPages = string.IsNullOrEmpty(mode) ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize),
-                    isLocked = true,
-                    message = "CÃ¢u há»i cá»§a quy táº¯c nÃ y chá»‰ dÃ nh cho tÃ i khoáº£n Premium"
-                });
-            }
+            var canViewExplanations = await CanViewGrammarQuestionExplanationsAsync(grammarId);
 
             // Then get paginated questions
             var questions = await _grammarService.GetGrammarQuestionsByGrammarIdAsync(grammarId, modeToUse, page, pageSizeToUse);
 
             if (!questions.Any())
-                return NotFound(new { error = "Không tìm thấy câu hỏi cho grammar này" });
+                return NotFound(new { error = "KhÃ´ng tÃ¬m tháº¥y cÃ¢u há»i cho grammar nÃ y" });
+
+            if (!canViewExplanations)
+            {
+                foreach (var question in questions)
+                {
+                    question.ShortExplanation = null;
+                    question.LongExplanation = null;
+                    question.ExplanationLocked = true;
+                }
+            }
 
             return Ok(new
             {
@@ -140,20 +134,21 @@ public class QuestionGrammarController : ControllerBase
                 items = questions,
                 page,
                 pageSize = pageSizeToUse,
-                total = totalCount,  // ← Use total count BEFORE pagination
+                total = totalCount,
                 totalPages = string.IsNullOrEmpty(mode) ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize),
-                isLocked = false
+                isLocked = false,
+                explanationLocked = !canViewExplanations
             });
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error getting grammar questions: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy câu hỏi ngữ pháp" });
+            return StatusCode(500, new { error = "Lá»—i láº¥y cÃ¢u há»i ngá»¯ phÃ¡p" });
         }
     }
 
     /// <summary>
-    /// Lấy chi tiết một câu hỏi ngữ pháp
+    /// Láº¥y chi tiáº¿t má»™t cÃ¢u há»i ngá»¯ phÃ¡p
     /// GET: /api/v1/grammar/grammars/{grammarId}/questions/{id}
     /// </summary>
     [HttpGet("{id}")]
@@ -163,24 +158,31 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (id <= 0)
-                return BadRequest(new { error = "Question ID không hợp lệ" });
+                return BadRequest(new { error = "Question ID khÃ´ng há»£p lá»‡" });
 
             var question = await _grammarService.GetGrammarQuestionByIdAsync(id);
 
             if (question == null)
-                return NotFound(new { error = "Câu hỏi không tồn tại" });
+                return NotFound(new { error = "CÃ¢u há»i khÃ´ng tá»“n táº¡i" });
+
+            if (!await CanViewGrammarQuestionExplanationsAsync(grammarId))
+            {
+                question.ShortExplanation = null;
+                question.LongExplanation = null;
+                question.ExplanationLocked = true;
+            }
 
             return Ok(question);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error getting grammar question {id}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i láº¥y cÃ¢u há»i" });
         }
     }
 
     /// <summary>
-    /// Lấy danh sách đáp án của một câu hỏi
+    /// Láº¥y danh sÃ¡ch Ä‘Ã¡p Ã¡n cá»§a má»™t cÃ¢u há»i
     /// GET: /api/v1/grammar/grammars/{grammarId}/questions/{questionId}/answers
     /// </summary>
     [HttpGet("{questionId}/answers")]
@@ -190,19 +192,19 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (questionId <= 0)
-                return BadRequest(new { error = "Question ID không hợp lệ" });
+                return BadRequest(new { error = "Question ID khÃ´ng há»£p lá»‡" });
 
             var answers = await _grammarService.GetQuestionAnswersAsync(questionId);
 
             if (!answers.Any())
-                return NotFound(new { error = "Không tìm thấy đáp án" });
+                return NotFound(new { error = "KhÃ´ng tÃ¬m tháº¥y Ä‘Ã¡p Ã¡n" });
 
             return Ok(answers);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error getting question answers: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy đáp án" });
+            return StatusCode(500, new { error = "Lá»—i láº¥y Ä‘Ã¡p Ã¡n" });
         }
     }
 
@@ -211,7 +213,7 @@ public class QuestionGrammarController : ControllerBase
     // ==========================================
 
     /// <summary>
-    /// Tạo câu hỏi ngữ pháp (Admin)
+    /// Táº¡o cÃ¢u há»i ngá»¯ phÃ¡p (Admin)
     /// POST: /api/v1/grammar/grammars/{grammarId}/questions
     /// </summary>
     [HttpPost]
@@ -221,16 +223,16 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (request == null || string.IsNullOrEmpty(request.Content))
-                return BadRequest(new { error = "Nội dung câu hỏi không được để trống" });
+                return BadRequest(new { error = "Ná»™i dung cÃ¢u há»i khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng" });
 
             if (request.GrammarId <= 0)
-                return BadRequest(new { error = "Grammar ID không hợp lệ" });
+                return BadRequest(new { error = "Grammar ID khÃ´ng há»£p lá»‡" });
 
             if (request.Options == null || request.Options.Count != 4)
-                return BadRequest(new { error = "Phải có đúng 4 lựa chọn (A, B, C, D)" });
+                return BadRequest(new { error = "Pháº£i cÃ³ Ä‘Ãºng 4 lá»±a chá»n (A, B, C, D)" });
 
             if (string.IsNullOrEmpty(request.CorrectOption) || !new[] { "A", "B", "C", "D" }.Contains(request.CorrectOption))
-                return BadRequest(new { error = "Đáp án đúng phải là A, B, C hoặc D" });
+                return BadRequest(new { error = "ÄÃ¡p Ã¡n Ä‘Ãºng pháº£i lÃ  A, B, C hoáº·c D" });
 
             var importDto = new QuestionGrammarImportItemDto
             {
@@ -240,7 +242,7 @@ public class QuestionGrammarController : ControllerBase
                 CorrectOption = request.CorrectOption,
                 ShortExplanation = request.ShortExplanation,
                 LongExplanation = request.LongExplanation,
-                Mode = "medium" // Default mode, sẽ được override bởi query param trong ImportQuestions
+                Mode = "medium" // Default mode, sáº½ Ä‘Æ°á»£c override bá»Ÿi query param trong ImportQuestions
             };
 
             var question = await _grammarService.CreateGrammarQuestionAsync(request.GrammarId, importDto);
@@ -250,12 +252,12 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error creating grammar question: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi tạo câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i táº¡o cÃ¢u há»i" });
         }
     }
 
     /// <summary>
-    /// Import hàng loạt câu hỏi ngữ pháp từ Excel (Admin)
+    /// Import hÃ ng loáº¡t cÃ¢u há»i ngá»¯ phÃ¡p tá»« Excel (Admin)
     /// POST: /api/v1/grammar/grammars/{grammarId}/questions/import?mode=easy
     /// </summary>
     [HttpPost("import")]
@@ -269,14 +271,14 @@ public class QuestionGrammarController : ControllerBase
         {
             // Validate mode
             if (!new[] { "easy", "medium", "hard" }.Contains(mode.ToLower()))
-                return BadRequest(new { error = "Mode phải là: easy, medium, hoặc hard" });
+                return BadRequest(new { error = "Mode pháº£i lÃ : easy, medium, hoáº·c hard" });
 
             // Validate file
             if (file == null || file.Length == 0)
-                return BadRequest(new { error = "Vui lòng upload file Excel" });
+                return BadRequest(new { error = "Vui lÃ²ng upload file Excel" });
 
             if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-                return BadRequest(new { error = "File phải có định dạng .xlsx" });
+                return BadRequest(new { error = "File pháº£i cÃ³ Ä‘á»‹nh dáº¡ng .xlsx" });
 
             var questions = new List<QuestionGrammarImportItemDto>();
             var errors = new List<string>();
@@ -288,11 +290,11 @@ public class QuestionGrammarController : ControllerBase
                 {
                     var worksheet = package.Workbook.Worksheets[0];
                     if (worksheet == null)
-                        return BadRequest(new { error = "File Excel không có worksheet" });
+                        return BadRequest(new { error = "File Excel khÃ´ng cÃ³ worksheet" });
 
                     var rowCount = worksheet.Dimension?.Rows ?? 0;
                     if (rowCount < 2)
-                        return BadRequest(new { error = "File Excel không có dữ liệu" });
+                        return BadRequest(new { error = "File Excel khÃ´ng cÃ³ dá»¯ liá»‡u" });
 
                     // Expected columns: Content, OptionA, OptionB, OptionC, OptionD, CorrectOption, ShortExplanation, LongExplanation
                     for (int row = 2; row <= rowCount; row++)
@@ -310,20 +312,20 @@ public class QuestionGrammarController : ControllerBase
 
                             if (string.IsNullOrEmpty(content))
                             {
-                                errors.Add($"Dòng {row}: Nội dung câu hỏi trống");
+                                errors.Add($"DÃ²ng {row}: Ná»™i dung cÃ¢u há»i trá»‘ng");
                                 continue;
                             }
 
                             if (string.IsNullOrEmpty(optionA) || string.IsNullOrEmpty(optionB) || 
                                 string.IsNullOrEmpty(optionC) || string.IsNullOrEmpty(optionD))
                             {
-                                errors.Add($"Dòng {row}: Thiếu đáp án A/B/C/D");
+                                errors.Add($"DÃ²ng {row}: Thiáº¿u Ä‘Ã¡p Ã¡n A/B/C/D");
                                 continue;
                             }
 
                             if (string.IsNullOrEmpty(correctOption) || !new[] { "A", "B", "C", "D" }.Contains(correctOption))
                             {
-                                errors.Add($"Dòng {row}: Đáp án đúng phải là A, B, C hoặc D");
+                                errors.Add($"DÃ²ng {row}: ÄÃ¡p Ã¡n Ä‘Ãºng pháº£i lÃ  A, B, C hoáº·c D");
                                 continue;
                             }
 
@@ -340,14 +342,14 @@ public class QuestionGrammarController : ControllerBase
                         }
                         catch (Exception ex)
                         {
-                            errors.Add($"Dòng {row}: {ex.Message}");
+                            errors.Add($"DÃ²ng {row}: {ex.Message}");
                         }
                     }
                 }
             }
 
             if (!questions.Any())
-                return BadRequest(new { error = "Không có câu hỏi hợp lệ trong file Excel", errors });
+                return BadRequest(new { error = "KhÃ´ng cÃ³ cÃ¢u há»i há»£p lá»‡ trong file Excel", errors });
 
             int successCount = 0;
             int errorCount = 0;
@@ -365,13 +367,13 @@ public class QuestionGrammarController : ControllerBase
                 catch (Exception ex)
                 {
                     errorCount++;
-                    importErrors.Add($"Câu {question.QuestionNo}: {ex.Message}");
+                    importErrors.Add($"CÃ¢u {question.QuestionNo}: {ex.Message}");
                 }
             }
 
             return Ok(new
             {
-                message = $"Import thành công {successCount} câu hỏi" + (errorCount > 0 ? $", lỗi {errorCount} câu" : ""),
+                message = $"Import thÃ nh cÃ´ng {successCount} cÃ¢u há»i" + (errorCount > 0 ? $", lá»—i {errorCount} cÃ¢u" : ""),
                 grammarId = grammarId,
                 mode = mode.ToLower(),
                 successCount,
@@ -383,7 +385,7 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error importing grammar questions: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi import câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i import cÃ¢u há»i" });
         }
     }
 
@@ -392,7 +394,7 @@ public class QuestionGrammarController : ControllerBase
     // ==========================================
 
     /// <summary>
-    /// Xóa câu hỏi ngữ pháp (Admin)
+    /// XÃ³a cÃ¢u há»i ngá»¯ phÃ¡p (Admin)
     /// DELETE: /api/v1/grammar/grammars/{grammarId}/questions/{id}
     /// </summary>
     [HttpDelete("{id}")]
@@ -402,24 +404,24 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (id <= 0)
-                return BadRequest(new { error = "Question ID không hợp lệ" });
+                return BadRequest(new { error = "Question ID khÃ´ng há»£p lá»‡" });
 
             var result = await _grammarService.DeleteGrammarQuestionAsync(id);
 
             if (!result)
-                return NotFound(new { error = "Câu hỏi không tồn tại" });
+                return NotFound(new { error = "CÃ¢u há»i khÃ´ng tá»“n táº¡i" });
 
-            return Ok(new { message = "Xóa câu hỏi thành công" });
+            return Ok(new { message = "XÃ³a cÃ¢u há»i thÃ nh cÃ´ng" });
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error deleting grammar question {id}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i xÃ³a cÃ¢u há»i" });
         }
     }
 
     /// <summary>
-    /// Xóa tất cả câu hỏi của một grammar (Admin)
+    /// XÃ³a táº¥t cáº£ cÃ¢u há»i cá»§a má»™t grammar (Admin)
     /// DELETE: /api/v1/grammar/grammars/{grammarId}/questions/delete-all
     /// </summary>
     [HttpDelete("all")]
@@ -429,12 +431,12 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             var result = await _grammarService.DeleteAllGrammarQuestionsAsync(grammarId);
-            return Ok(new { message = $"Xóa {result} câu hỏi thành công" });
+            return Ok(new { message = $"XÃ³a {result} cÃ¢u há»i thÃ nh cÃ´ng" });
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error deleting all questions for grammar {grammarId}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i xÃ³a cÃ¢u há»i" });
         }
     }
 
@@ -457,19 +459,19 @@ public class QuestionGrammarController : ControllerBase
         {
             // Validate mode
             if (mode != "easy" && mode != "medium" && mode != "hard")
-                return BadRequest(new { error = "Mode phải là easy/medium/hard" });
+                return BadRequest(new { error = "Mode pháº£i lÃ  easy/medium/hard" });
 
             // Validate topic exists
             var topic = await _context.GrammarTopics.FindAsync(topicId);
             if (topic == null)
-                return NotFound(new { error = "Topic không tồn tại" });
+                return NotFound(new { error = "Topic khÃ´ng tá»“n táº¡i" });
 
             // Validate file
             if (file == null || file.Length == 0)
-                return BadRequest(new { error = "Vui lòng upload file Excel" });
+                return BadRequest(new { error = "Vui lÃ²ng upload file Excel" });
 
             if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-                return BadRequest(new { error = "File phải có định dạng .xlsx" });
+                return BadRequest(new { error = "File pháº£i cÃ³ Ä‘á»‹nh dáº¡ng .xlsx" });
 
             var questions = new List<QuestionGrammarImportItemDto>();
             var parseErrors = new List<string>();
@@ -481,11 +483,11 @@ public class QuestionGrammarController : ControllerBase
                 {
                     var worksheet = package.Workbook.Worksheets[0];
                     if (worksheet == null)
-                        return BadRequest(new { error = "File Excel không có worksheet" });
+                        return BadRequest(new { error = "File Excel khÃ´ng cÃ³ worksheet" });
 
                     var rowCount = worksheet.Dimension?.Rows ?? 0;
                     if (rowCount < 2)
-                        return BadRequest(new { error = "File Excel không có dữ liệu" });
+                        return BadRequest(new { error = "File Excel khÃ´ng cÃ³ dá»¯ liá»‡u" });
 
                     // Expected columns: Content, OptionA, OptionB, OptionC, OptionD, CorrectOption, ShortExplanation, LongExplanation
                     for (int row = 2; row <= rowCount; row++)
@@ -503,20 +505,20 @@ public class QuestionGrammarController : ControllerBase
 
                             if (string.IsNullOrEmpty(content))
                             {
-                                parseErrors.Add($"Dòng {row}: Nội dung câu hỏi trống");
+                                parseErrors.Add($"DÃ²ng {row}: Ná»™i dung cÃ¢u há»i trá»‘ng");
                                 continue;
                             }
 
                             if (string.IsNullOrEmpty(optionA) || string.IsNullOrEmpty(optionB) || 
                                 string.IsNullOrEmpty(optionC) || string.IsNullOrEmpty(optionD))
                             {
-                                parseErrors.Add($"Dòng {row}: Thiếu đáp án A/B/C/D");
+                                parseErrors.Add($"DÃ²ng {row}: Thiáº¿u Ä‘Ã¡p Ã¡n A/B/C/D");
                                 continue;
                             }
 
                             if (string.IsNullOrEmpty(correctOption) || !new[] { "A", "B", "C", "D" }.Contains(correctOption))
                             {
-                                parseErrors.Add($"Dòng {row}: Đáp án đúng phải là A, B, C hoặc D");
+                                parseErrors.Add($"DÃ²ng {row}: ÄÃ¡p Ã¡n Ä‘Ãºng pháº£i lÃ  A, B, C hoáº·c D");
                                 continue;
                             }
 
@@ -532,14 +534,14 @@ public class QuestionGrammarController : ControllerBase
                         }
                         catch (Exception ex)
                         {
-                            parseErrors.Add($"Dòng {row}: {ex.Message}");
+                            parseErrors.Add($"DÃ²ng {row}: {ex.Message}");
                         }
                     }
                 }
             }
 
             if (!questions.Any())
-                return BadRequest(new { error = "Không có câu hỏi hợp lệ trong file Excel", errors = parseErrors });
+                return BadRequest(new { error = "KhÃ´ng cÃ³ cÃ¢u há»i há»£p lá»‡ trong file Excel", errors = parseErrors });
 
             var existingCount = await _context.QuestionGrammars
                 .Where(q => q.TopicId == topicId && q.Mode == mode)
@@ -547,7 +549,7 @@ public class QuestionGrammarController : ControllerBase
 
             var labels = new[] { "A", "B", "C", "D" };
 
-            // Build question entities kèm Answer options (A/B/C/D)
+            // Build question entities kÃ¨m Answer options (A/B/C/D)
             var questionEntities = questions.Select((question, idx) =>
             {
                 var entity = new QuestionGrammar
@@ -561,7 +563,7 @@ public class QuestionGrammarController : ControllerBase
                     LongExplanation = question.LongExplanation
                 };
 
-                // Lưu options A/B/C/D vào QuestionGrammarAnswer
+                // LÆ°u options A/B/C/D vÃ o QuestionGrammarAnswer
                 if (question.Options != null && question.Options.Count == 4)
                 {
                     entity.Answers = question.Options.Select((opt, i) => new QuestionGrammarAnswer
@@ -583,7 +585,7 @@ public class QuestionGrammarController : ControllerBase
 
             return Ok(new
             {
-                message = $"Import {importedCount} questions thành công cho topic {topic.Title}",
+                message = $"Import {importedCount} questions thÃ nh cÃ´ng cho topic {topic.Title}",
                 topicId,
                 topicName = topic.Title,
                 mode,
@@ -594,7 +596,7 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error importing questions for topic {topicId}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi import câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i import cÃ¢u há»i" });
         }
     }
 
@@ -617,16 +619,16 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (topicId <= 0)
-                return BadRequest(new { error = "Topic ID không hợp lệ" });
+                return BadRequest(new { error = "Topic ID khÃ´ng há»£p lá»‡" });
 
             var canViewExplanation = await CanViewTopicExplanationAsync(topicId);
 
             // Validate mode if provided
             if (!string.IsNullOrEmpty(mode) && !new[] { "easy", "medium", "hard" }.Contains(mode.ToLower()))
-                return BadRequest(new { error = "Mode phải là easy/medium/hard" });
+                return BadRequest(new { error = "Mode pháº£i lÃ  easy/medium/hard" });
 
-            // Chỉ lấy câu hỏi new flow (random practice): GrammarId IS NULL
-            // Old flow questions (Layer 3) có GrammarId != null → không lấy
+            // Chá»‰ láº¥y cÃ¢u há»i new flow (random practice): GrammarId IS NULL
+            // Old flow questions (Layer 3) cÃ³ GrammarId != null â†’ khÃ´ng láº¥y
             var query = _context.QuestionGrammars
                 .Where(q => q.TopicId == topicId && q.GrammarId == null)
                 .AsQueryable();
@@ -684,7 +686,7 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error getting questions by topic {topicId}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi lấy câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i láº¥y cÃ¢u há»i" });
         }
     }
 
@@ -693,9 +695,9 @@ public class QuestionGrammarController : ControllerBase
     // ==========================================
 
     /// <summary>
-    /// Xóa câu hỏi random practice của topic (chỉ new flow: GrammarId IS NULL)
-    /// DELETE: /api/v1/grammar/topics/{topicId}/questions        → xóa tất cả
-    /// DELETE: /api/v1/grammar/topics/{topicId}/questions?mode=medium → xóa theo mode
+    /// XÃ³a cÃ¢u há»i random practice cá»§a topic (chá»‰ new flow: GrammarId IS NULL)
+    /// DELETE: /api/v1/grammar/topics/{topicId}/questions        â†’ xÃ³a táº¥t cáº£
+    /// DELETE: /api/v1/grammar/topics/{topicId}/questions?mode=medium â†’ xÃ³a theo mode
     /// </summary>
     [HttpDelete("~/api/v1/grammar/topics/{topicId}/questions")]
     [Authorize(Roles = "Admin")]
@@ -705,19 +707,19 @@ public class QuestionGrammarController : ControllerBase
     {
         try
         {
-            // Validate mode nếu có truyền vào
+            // Validate mode náº¿u cÃ³ truyá»n vÃ o
             if (!string.IsNullOrEmpty(mode) && !new[] { "easy", "medium", "hard" }.Contains(mode.ToLower()))
-                return BadRequest(new { error = "Mode phải là easy/medium/hard" });
+                return BadRequest(new { error = "Mode pháº£i lÃ  easy/medium/hard" });
 
             var topic = await _context.GrammarTopics.FindAsync(topicId);
             if (topic == null)
-                return NotFound(new { error = "Topic không tồn tại" });
+                return NotFound(new { error = "Topic khÃ´ng tá»“n táº¡i" });
 
-            // Base query: chỉ new flow (GrammarId IS NULL)
+            // Base query: chá»‰ new flow (GrammarId IS NULL)
             var query = _context.QuestionGrammars
                 .Where(q => q.TopicId == topicId && q.GrammarId == null);
 
-            // Nếu có mode → lọc thêm theo mode
+            // Náº¿u cÃ³ mode â†’ lá»c thÃªm theo mode
             if (!string.IsNullOrEmpty(mode))
                 query = query.Where(q => q.Mode == mode.ToLower());
 
@@ -726,10 +728,10 @@ public class QuestionGrammarController : ControllerBase
             _context.QuestionGrammars.RemoveRange(questions);
             await _context.SaveChangesAsync();
 
-            var modeLabel = string.IsNullOrEmpty(mode) ? "tất cả" : $"[{mode.ToLower()}]";
+            var modeLabel = string.IsNullOrEmpty(mode) ? "táº¥t cáº£" : $"[{mode.ToLower()}]";
             return Ok(new
             {
-                message = $"Đã xóa {questions.Count} câu hỏi {modeLabel} của topic {topic.Title}",
+                message = $"ÄÃ£ xÃ³a {questions.Count} cÃ¢u há»i {modeLabel} cá»§a topic {topic.Title}",
                 topicId,
                 topicName = topic.Title,
                 mode = string.IsNullOrEmpty(mode) ? "all" : mode.ToLower(),
@@ -739,7 +741,7 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error deleting random questions for topic {topicId}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa câu hỏi", details = ex.Message });
+            return StatusCode(500, new { error = "Lá»—i xÃ³a cÃ¢u há»i", details = ex.Message });
         }
     }
 
@@ -750,13 +752,13 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (grammarId <= 0)
-                return BadRequest(new { error = "Grammar ID không hợp lệ" });
+                return BadRequest(new { error = "Grammar ID khÃ´ng há»£p lá»‡" });
 
             var deletedCount = await _grammarService.DeleteAllQuestionsByGrammarIdAsync(grammarId);
 
             return Ok(new
             {
-                message = $"Đã xóa {deletedCount} câu hỏi",
+                message = $"ÄÃ£ xÃ³a {deletedCount} cÃ¢u há»i",
                 grammarId = grammarId,
                 deletedCount
             });
@@ -764,12 +766,12 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error deleting all questions in grammar {grammarId}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i xÃ³a cÃ¢u há»i" });
         }
     }
 
     /// <summary>
-    /// Xóa tất cả câu hỏi của một mode cụ thể (Admin)
+    /// XÃ³a táº¥t cáº£ cÃ¢u há»i cá»§a má»™t mode cá»¥ thá»ƒ (Admin)
     /// DELETE: /api/v1/grammar/grammars/{grammarId}/questions?mode=easy
     /// </summary>
     [HttpDelete]
@@ -779,20 +781,20 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (grammarId <= 0)
-                return BadRequest(new { error = "Grammar ID không hợp lệ" });
+                return BadRequest(new { error = "Grammar ID khÃ´ng há»£p lá»‡" });
 
             if (string.IsNullOrEmpty(mode))
-                return BadRequest(new { error = "Mode không được để trống (easy/medium/hard)" });
+                return BadRequest(new { error = "Mode khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng (easy/medium/hard)" });
 
             var modeLower = mode.ToLower();
             if (modeLower != "easy" && modeLower != "medium" && modeLower != "hard")
-                return BadRequest(new { error = "Mode phải là easy/medium/hard" });
+                return BadRequest(new { error = "Mode pháº£i lÃ  easy/medium/hard" });
 
             var deletedCount = await _grammarService.DeleteQuestionsByGrammarIdAndModeAsync(grammarId, modeLower);
 
             return Ok(new
             {
-                message = $"Đã xóa {deletedCount} câu hỏi {modeLower}",
+                message = $"ÄÃ£ xÃ³a {deletedCount} cÃ¢u há»i {modeLower}",
                 grammarId = grammarId,
                 mode = modeLower,
                 deletedCount
@@ -801,12 +803,12 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error deleting questions by mode for grammar {grammarId}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi xóa câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i xÃ³a cÃ¢u há»i" });
         }
     }
 
     /// <summary>
-    /// Cập nhật câu hỏi ngữ pháp (Admin)
+    /// Cáº­p nháº­t cÃ¢u há»i ngá»¯ phÃ¡p (Admin)
     /// PUT: /api/v1/grammar/grammars/{grammarId}/questions/{id}
     /// </summary>
     [HttpPut("{id}")]
@@ -816,25 +818,25 @@ public class QuestionGrammarController : ControllerBase
         try
         {
             if (id <= 0)
-                return BadRequest(new { error = "Question ID không hợp lệ" });
+                return BadRequest(new { error = "Question ID khÃ´ng há»£p lá»‡" });
 
             if (request == null || string.IsNullOrEmpty(request.Content))
-                return BadRequest(new { error = "Nội dung câu hỏi không được để trống" });
+                return BadRequest(new { error = "Ná»™i dung cÃ¢u há»i khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng" });
 
             if (request.Options == null || request.Options.Count != 4)
-                return BadRequest(new { error = "Phải có đúng 4 lựa chọn (A, B, C, D)" });
+                return BadRequest(new { error = "Pháº£i cÃ³ Ä‘Ãºng 4 lá»±a chá»n (A, B, C, D)" });
 
             if (string.IsNullOrEmpty(request.CorrectOption) || !new[] { "A", "B", "C", "D" }.Contains(request.CorrectOption))
-                return BadRequest(new { error = "Đáp án đúng phải là A, B, C hoặc D" });
+                return BadRequest(new { error = "ÄÃ¡p Ã¡n Ä‘Ãºng pháº£i lÃ  A, B, C hoáº·c D" });
 
             var question = await _grammarService.UpdateGrammarQuestionAsync(id, request);
 
             if (question == null)
-                return NotFound(new { error = "Câu hỏi không tồn tại" });
+                return NotFound(new { error = "CÃ¢u há»i khÃ´ng tá»“n táº¡i" });
 
             return Ok(new
             {
-                message = "Cập nhật câu hỏi thành công",
+                message = "Cáº­p nháº­t cÃ¢u há»i thÃ nh cÃ´ng",
                 question = new
                 {
                     question.Id,
@@ -851,7 +853,7 @@ public class QuestionGrammarController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error updating grammar question {id}: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi cập nhật câu hỏi" });
+            return StatusCode(500, new { error = "Lá»—i cáº­p nháº­t cÃ¢u há»i" });
         }
     }
 }
@@ -870,3 +872,4 @@ public class CreateQuestionGrammarRequest
     public string? ShortExplanation { get; set; }
     public string? LongExplanation { get; set; }
 }
+

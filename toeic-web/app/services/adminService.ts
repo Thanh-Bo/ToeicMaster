@@ -120,6 +120,15 @@ export const adminService = {
     });
   },
 
+  updateVocabularyExplanationAccess: async (
+    topicId: number,
+    isExplanationPremiumRequired: boolean
+  ): Promise<void> => {
+    await axiosClient.put(`/admin/vocabulary/topics/${topicId}/explanation-access`, {
+      isExplanationPremiumRequired,
+    });
+  },
+
   // Questions
   getQuestionsByTest: async (testId: number): Promise<AdminQuestion[]> => {
     const response = await axiosClient.get<{ items: AdminQuestion[] }>(

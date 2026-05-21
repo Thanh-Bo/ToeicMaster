@@ -33,7 +33,8 @@ import {
   Package,
   Laptop,Clock, Zap, X, Check,
   Award,
-  PlayCircle
+  PlayCircle,
+  Crown,
 } from 'lucide-react';
 
 interface Props {
@@ -474,7 +475,9 @@ export default function TopicCard({ topic }: Props) {
               </div>
               
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">{topic.title}</h3>
+                <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                  {topic.title}
+                </h3>
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span className={`text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-colors ${
                     topic.level === 'Basic' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
@@ -483,7 +486,9 @@ export default function TopicCard({ topic }: Props) {
                   }`}>
                     {topic.level}
                   </span>
-                 
+                  {topic.isExplanationPremiumRequired && (
+                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+                  )}
                 </div>
               </div>
             </div>
