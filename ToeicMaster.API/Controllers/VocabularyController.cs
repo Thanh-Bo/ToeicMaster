@@ -5,6 +5,7 @@ using System.Security.Claims;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models;
+using ToeicMaster.API.Services;
 
 namespace ToeicMaster.API.Controllers;
 
@@ -14,13 +15,26 @@ namespace ToeicMaster.API.Controllers;
 public class VocabularyController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IPremiumService _premiumService;
 
-    public VocabularyController(AppDbContext context)
+    public VocabularyController(AppDbContext context, IPremiumService premiumService)
     {
         _context = context;
+        _premiumService = premiumService;
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private int? GetUserIdOrNull()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(userIdStr, out var userId) ? userId : null;
+    }
+
+    private async Task<bool> IsPremiumUserAsync(int? userId)
+    {
+        return await _premiumService.IsPremiumUserAsync(userId);
+    }
 
     // ==========================================
     // 1. NHÓM API: TOPIC & HỌC TẬP (CLIENT)
@@ -36,6 +50,7 @@ public class VocabularyController : ControllerBase
         // Lấy User Id an toàn (tránh lỗi nếu chưa đăng nhập)
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         int userId = userIdStr != null ? int.Parse(userIdStr) : 0;
+        var isPremium = await IsPremiumUserAsync(userId == 0 ? null : userId);
         var now = DateTime.UtcNow;
 
         // Lấy tất cả topic progress của user
@@ -56,6 +71,8 @@ public class VocabularyController : ControllerBase
                 LevelRange = t.LevelRange,
                 ImageUrl = t.ImageUrl,
                 TotalWords = t.Vocabularies.Count,
+                IsExplanationPremiumRequired = t.IsExplanationPremiumRequired,
+                CanViewExplanation = !t.IsExplanationPremiumRequired || isPremium,
                 
                 // Nếu user đã học topic này (có record trong UserVocabs)
                 LearnedWords = userId == 0 ? 0 : 

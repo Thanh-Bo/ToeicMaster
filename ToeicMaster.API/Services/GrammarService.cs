@@ -1281,6 +1281,7 @@ public class GrammarService : IGrammarService
     private GrammarTopicDto MapGrammarTopicToDto(GrammarTopic topic, int? userId = null)
     {
         var totalRules = _context.Grammars.Count(g => g.TopicId == topic.Id);
+        var isPremium = IsPremiumUser(userId);
         
         // Calculate learned rules for this user
         int learnedRules = 0;
@@ -1344,8 +1345,27 @@ public class GrammarService : IGrammarService
             TotalRules = totalRules,
             LearnedRules = learnedRules,
             CurrentLevel = currentLevel,
-            CanReviewNow = canReviewNow
+            CanReviewNow = canReviewNow,
+            IsExplanationPremiumRequired = topic.IsExplanationPremiumRequired,
+            CanViewExplanation = !topic.IsExplanationPremiumRequired || isPremium
         };
+    }
+
+    private bool IsPremiumUser(int? userId)
+    {
+        if (!userId.HasValue)
+            return false;
+
+        var user = _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId.Value)
+            .Select(u => new { u.IsPremium, u.PremiumExpiredAt, u.Role })
+            .FirstOrDefault();
+
+        return user?.Role == "Admin" ||
+               (user?.IsPremium == true &&
+                user.PremiumExpiredAt.HasValue &&
+                user.PremiumExpiredAt.Value > DateTime.UtcNow);
     }
 
     private GrammarDto MapGrammarToDto(Grammar grammar)

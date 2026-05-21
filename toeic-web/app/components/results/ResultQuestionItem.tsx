@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Languages,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 import { AnswerOptionResult } from "./AnswerOptionResult";
 
@@ -43,6 +44,7 @@ export default function ResultQuestionItem({
   onToggleDetail,
 }: Props) {
   const partNum = q.partNumber || 5;
+  const isExplanationLocked = q.explanationLocked && !q.shortExplanation && !q.fullExplanation;
   const options = partNum === 2 ? ["A", "B", "C"] : ["A", "B", "C", "D"];
 
   const getAnswerContent = (label: string) => {
@@ -184,7 +186,13 @@ export default function ResultQuestionItem({
 
         {/* Nút Xem Giải Thích: Gọi hàm từ Props */}
         <button
-          onClick={() => onViewExplanation(q.questionId)}
+          onClick={() => {
+            if (isExplanationLocked) {
+              window.location.href = "/subscription";
+              return;
+            }
+            onViewExplanation(q.questionId);
+          }}
           className={`inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-xs xs:text-sm sm:text-sm font-bold px-2 xs:px-3 sm:px-4 py-1.5 xs:py-2 sm:py-2 rounded-md xs:rounded-lg sm:rounded-lg transition-colors 
               
               ${
@@ -204,14 +212,41 @@ export default function ResultQuestionItem({
             </>
           ) : (
             <>
-              <Sparkles size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Xem giải thích</span>
+              {isExplanationLocked ? (
+                <Lock size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" />
+              ) : (
+                <Sparkles size={14} className="xs:w-4 xs:h-4 sm:w-4 sm:h-4" />
+              )}
+              <span className="hidden xs:inline">{isExplanationLocked ? "Mở Premium" : "Xem giải thích"}</span>
             </>
           )}
         </button>
       </div>
 
+      {isExplanationLocked && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 ml-8 xs:ml-10 sm:ml-12 mt-2 xs:mt-3 sm:mt-4 p-2.5 xs:p-3 sm:p-5 rounded-lg xs:rounded-xl sm:rounded-xl">
+          <div className="flex items-start gap-2">
+            <Lock className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
+                Giải thích dành cho Premium
+              </p>
+              <p className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                Bạn vẫn có thể luyện đề và xem đáp án. Nâng cấp Premium để mở toàn bộ giải thích chi tiết.
+              </p>
+              <button
+                onClick={() => (window.location.href = "/subscription")}
+                className="mt-3 px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold transition"
+              >
+                Nâng cấp ngay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- KHU VỰC HIỂN THỊ GIẢI THÍCH --- */}
-      {q.isExplanationOpen && (
+      {q.isExplanationOpen && !isExplanationLocked && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-8 xs:ml-10 sm:ml-12 mt-2 xs:mt-3 sm:mt-4 p-2.5 xs:p-3 sm:p-5 rounded-lg xs:rounded-xl sm:rounded-xl animate-fadeIn relative">
           {/* GIẢI THÍCH NGẮN */}
           {q.shortExplanation && (

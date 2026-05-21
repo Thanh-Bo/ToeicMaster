@@ -45,6 +45,15 @@ export const adminService = {
     await axiosClient.delete(`/admin/tests/${testId}`);
   },
 
+  updateTestExplanationAccess: async (
+    testId: number,
+    isExplanationPremiumRequired: boolean
+  ): Promise<void> => {
+    await axiosClient.put(`/admin/tests/${testId}/explanation-access`, {
+      isExplanationPremiumRequired,
+    });
+  },
+
   // Questions
   getQuestionsByTest: async (testId: number): Promise<AdminQuestion[]> => {
     const response = await axiosClient.get<{ items: AdminQuestion[] }>(

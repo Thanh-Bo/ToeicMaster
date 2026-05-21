@@ -372,6 +372,7 @@ public class AdminManagementController : ControllerBase
                 t.TotalQuestions,
                 t.TotalParticipants,
                 t.IsActive,
+                t.IsExplanationPremiumRequired,
                 t.CreatedAt,
                 PartsCount = t.Parts.Count,
             })
@@ -413,6 +414,87 @@ public class AdminManagementController : ControllerBase
                 message = test.IsActive ?? false ? "Đã kích hoạt bài test" : "Đã ẩn bài test",
             }
         );
+    }
+
+    /// <summary>
+    /// Update whether explanations for a test require Premium.
+    /// </summary>
+    [HttpPut("tests/{testId}/explanation-access")]
+    public async Task<IActionResult> UpdateTestExplanationAccess(
+        int testId,
+        [FromBody] UpdateExplanationAccessRequest request
+    )
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var test = await _context.Tests.FindAsync(testId);
+        if (test == null)
+            return NotFound("Không tìm thấy bài test");
+
+        test.IsExplanationPremiumRequired = request.IsExplanationPremiumRequired;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            testId = test.Id,
+            isExplanationPremiumRequired = test.IsExplanationPremiumRequired,
+            message = test.IsExplanationPremiumRequired
+                ? "Giải thích của bài test này chỉ dành cho Premium"
+                : "Giải thích của bài test này miễn phí cho mọi người"
+        });
+    }
+
+    /// <summary>
+    /// Update whether explanations for a vocabulary topic require Premium.
+    /// </summary>
+    [HttpPut("vocabulary/topics/{topicId}/explanation-access")]
+    public async Task<IActionResult> UpdateVocabularyExplanationAccess(
+        int topicId,
+        [FromBody] UpdateExplanationAccessRequest request
+    )
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var topic = await _context.Topics.FindAsync(topicId);
+        if (topic == null)
+            return NotFound("Không tìm thấy vocabulary topic");
+
+        topic.IsExplanationPremiumRequired = request.IsExplanationPremiumRequired;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            topicId = topic.Id,
+            isExplanationPremiumRequired = topic.IsExplanationPremiumRequired
+        });
+    }
+
+    /// <summary>
+    /// Update whether explanations for a grammar topic require Premium.
+    /// </summary>
+    [HttpPut("grammar/topics/{topicId}/explanation-access")]
+    public async Task<IActionResult> UpdateGrammarExplanationAccess(
+        int topicId,
+        [FromBody] UpdateExplanationAccessRequest request
+    )
+    {
+        if (!await IsAdminAsync())
+            return Forbid("Chỉ Admin mới được truy cập");
+
+        var topic = await _context.GrammarTopics.FindAsync(topicId);
+        if (topic == null)
+            return NotFound("Không tìm thấy grammar topic");
+
+        topic.IsExplanationPremiumRequired = request.IsExplanationPremiumRequired;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            topicId = topic.Id,
+            isExplanationPremiumRequired = topic.IsExplanationPremiumRequired
+        });
     }
 
     /// <summary>
@@ -1583,4 +1665,9 @@ public class UpdateQuestionRequest
     public string? Content { get; set; }
     public string? CorrectOption { get; set; }
     public string? Explanation { get; set; }
+}
+
+public class UpdateExplanationAccessRequest
+{
+    public bool IsExplanationPremiumRequired { get; set; }
 }

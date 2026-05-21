@@ -21,6 +21,8 @@ public class Topic
     // Level Range: "0-450"
     public string LevelRange { get; set; } = "0-450";
 
+    public bool IsExplanationPremiumRequired { get; set; } = true;
+
     // Quan hệ 1-n với Vocabulary
     public virtual ICollection<Vocabulary> Vocabularies { get; set; } = new List<Vocabulary>();
 

@@ -269,6 +269,25 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleTestExplanationAccess = async (testId: number) => {
+    const test = tests.find((t) => t.id === testId);
+    if (!test) return;
+
+    const nextValue = !test.isExplanationPremiumRequired;
+    try {
+      await adminService.updateTestExplanationAccess(testId, nextValue);
+      setTests((prev) =>
+        prev.map((t) =>
+          t.id === testId
+            ? { ...t, isExplanationPremiumRequired: nextValue }
+            : t
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update explanation access:", error);
+    }
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -507,6 +526,7 @@ export default function AdminPage() {
                 }}
                 onOpenActionTab={openActionTab}
                 onDeleteTest={handleDeleteTest}
+                onToggleExplanationAccess={handleToggleTestExplanationAccess}
               />
             )}
 

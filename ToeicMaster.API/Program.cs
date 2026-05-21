@@ -9,6 +9,14 @@ using ToeicMaster.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsProduction() &&
+    (string.IsNullOrWhiteSpace(builder.Configuration["PAYOS_CLIENT_ID"]) ||
+     string.IsNullOrWhiteSpace(builder.Configuration["PAYOS_API_KEY"]) ||
+     string.IsNullOrWhiteSpace(builder.Configuration["PAYOS_CHECKSUM_KEY"])))
+{
+    throw new InvalidOperationException("PAYOS_CLIENT_ID, PAYOS_API_KEY, and PAYOS_CHECKSUM_KEY are required in production.");
+}
+
 // 1. Đăng ký các dịch vụ (Services)
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -35,7 +43,9 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ToeicScoreService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddHttpClient<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPremiumService, PremiumService>();
+builder.Services.AddSingleton<ISubscriptionPlanService, SubscriptionPlanService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IGrammarService, GrammarService>();
 

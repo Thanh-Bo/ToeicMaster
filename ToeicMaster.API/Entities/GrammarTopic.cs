@@ -26,6 +26,8 @@ public class GrammarTopic
     // Category: "Tenses", "Voice", "Mood", "Clauses", etc.
     public string Category { get; set; } = null!;
 
+    public bool IsExplanationPremiumRequired { get; set; } = true;
+
     // Navigation Properties
     public virtual GrammarGroup? Group { get; set; }
 

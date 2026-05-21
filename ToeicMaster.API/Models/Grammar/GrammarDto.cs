@@ -76,6 +76,8 @@ namespace ToeicMaster.API.Models
         public Dictionary<int, int> RuleCounts { get; set; } = new(); // level -> count
         public bool CanReviewNow { get; set; }
         public string TimeUntilReady { get; set; } = ""; // "12h 30m"
+        public bool IsExplanationPremiumRequired { get; set; }
+        public bool CanViewExplanation { get; set; }
     }
 
     // DTO cho Grammar Group (Layer 1)
@@ -211,6 +213,7 @@ namespace ToeicMaster.API.Models
         public string? CorrectOption { get; set; }
         public string? ShortExplanation { get; set; }
         public string? LongExplanation { get; set; }
+        public bool ExplanationLocked { get; set; }
         public string? Mode { get; set; } // easy, medium, hard
 
         public List<QuestionGrammarAnswerDto> Answers { get; set; } = new();

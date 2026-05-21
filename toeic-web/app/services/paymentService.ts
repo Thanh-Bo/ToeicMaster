@@ -5,16 +5,16 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5298").rep
 export interface PaymentResponse {
   transactionId: number;
   amount: number;
+  planId: string;
+  duration: number;
   description: string;
   status: string;
-  qrUrl: string;
-  bankInfo: {
-    bankName: string;
-    accountNumber: string;
-    accountHolder: string;
-    bankCode: string;
-  };
-  transferData: string;
+  provider: string;
+  checkoutUrl?: string;
+  qrCode?: string;
+  qrUrl?: string;
+  paymentLinkId?: string;
+  transferData?: string;
   message: string;
 }
 
@@ -31,9 +31,7 @@ class PaymentService {
    * Initiate a payment and get QR code
    */
   async initiatePayment(
-    amount: number,
-    description: string,
-    duration: number
+    planId: string
   ): Promise<PaymentResponse> {
     const token = Cookies.get("token");
 
@@ -43,7 +41,7 @@ class PaymentService {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ amount, description, duration }),
+      body: JSON.stringify({ planId }),
     });
 
     if (!response.ok) {

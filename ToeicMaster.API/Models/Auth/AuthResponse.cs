@@ -14,5 +14,6 @@ namespace ToeicMaster.API.Models.Auth
         public string FullName { get; set; } = null!;
         public decimal Balance { get; set; }
         public bool IsPremium { get; set; }
+        public DateTime? PremiumExpiredAt { get; set; }
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Services;
@@ -14,19 +15,25 @@ namespace ToeicMaster.API.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
+        private readonly IPremiumService _premiumService;
+        private readonly ISubscriptionPlanService _planService;
         private readonly AppDbContext _dbContext;
         private readonly IConfiguration _configuration;
 
-        public PaymentController(IPaymentService paymentService, AppDbContext dbContext, IConfiguration configuration)
+        public PaymentController(
+            IPaymentService paymentService,
+            IPremiumService premiumService,
+            ISubscriptionPlanService planService,
+            AppDbContext dbContext,
+            IConfiguration configuration)
         {
             _paymentService = paymentService;
+            _premiumService = premiumService;
+            _planService = planService;
             _dbContext = dbContext;
             _configuration = configuration;
         }
 
-        /// <summary>
-        /// Initiate a payment - creates transaction and generates QR code
-        /// </summary>
         [HttpPost("initiate")]
         public async Task<IActionResult> InitiatePayment([FromBody] InitiatePaymentRequest request)
         {
@@ -36,82 +43,79 @@ namespace ToeicMaster.API.Controllers
                 if (userId == 0)
                     return Unauthorized("Invalid token");
 
-                // Validate request
-                if (request.Amount <= 0)
-                    return BadRequest(new { error = "Amount must be greater than 0" });
+                var plan = _planService.GetPlan(request.PlanId);
+                if (plan == null)
+                    return BadRequest(new { error = "Invalid subscription plan" });
 
-                if (string.IsNullOrWhiteSpace(request.Description))
-                    return BadRequest(new { error = "Description is required" });
-
-                // CHECK: Verify user exists in database
                 var userExists = await _dbContext.Users.AnyAsync(u => u.Id == userId);
                 if (!userExists)
                     return NotFound(new { error = $"User with ID {userId} not found in database" });
 
-                // Create transaction record
                 var transaction = new Transaction
                 {
                     UserId = userId,
-                    Amount = request.Amount,
-                    Content = request.Description,
+                    Amount = plan.Amount,
+                    Content = plan.Name,
                     Status = "PENDING",
-                    PaymentGateway = "SacomBank",
-                    SubscriptionDurationMonths = request.Duration,
+                    PaymentGateway = "PayOS",
+                    SubscriptionDurationMonths = plan.DurationMonths,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _dbContext.Transactions.Add(transaction);
                 await _dbContext.SaveChangesAsync();
 
-                var transferDescription = $"TOEIC PREMIUM TX{transaction.Id}";
-                transaction.Content = transferDescription;
+                var paymentDescription = $"TOEIC TX{transaction.Id}";
+                var frontendUrl = GetFrontendUrl();
+                var payOsData = await _paymentService.CreatePaymentLinkAsync(
+                    transaction.Id,
+                    Convert.ToInt32(plan.Amount),
+                    paymentDescription,
+                    $"{frontendUrl}/subscription?payment=success&transactionId={transaction.Id}",
+                    $"{frontendUrl}/subscription?payment=cancelled&transactionId={transaction.Id}",
+                    plan.Name,
+                    HttpContext.RequestAborted);
+
+                transaction.Content = paymentDescription;
                 await _dbContext.SaveChangesAsync();
-
-                // Generate VietQR URL (cross-platform, no System.Drawing)
-                var (vietQrUrl, transferData) = _paymentService.GenerateVietQR(
-                    userId,
-                    request.Amount,
-                    transferDescription,
-                    transaction.Id
-                );
-
-                var bankInfo = _paymentService.GetBankAccountInfo();
 
                 return Ok(new
                 {
                     transactionId = transaction.Id,
-                    amount = request.Amount,
-                    description = transferDescription,
+                    amount = plan.Amount,
+                    planId = plan.Id,
+                    duration = plan.DurationMonths,
+                    description = paymentDescription,
                     status = "PENDING",
-                    qrUrl = vietQrUrl,  // direct VietQR image URL — use in <img src>
+                    provider = "PayOS",
+                    checkoutUrl = payOsData.CheckoutUrl,
+                    qrCode = payOsData.QrCode,
+                    qrUrl = BuildQrImageUrl(payOsData.QrCode),
                     bankInfo = new
                     {
-                        bankName = bankInfo.BankName,
-                        accountNumber = bankInfo.AccountNumber,
-                        accountHolder = bankInfo.AccountHolder,
-                        bankCode = bankInfo.BankCode
+                        bankName = payOsData.Bin,
+                        accountNumber = payOsData.AccountNumber,
+                        accountHolder = payOsData.AccountName,
+                        bankCode = payOsData.Bin
                     },
-                    transferData = transferData,
-                    message = "Payment initiated. Please scan QR code or transfer manually."
+                    paymentLinkId = payOsData.PaymentLinkId,
+                    transferData = payOsData.QrCode,
+                    message = "PayOS payment link created."
                 });
             }
             catch (Exception ex)
             {
-                // Log the full exception including inner exceptions
                 var errorMessage = ex.Message;
                 if (ex.InnerException != null)
                     errorMessage += " | Inner: " + ex.InnerException.Message;
-                
+
                 Console.WriteLine($"Payment Error: {errorMessage}");
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                
+
                 return StatusCode(500, new { error = errorMessage, innerError = ex.InnerException?.Message });
             }
         }
 
-        /// <summary>
-        /// Get payment status
-        /// </summary>
         [HttpGet("status/{transactionId}")]
         public async Task<IActionResult> GetPaymentStatus(int transactionId)
         {
@@ -142,108 +146,95 @@ namespace ToeicMaster.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Bank webhook endpoint - receives payment confirmation from bank
-        /// </summary>
         [HttpPost("webhook")]
         [AllowAnonymous]
-        public async Task<IActionResult> HandleBankWebhook([FromBody] BankWebhookRequest webhookData)
+        public async Task<IActionResult> HandleBankWebhook([FromBody] PayOsWebhookRequest webhookData)
         {
-            // Verify webhook secret to prevent fake payment confirmations
-            var expectedSecret = _configuration["WebhookSecret"];
-            if (!string.IsNullOrEmpty(expectedSecret))
+            if (!_paymentService.IsValidWebhook(webhookData))
             {
-                Request.Headers.TryGetValue("X-Webhook-Secret", out var receivedSecret);
-                if (receivedSecret != expectedSecret)
-                {
-                    Console.WriteLine("[WEBHOOK] Invalid secret — rejected");
-                    return Unauthorized(new { error = "Invalid webhook secret" });
-                }
+                Console.WriteLine("[PAYOS WEBHOOK] Invalid signature - rejected");
+                return Unauthorized(new { error = "Invalid payOS signature" });
             }
 
             try
             {
-                // Log webhook received
-                Console.WriteLine($"[WEBHOOK] Received payment webhook: TransactionRef={webhookData.TransactionReference}, Amount={webhookData.Amount}, Status={webhookData.Status}");
+                var data = webhookData.Data!;
+                var orderCode = GetLong(data, "orderCode");
+                var amount = GetDecimal(data, "amount");
+                var payOsCode = GetString(data, "code");
+                var payOsDescription = GetString(data, "description");
+                var paymentLinkId = GetString(data, "paymentLinkId");
 
-                var transactionId = webhookData.TransactionId > 0
-                    ? webhookData.TransactionId
-                    : ExtractTransactionId(webhookData.TransactionReference, webhookData.Description);
-
-                if (transactionId == null)
+                if (IsPayOsSetupWebhook(orderCode, amount, payOsDescription, paymentLinkId))
                 {
-                    Console.WriteLine("[WEBHOOK] Missing transaction reference");
-                    return BadRequest(new { error = "Missing transaction reference" });
+                    Console.WriteLine($"[PAYOS WEBHOOK] Setup webhook acknowledged. OrderCode={orderCode}");
+                    return Ok(new { message = "PayOS webhook setup acknowledged" });
                 }
 
-                // Find transaction by reference
+                if (orderCode <= 0)
+                {
+                    Console.WriteLine("[PAYOS WEBHOOK] Missing orderCode");
+                    return Ok(new { message = "Webhook ignored: missing orderCode" });
+                }
+
                 var transaction = await _dbContext.Transactions
                     .Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.Id == transactionId.Value);
+                    .FirstOrDefaultAsync(t => t.Id == orderCode);
 
                 if (transaction == null)
                 {
-                    Console.WriteLine($"[WEBHOOK] Transaction not found: {transactionId}");
-                    return NotFound(new { error = "Transaction not found" });
+                    Console.WriteLine($"[PAYOS WEBHOOK] Transaction not found: {orderCode}. Acknowledged for payOS webhook setup/testing.");
+                    return Ok(new { message = "Webhook acknowledged: transaction not found", orderCode });
                 }
 
-                if (!string.Equals(webhookData.Status, "SUCCESS", StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(webhookData.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(transaction.PaymentGateway, "PayOS", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine($"[WEBHOOK] Ignored non-success payment status: {webhookData.Status}");
-                    return BadRequest(new { error = "Payment status is not successful", status = webhookData.Status });
+                    Console.WriteLine($"[PAYOS WEBHOOK] Ignored non-PayOS transaction id collision. OrderCode={orderCode}");
+                    return Ok(new { message = "Webhook acknowledged: transaction is not PayOS", orderCode });
                 }
 
-                // Verify amount matches
-                if (Math.Abs(transaction.Amount - webhookData.Amount) > 0.01m)
+                if (!webhookData.Success ||
+                    !string.Equals(webhookData.Code, "00", StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(payOsCode, "00", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine($"[WEBHOOK] Amount mismatch: Expected {transaction.Amount}, Got {webhookData.Amount}");
-                    return BadRequest(new { error = "Amount mismatch", expected = transaction.Amount, received = webhookData.Amount });
+                    Console.WriteLine($"[PAYOS WEBHOOK] Ignored non-success payment. OrderCode={orderCode}, Code={webhookData.Code}, DataCode={payOsCode}");
+                    return Ok(new { message = "Webhook ignored: payment is not successful", orderCode });
                 }
 
-                // Check if already processed
+                if (Math.Abs(transaction.Amount - amount) > 0.01m)
+                {
+                    Console.WriteLine($"[PAYOS WEBHOOK] Amount mismatch: Expected {transaction.Amount}, Got {amount}");
+                    return BadRequest(new { error = "Amount mismatch", expected = transaction.Amount, received = amount });
+                }
+
                 if (transaction.Status == "COMPLETED" || transaction.Status == "SUCCESS")
                 {
-                    Console.WriteLine($"[WEBHOOK] Transaction already completed: {transactionId}");
+                    Console.WriteLine($"[PAYOS WEBHOOK] Transaction already completed: {orderCode}");
                     return Ok(new { message = "Transaction already processed", transactionId = transaction.Id });
                 }
 
-                // Update transaction status
                 transaction.Status = "COMPLETED";
-                transaction.PaymentGateway = webhookData.PaymentGateway ?? "SacomBank";
+                transaction.PaymentGateway = "PayOS";
+                transaction.Content = payOsDescription ?? transaction.Content;
                 _dbContext.Transactions.Update(transaction);
 
-                // Update user subscription/premium status
                 if (transaction.User != null && transaction.SubscriptionDurationMonths.HasValue)
                 {
-                    var durationMonths = transaction.SubscriptionDurationMonths.Value;
-                    
-                    transaction.User.IsPremium = true;
-                    
-                    // Calculate premium expiry date
-                    if (transaction.User.PremiumExpiredAt.HasValue && transaction.User.PremiumExpiredAt > DateTime.UtcNow)
-                    {
-                        // Extend existing subscription
-                        transaction.User.PremiumExpiredAt = transaction.User.PremiumExpiredAt.Value.AddMonths(durationMonths);
-                    }
-                    else
-                    {
-                        // New subscription
-                        transaction.User.PremiumExpiredAt = DateTime.UtcNow.AddMonths(durationMonths);
-                    }
-
+                    _premiumService.ExtendPremium(transaction.User, transaction.SubscriptionDurationMonths.Value);
                     _dbContext.Users.Update(transaction.User);
-                    Console.WriteLine($"[WEBHOOK] Updated user {transaction.UserId} premium status. Expires: {transaction.User.PremiumExpiredAt}");
+                    Console.WriteLine($"[PAYOS WEBHOOK] Updated user {transaction.UserId} premium status. Expires: {transaction.User.PremiumExpiredAt}");
                 }
 
                 await _dbContext.SaveChangesAsync();
 
-                Console.WriteLine($"[WEBHOOK] Payment confirmed successfully. TransactionId={transaction.Id}, UserId={transaction.UserId}");
+                Console.WriteLine($"[PAYOS WEBHOOK] Payment confirmed successfully. TransactionId={transaction.Id}, UserId={transaction.UserId}");
 
                 return Ok(new
                 {
                     message = "Payment confirmed successfully",
                     transactionId = transaction.Id,
+                    orderCode,
+                    paymentLinkId,
                     status = transaction.Status,
                     userPremiumStatus = transaction.User?.IsPremium,
                     premiumExpiredAt = transaction.User?.PremiumExpiredAt
@@ -251,16 +242,13 @@ namespace ToeicMaster.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[WEBHOOK] Error processing webhook: {ex.Message}");
-                Console.WriteLine($"[WEBHOOK] Stack Trace: {ex.StackTrace}");
+                Console.WriteLine($"[PAYOS WEBHOOK] Error processing webhook: {ex.Message}");
+                Console.WriteLine($"[PAYOS WEBHOOK] Stack Trace: {ex.StackTrace}");
                 return StatusCode(500, new { error = "Webhook processing failed", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Manual payment confirmation (fallback for admin)
-        /// </summary>
-        [Authorize(Roles = "Admin")]  // Only admins can manually confirm payments
+        [Authorize(Roles = "Admin")]
         [HttpPost("confirm/{transactionId}")]
         public async Task<IActionResult> ConfirmPayment(int transactionId, [FromBody] ConfirmPaymentRequest request)
         {
@@ -277,19 +265,15 @@ namespace ToeicMaster.API.Controllers
                 if (transaction == null)
                     return NotFound(new { error = "Transaction not found" });
 
-                // Verify amount matches
                 if (request.Amount != transaction.Amount)
                     return BadRequest(new { error = "Amount mismatch" });
 
-                // Update transaction status
                 transaction.Status = "COMPLETED";
                 _dbContext.Transactions.Update(transaction);
 
-                // Update user subscription
                 if (transaction.User != null && transaction.SubscriptionDurationMonths.HasValue)
                 {
-                    transaction.User.IsPremium = true;
-                    transaction.User.PremiumExpiredAt = DateTime.UtcNow.AddMonths(transaction.SubscriptionDurationMonths.Value);
+                    _premiumService.ExtendPremium(transaction.User, transaction.SubscriptionDurationMonths.Value);
                     _dbContext.Users.Update(transaction.User);
                 }
 
@@ -308,74 +292,89 @@ namespace ToeicMaster.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get bank account info for display
-        /// </summary>
         [HttpGet("bank-info")]
         [AllowAnonymous]
         public IActionResult GetBankInfo()
         {
-            var bankInfo = _paymentService.GetBankAccountInfo();
             return Ok(new
             {
-                bankName = bankInfo.BankName,
-                accountNumber = bankInfo.AccountNumber,
-                accountHolder = bankInfo.AccountHolder,
-                bankCode = bankInfo.BankCode
+                provider = "PayOS"
             });
         }
 
-        private static int? ExtractTransactionId(params string?[] values)
+        [HttpGet("plans")]
+        [AllowAnonymous]
+        public IActionResult GetPlans()
         {
-            foreach (var value in values)
+            return Ok(_planService.GetPlans().Select(plan => new
             {
-                if (string.IsNullOrWhiteSpace(value))
-                    continue;
+                planId = plan.Id,
+                name = plan.Name,
+                amount = plan.Amount,
+                duration = plan.DurationMonths
+            }));
+        }
 
-                var txIndex = value.IndexOf("TX", StringComparison.OrdinalIgnoreCase);
-                if (txIndex < 0)
-                    continue;
+        private string GetFrontendUrl()
+        {
+            var configuredUrl = _configuration["FrontendUrl"] ?? _configuration["FRONTEND_URL"];
+            if (!string.IsNullOrWhiteSpace(configuredUrl))
+                return configuredUrl.TrimEnd('/');
 
-                var start = txIndex + 2;
-                var end = start;
-                while (end < value.Length && char.IsDigit(value[end]))
-                    end++;
+            if (Request.Headers.TryGetValue("Origin", out var origin) && !string.IsNullOrWhiteSpace(origin))
+                return origin.ToString().TrimEnd('/');
 
-                if (end > start && int.TryParse(value[start..end], out var transactionId))
-                    return transactionId;
-            }
+            return "http://localhost:3000";
+        }
 
-            return null;
+        private static string? BuildQrImageUrl(string? qrCode)
+        {
+            return string.IsNullOrWhiteSpace(qrCode)
+                ? null
+                : $"https://api.qrserver.com/v1/create-qr-code/?size=240x240&data={Uri.EscapeDataString(qrCode)}";
+        }
+
+        private static string? GetString(IReadOnlyDictionary<string, JsonElement> data, string key)
+        {
+            return data.TryGetValue(key, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetString()
+                : value.ValueKind is JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False
+                    ? value.GetRawText()
+                    : null;
+        }
+
+        private static long GetLong(IReadOnlyDictionary<string, JsonElement> data, string key)
+        {
+            return data.TryGetValue(key, out var value) && value.TryGetInt64(out var result) ? result : 0;
+        }
+
+        private static decimal GetDecimal(IReadOnlyDictionary<string, JsonElement> data, string key)
+        {
+            return data.TryGetValue(key, out var value) && value.TryGetDecimal(out var result) ? result : 0m;
+        }
+
+        private static bool IsPayOsSetupWebhook(
+            long orderCode,
+            decimal amount,
+            string? description,
+            string? paymentLinkId)
+        {
+            return orderCode == 123 &&
+                   amount == 3000m &&
+                   string.Equals(description, "VQRIO123", StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(paymentLinkId, "124c33293c43417ab7879e14c8d9eb18", StringComparison.OrdinalIgnoreCase);
         }
     }
 
-    // Request/Response DTOs
     public class InitiatePaymentRequest
     {
-        public decimal Amount { get; set; }
-        public string Description { get; set; }
-        public int Duration { get; set; } // Duration in months (1, 3, 6, 12)
+        public string? PlanId { get; set; }
     }
 
     public class ConfirmPaymentRequest
     {
         public decimal Amount { get; set; }
-        public string TransactionReference { get; set; }
+        public string? TransactionReference { get; set; }
     }
 
-    /// <summary>
-    /// Bank webhook payload structure
-    /// </summary>
-    public class BankWebhookRequest
-    {
-        public int TransactionId { get; set; }
-        public string TransactionReference { get; set; }
-        public decimal Amount { get; set; }
-        public string Status { get; set; } // SUCCESS, FAILED, PENDING, etc.
-        public string PaymentGateway { get; set; }
-        public DateTime TransactionDate { get; set; }
-        public string SenderAccountNumber { get; set; }
-        public string SenderName { get; set; }
-        public string Description { get; set; }
-    }
 }

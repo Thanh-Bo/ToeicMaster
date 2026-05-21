@@ -211,6 +211,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Duration).HasDefaultValue(120);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsExplanationPremiumRequired).HasDefaultValue(true);
             entity.Property(e => e.Slug)
                 .HasMaxLength(200)
                 .IsUnicode(false);
@@ -579,6 +580,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Title).IsRequired();
             entity.Property(e => e.Level).HasDefaultValue("Basic");
             entity.Property(e => e.LevelRange).HasDefaultValue("0-450");
+            entity.Property(e => e.IsExplanationPremiumRequired).HasDefaultValue(true);
             entity.Property(e => e.TopicGuid).HasDefaultValueSql("NEWID()");
 
             entity.HasOne(e => e.Group)
@@ -596,6 +598,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Title).IsRequired();
             entity.Property(e => e.Level).HasDefaultValue("Basic");
             entity.Property(e => e.LevelRange).HasDefaultValue("0-450");
+            entity.Property(e => e.IsExplanationPremiumRequired).HasDefaultValue(true);
             entity.Property(e => e.TopicGuid).HasDefaultValueSql("NEWID()");
         });
 

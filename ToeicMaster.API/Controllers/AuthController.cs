@@ -22,13 +22,20 @@ namespace ToeicMaster.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly BlobService _blobService;
+        private readonly IPremiumService _premiumService;
 
-        public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService, BlobService blobService)
+        public AuthController(
+            AppDbContext context,
+            IConfiguration configuration,
+            IEmailService emailService,
+            BlobService blobService,
+            IPremiumService premiumService)
         {
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
             _blobService = blobService;
+            _premiumService = premiumService;
         }
 
         // 1. REGISTER
@@ -149,7 +156,8 @@ namespace ToeicMaster.API.Controllers
                     Email = user.Email,
                     FullName = user.FullName,
                     Balance = user.Balance ?? 0,
-                    IsPremium = user.IsPremium ?? false
+                    IsPremium = _premiumService.IsPremiumActive(user),
+                    PremiumExpiredAt = user.PremiumExpiredAt
                 }
             });
         }
@@ -256,7 +264,7 @@ namespace ToeicMaster.API.Controllers
                 avatarUrl = user.AvatarUrl,
                 role = user.Role ?? "User",
                 balance = user.Balance,
-                isPremium = user.IsPremium,
+                isPremium = _premiumService.IsPremiumActive(user),
                 premiumExpiredAt = user.PremiumExpiredAt
             });
         }
@@ -382,7 +390,7 @@ namespace ToeicMaster.API.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim("IsPremium", (user.IsPremium ?? false).ToString()),
+                new Claim("IsPremium", _premiumService.IsPremiumActive(user).ToString()),
                 new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
             // Use shorter expiry in development

@@ -23,6 +23,8 @@ public partial class Test
 
     public bool? IsActive { get; set; }
 
+    public bool IsExplanationPremiumRequired { get; set; } = true;
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual ICollection<Part> Parts { get; set; } = new List<Part>();

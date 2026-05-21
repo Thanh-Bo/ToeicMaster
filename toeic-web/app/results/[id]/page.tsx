@@ -240,8 +240,12 @@ export default function ResultPage() {
         next.delete(questionId);
         return next;
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      if (error?.response?.status === 403) {
+        window.location.href = "/subscription";
+        return;
+      }
     } finally {
       setBookmarkLoading(null);
     }
@@ -400,6 +404,11 @@ export default function ResultPage() {
 
     // CASE 2: Nếu đang ĐÓNG -> Muốn Mở
     // 2a. Nếu đã có dữ liệu rồi (không cần fetch lại)
+    if (questionData.explanationLocked) {
+      window.location.href = "/subscription";
+      return;
+    }
+
     if (questionData.shortExplanation || questionData.fullExplanation) {
       setPartGroups((prev) => {
         const newParts = [...prev];

@@ -12,6 +12,7 @@ interface TestsTabProps {
   onViewQuestions: (testId: number) => void;
   onOpenActionTab: (testId: number) => void;
   onDeleteTest: (testId: number) => void;
+  onToggleExplanationAccess: (testId: number) => void;
 }
 
 export default function TestsTab({
@@ -23,6 +24,7 @@ export default function TestsTab({
   onViewQuestions,
   onOpenActionTab,
   onDeleteTest,
+  onToggleExplanationAccess,
 }: TestsTabProps) {
   return (
     <div className="space-y-4">
@@ -60,6 +62,7 @@ export default function TestsTab({
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Loại</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Thời gian</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Số câu</th>
+                <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Giải thích</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Trạng thái</th>
                 <th className="text-left px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 font-medium text-sm">Thao tác</th>
               </tr>
@@ -69,6 +72,18 @@ export default function TestsTab({
                 <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                   <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 dark:text-gray-400 text-sm">#{t.id}</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 font-medium text-gray-800 dark:text-gray-100 text-sm">{t.title}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <button
+                      onClick={() => onToggleExplanationAccess(t.id)}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition ${
+                        t.isExplanationPremiumRequired
+                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
+                          : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50"
+                      }`}
+                    >
+                      {t.isExplanationPremiumRequired ? "Premium" : "Free"}
+                    </button>
+                  </td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       t.type === "FULL_TEST" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"

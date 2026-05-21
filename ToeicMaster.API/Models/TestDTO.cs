@@ -8,6 +8,8 @@ namespace ToeicMaster.API.Models
         public string? Title { get; set; }
         public int Duration { get; set; }
         public int TotalQuestions { get; set; }
+        public bool IsExplanationPremiumRequired { get; set; }
+        public bool CanViewExplanation { get; set; }
     }
 
     // 2. DTO dùng cho API lấy chi tiết đề thi (GET /api/v1/tests/{id}/full)

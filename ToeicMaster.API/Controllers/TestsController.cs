@@ -21,12 +21,14 @@ namespace ToeicMaster.API.Controllers
         private readonly AppDbContext _efContext;
         private readonly IMemoryCache _cache;
         private readonly AiExplanationService _aiService;
+        private readonly IPremiumService _premiumService;
 
         public TestsController(
             DapperContext dapperContext,
             AppDbContext efContext,
             IMemoryCache cache,
             AiExplanationService aiService,
+            IPremiumService premiumService,
             ToeicScoreService scoreService
         )
         {
@@ -34,6 +36,7 @@ namespace ToeicMaster.API.Controllers
             _efContext = efContext;
             _cache = cache;
             _aiService = aiService;
+            _premiumService = premiumService;
             _scoreService = scoreService;
         }
 
@@ -46,9 +49,11 @@ namespace ToeicMaster.API.Controllers
         )
         {
             var skip = (page - 1) * limit;
+            var userId = GetUserIdOrNull();
+            var isPremium = await IsPremiumUserAsync(userId);
             var sql =
                 @"
-                SELECT Id, TestGuid, Title, Slug, Duration, TotalQuestions 
+                SELECT Id, TestGuid, Title, Slug, Duration, TotalQuestions, IsExplanationPremiumRequired
                 FROM Tests
                 WHERE (@Search IS NULL OR Title LIKE '%' + @Search + '%')
                 ORDER BY Id DESC
@@ -71,10 +76,15 @@ namespace ToeicMaster.API.Controllers
                 {
                     var tests = await multi.ReadAsync<TestSummaryDto>();
                     var totalRecord = await multi.ReadFirstAsync<int>();
+                    var testList = tests.Select(t =>
+                    {
+                        t.CanViewExplanation = !t.IsExplanationPremiumRequired || isPremium;
+                        return t;
+                    }).ToList();
                     return Ok(
                         new
                         {
-                            data = tests,
+                            data = testList,
                             pagination = new
                             {
                                 page,
@@ -86,6 +96,17 @@ namespace ToeicMaster.API.Controllers
                     );
                 }
             }
+        }
+
+        private int? GetUserIdOrNull()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdStr, out var userId) ? userId : null;
+        }
+
+        private async Task<bool> IsPremiumUserAsync(int? userId)
+        {
+            return await _premiumService.IsPremiumUserAsync(userId);
         }
 
         // Public endpoint - UUID only
@@ -359,6 +380,9 @@ namespace ToeicMaster.API.Controllers
         // Shared method to build result data
         private async Task<TestResultDetailDto> BuildResultDataAsync(TestAttempt attempt)
         {
+            var canViewExplanation = !attempt.Test.IsExplanationPremiumRequired ||
+                                     await IsPremiumUserAsync(attempt.UserId);
+
             // Lấy tất cả câu hỏi của bài thi
             var allQuestions = await _efContext
                 .Questions.Include(q => q.Answers)
@@ -380,6 +404,8 @@ namespace ToeicMaster.API.Controllers
                 TimeTaken = attempt.TimeTaken,
                 TestId = attempt.TestId,
                 TestTitle = attempt.Test.Title,
+                IsExplanationPremiumRequired = attempt.Test.IsExplanationPremiumRequired,
+                CanViewExplanation = canViewExplanation,
                 TotalScore = attempt.TotalScore,
                 ListeningScore = attempt.ListeningScore ?? 0,
                 ReadingScore = attempt.ReadingScore ?? 0,
@@ -398,8 +424,9 @@ namespace ToeicMaster.API.Controllers
                             CorrectOption = q.CorrectOption ?? "",
                             IsCorrect = userAnswer?.IsCorrect ?? false,
 
-                            ShortExplanation = q.ShortExplanation,
-                            FullExplanation = q.FullExplanation,
+                            ShortExplanation = canViewExplanation ? q.ShortExplanation : null,
+                            FullExplanation = canViewExplanation ? q.FullExplanation : null,
+                            ExplanationLocked = !canViewExplanation,
 
                             GroupId = q.GroupId,
                             GroupContent = q.Group?.TextContent,
@@ -486,6 +513,23 @@ namespace ToeicMaster.API.Controllers
                 return NotFound("Không tìm thấy câu hỏi");
 
             // 2. Kiểm tra xem đã có giải thích chưa? (Nếu có rồi thì trả về luôn, đỡ tốn tiền AI)
+            var isExplanationPremiumRequired = await _efContext.Tests
+                .Where(t => t.Id == question.Group.Part.TestId)
+                .Select(t => t.IsExplanationPremiumRequired)
+                .FirstOrDefaultAsync();
+            var canViewExplanation = !isExplanationPremiumRequired ||
+                                     await IsPremiumUserAsync(GetUserIdOrNull());
+
+            if (!canViewExplanation)
+            {
+                return StatusCode(403, new
+                {
+                    error = "Premium required",
+                    explanationLocked = true,
+                    message = "Giải thích này chỉ dành cho tài khoản Premium"
+                });
+            }
+
             if (!string.IsNullOrEmpty(question.FullExplanation))
             {
                 return Ok(

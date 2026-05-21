@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models;
+using ToeicMaster.API.Services;
 
 namespace ToeicMaster.API.Controllers;
 
@@ -13,10 +15,23 @@ namespace ToeicMaster.API.Controllers;
 public class QuestionVocabController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IPremiumService _premiumService;
 
-    public QuestionVocabController(AppDbContext context)
+    public QuestionVocabController(AppDbContext context, IPremiumService premiumService)
     {
         _context = context;
+        _premiumService = premiumService;
+    }
+
+    private int? GetUserIdOrNull()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(userIdStr, out var userId) ? userId : null;
+    }
+
+    private async Task<bool> IsPremiumUserAsync(int? userId)
+    {
+        return await _premiumService.IsPremiumUserAsync(userId);
     }
 
     /// <summary>
@@ -30,10 +45,17 @@ public class QuestionVocabController : ControllerBase
         // Fetch the QuestionVocab with its answers
         var questionVocab = await _context.QuestionVocab
             .Include(q => q.Answers)
+            .Include(q => q.Topic)
             .FirstOrDefaultAsync(q => q.Id == questionVocabId);
 
         if (questionVocab == null)
             return NotFound(new { error = "Câu hỏi vocabulary không tồn tại" });
+
+        var canViewExplanation = !questionVocab.Topic.IsExplanationPremiumRequired ||
+                                 await IsPremiumUserAsync(GetUserIdOrNull());
+
+        if (!canViewExplanation)
+            return StatusCode(403, new { error = "Premium required", explanationLocked = true });
 
         try
         {
@@ -86,6 +108,9 @@ public class QuestionVocabController : ControllerBase
         if (questionVocab == null)
             return NotFound(new { error = "Câu hỏi vocabulary không tồn tại" });
 
+        var canViewExplanation = !questionVocab.Topic.IsExplanationPremiumRequired ||
+                                 await IsPremiumUserAsync(GetUserIdOrNull());
+
         var answers = questionVocab.Answers
             .OrderBy(a => a.Label)
             .Select(a => new
@@ -104,8 +129,9 @@ public class QuestionVocabController : ControllerBase
             questionNo = questionVocab.QuestionNo,
             content = questionVocab.Content,
             correctOption = questionVocab.CorrectOption,
-            shortExplanation = questionVocab.ShortExplanation,
-            longExplanation = questionVocab.LongExplanation,
+            shortExplanation = canViewExplanation ? questionVocab.ShortExplanation : null,
+            longExplanation = canViewExplanation ? questionVocab.LongExplanation : null,
+            explanationLocked = !canViewExplanation,
             answers = answers
         });
     }
@@ -120,6 +146,16 @@ public class QuestionVocabController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
+        var topic = await _context.Topics
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == topicId);
+
+        if (topic == null)
+            return NotFound(new { error = "Topic không tồn tại" });
+
+        var canViewExplanation = !topic.IsExplanationPremiumRequired ||
+                                 await IsPremiumUserAsync(GetUserIdOrNull());
+
         var query = _context.QuestionVocab
             .Where(q => q.TopicId == topicId);
 
@@ -136,8 +172,9 @@ public class QuestionVocabController : ControllerBase
                 questionNo = q.QuestionNo,
                 content = q.Content,
                 correctOption = q.CorrectOption,
-                shortExplanation = q.ShortExplanation,
-                longExplanation = q.LongExplanation,
+                shortExplanation = canViewExplanation ? q.ShortExplanation : null,
+                longExplanation = canViewExplanation ? q.LongExplanation : null,
+                explanationLocked = !canViewExplanation,
                 hasExplanation = !string.IsNullOrEmpty(q.ShortExplanation),
                 answers = q.Answers.OrderBy(a => a.Label).Select(a => new
                 {

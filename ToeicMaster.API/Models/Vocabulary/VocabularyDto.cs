@@ -61,6 +61,8 @@ namespace ToeicMaster.API.Models
         public Dictionary<int, int> WordCounts { get; set; } = new(); // level -> count
         public bool CanReviewNow { get; set; }
         public string TimeUntilReady { get; set; } = ""; // "12h 30m"
+        public bool IsExplanationPremiumRequired { get; set; }
+        public bool CanViewExplanation { get; set; }
     }
     public class AddVocabularyRequest
     {

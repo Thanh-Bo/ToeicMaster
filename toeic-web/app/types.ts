@@ -71,6 +71,7 @@ export interface AdminTest {
   duration: number;
   totalQuestions: number;
   isActive: boolean;
+  isExplanationPremiumRequired: boolean;
   createdAt: string;
 }
 
@@ -121,6 +122,7 @@ export interface ResultQuestion {
   isCorrect: boolean;
   shortExplanation: string | null;
   fullExplanation: string | null;
+  explanationLocked?: boolean;
   groupId: number | null;
   groupContent: string | null;
   answers: Answer[];

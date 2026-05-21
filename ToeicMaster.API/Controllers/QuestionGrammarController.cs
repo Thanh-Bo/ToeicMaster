@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models;
@@ -16,15 +17,42 @@ public class QuestionGrammarController : ControllerBase
     private readonly IGrammarService _grammarService;
     private readonly ILogger<QuestionGrammarController> _logger;
     private readonly AppDbContext _context;
+    private readonly IPremiumService _premiumService;
 
     public QuestionGrammarController(
         IGrammarService grammarService, 
         ILogger<QuestionGrammarController> logger,
-        AppDbContext context)
+        AppDbContext context,
+        IPremiumService premiumService)
     {
         _grammarService = grammarService;
         _logger = logger;
         _context = context;
+        _premiumService = premiumService;
+    }
+
+    private int? GetUserIdOrNull()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(userIdStr, out var userId) ? userId : null;
+    }
+
+    private async Task<bool> IsPremiumUserAsync(int? userId)
+    {
+        return await _premiumService.IsPremiumUserAsync(userId);
+    }
+
+    private async Task<bool> CanViewTopicExplanationAsync(int topicId)
+    {
+        var topic = await _context.GrammarTopics
+            .AsNoTracking()
+            .Where(t => t.Id == topicId)
+            .Select(t => new { t.IsExplanationPremiumRequired })
+            .FirstOrDefaultAsync();
+
+        return topic == null ||
+               !topic.IsExplanationPremiumRequired ||
+               await IsPremiumUserAsync(GetUserIdOrNull());
     }
 
     // ==========================================
@@ -560,6 +588,8 @@ public class QuestionGrammarController : ControllerBase
             if (topicId <= 0)
                 return BadRequest(new { error = "Topic ID không hợp lệ" });
 
+            var canViewExplanation = await CanViewTopicExplanationAsync(topicId);
+
             // Validate mode if provided
             if (!string.IsNullOrEmpty(mode) && !new[] { "easy", "medium", "hard" }.Contains(mode.ToLower()))
                 return BadRequest(new { error = "Mode phải là easy/medium/hard" });
@@ -586,11 +616,34 @@ public class QuestionGrammarController : ControllerBase
             if (!questions.Any())
                 return Ok(new { items = new List<QuestionGrammar>(), total = 0 });
 
+            var items = questions.Select(q => new QuestionGrammarDto
+            {
+                Id = q.Id,
+                TopicId = q.TopicId,
+                GrammarId = q.GrammarId,
+                RuleId = q.GrammarId,
+                QuestionNo = q.QuestionNo,
+                Content = q.Content,
+                CorrectOption = q.CorrectOption,
+                ShortExplanation = canViewExplanation ? q.ShortExplanation : null,
+                LongExplanation = canViewExplanation ? q.LongExplanation : null,
+                ExplanationLocked = !canViewExplanation,
+                Mode = q.Mode,
+                Answers = q.Answers.OrderBy(a => a.Label).Select(a => new QuestionGrammarAnswerDto
+                {
+                    Id = a.Id,
+                    QuestionGrammarId = a.QuestionGrammarId,
+                    Label = a.Label,
+                    Content = a.Content,
+                    IsCorrect = a.IsCorrect
+                }).ToList()
+            }).ToList();
+
             return Ok(new
             {
                 topicId,
                 mode = mode ?? "all",
-                items = questions,
+                items,
                 page,
                 pageSize,
                 total = totalCount,

@@ -112,13 +112,13 @@ export default function PageHeader({
         {/* Right: Actions */}
         {user ? (
           <div className="flex items-center gap-8 flex-shrink-0">
-            {/* <button
+            <button
               onClick={handleUpgradeClick}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-sm"
             >
               <Crown size={16} />
               Nâng cấp PRO
-            </button> */}
+            </button>
           
               <ThemeToggle />
             {/* Feedback Button */}

@@ -7,6 +7,8 @@ namespace ToeicMaster.API.Models.Exam
         public int AttemptId { get; set; }
         public int TestId { get; set; }
         public string TestTitle { get; set; }
+        public bool IsExplanationPremiumRequired { get; set; }
+        public bool CanViewExplanation { get; set; }
         public int TotalScore { get; set; }
         public int ListeningScore { get; set; } // Điểm Listening (5-495)
         public int ReadingScore { get; set; } // Điểm Reading (5-495)
@@ -25,6 +27,7 @@ namespace ToeicMaster.API.Models.Exam
         public bool IsCorrect { get; set; }
         public string? ShortExplanation { get; set; }
         public string? FullExplanation { get; set; }
+        public bool ExplanationLocked { get; set; }
         public List<ResultAnswerDto> Answers { get; set; } = new();
 
         public int? GroupId { get; set; }
