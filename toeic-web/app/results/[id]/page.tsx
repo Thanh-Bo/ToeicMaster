@@ -18,6 +18,8 @@ import {
   Sparkles,
   ChevronUp,
   ChevronDown,
+  Trophy,
+  Award,
 } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
@@ -644,59 +646,89 @@ export default function ResultPage() {
       </header>
 
       <div className="w-full mx-auto px-3 sm:px-4 mt-4 sm:mt-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
-          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
-              Tổng điểm
-            </p>
-            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+          {/* Card 1: Tổng điểm (Hero style) */}
+          <div className="bg-blue-50/40 dark:bg-blue-950/10 border border-blue-200 dark:border-blue-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                Tổng điểm
+              </span>
+              <Trophy size={16} className="text-blue-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 font-mono">
               {result.totalScore}
-              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500">
+              <span className="text-sm sm:text-lg text-blue-400 dark:text-blue-500 font-normal">
                 /990
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
-              Điểm số
-            </p>
-            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-1 sm:gap-2">
-              <span className="flex items-center gap-1">
-                <Headphones size={16} className="sm:w-[25px] sm:h-[25px]" /> {result.listeningScore || 0}
-              </span>
-              <span className="text-gray-400 dark:text-gray-500">/</span>
-              <span className="flex items-center gap-1">
-                <BookOpen size={16} className="sm:w-[25px] sm:h-[25px]" /> {result.readingScore || 0}
-              </span>
-            </p>
+
+          {/* Card 2: Điểm số chi tiết (LC / RC) */}
+          <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200 dark:border-zinc-700/80 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
+            <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider block mb-1.5">
+              Chi tiết điểm số
+            </span>
+            <div className="flex flex-col gap-1 sm:gap-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1">
+                  <Headphones size={14} className="text-sky-500" /> Nghe:
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white font-mono">
+                  {result.listeningScore || 0}
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal">/495</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1">
+                  <BookOpen size={14} className="text-emerald-500" /> Đọc:
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white font-mono">
+                  {result.readingScore || 0}
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal">/495</span>
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Headphones size={12} className="sm:w-3.5 sm:h-3.5" /> Listening
-            </p>
-            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+
+          {/* Card 3: Listening Correct */}
+          <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200 dark:border-zinc-700/80 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                <Headphones size={12} className="text-sky-500" /> Câu đúng Nghe
+              </span>
+            </div>
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white font-mono">
               {listeningCorrect}
-              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500">
+              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500 font-normal">
                 /{listeningQuestions.length}
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-              <BookOpen size={12} className="sm:w-3.5 sm:h-3.5" /> Reading
-            </p>
-            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+
+          {/* Card 4: Reading Correct */}
+          <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200 dark:border-zinc-700/80 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                <BookOpen size={12} className="text-emerald-500" /> Câu đúng Đọc
+              </span>
+            </div>
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white font-mono">
               {readingCorrect}
-              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500">
+              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500 font-normal">
                 /{readingQuestions.length}
               </span>
             </p>
           </div>
-          <div className="border border-gray-200 dark:border-zinc-700 p-3 sm:p-5 rounded-xl sm:rounded-2xl">
-            <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
-              Tỉ lệ đúng
-            </p>
-            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+
+          {/* Card 5: Tỉ lệ đúng (Accent style) */}
+          <div className="bg-green-50/40 dark:bg-green-950/10 border border-green-200 dark:border-green-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-green-600 dark:text-green-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                Tỉ lệ chính xác
+              </span>
+              <span className="text-green-500 text-xs font-bold font-mono">%</span>
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-green-600 dark:text-green-400 font-mono">
               {percentage}%
             </p>
           </div>

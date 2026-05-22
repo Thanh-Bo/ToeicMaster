@@ -88,61 +88,56 @@ export default function PracticePage() {
           { href: "/grammar", label: "Grammar", icon: Library },
           { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
           { href: "/practice", label: "Practice", icon: FileText },
-          // { href: "/vocabulary", label: "Vocab", icon: BookOpen },
-          // { href: "/practice", label: "Practice", icon: FileText },
         ]}
       />
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Tabs Section */}
-        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-700">
+        <div className="inline-flex w-full sm:w-auto p-1.5 bg-gray-100/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-zinc-800/50 mb-6 sm:mb-8 gap-1">
           <button
             onClick={() => setActiveTab("practice")}
-            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "practice"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
             }`}
           >
-            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+            <BookOpen className="w-4 h-4" />
             <span>Học</span>
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "progress"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
             }`}
           >
-            <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Tiến độ</span>
-            <span className="sm:hidden">Tiến độ</span>
+            <BarChart2 className="w-4 h-4" />
+            <span>Tiến độ</span>
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "history"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
             }`}
           >
-            <History className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Lịch sử</span>
-            <span className="sm:hidden">Lịch sử</span>
+            <History className="w-4 h-4" />
+            <span>Lịch sử</span>
           </button>
           <button
             onClick={() => setActiveTab("bookmarks")}
-            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-1.5 sm:gap-2 transition text-sm sm:text-base ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "bookmarks"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
             }`}
           >
-            <Bookmark className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Đã lưu</span>
-            <span className="sm:hidden">Đã lưu</span>
+            <Bookmark className="w-4 h-4" />
+            <span>Đã lưu</span>
           </button>
         </div>
 

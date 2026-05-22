@@ -289,14 +289,14 @@ export default function TopicStudyPage() {
         </button>
 
         {/* Progress Bar Card */}
-        <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm p-3 rounded-xl shadow-md border border-gray-200 dark:border-zinc-800">
+        <div className="bg-white/80 dark:bg-zinc-900/70 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xs border border-gray-200/50 dark:border-zinc-800/80">
           {/* Title */}
-          <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-3 truncate">
+          <h1 className="text-sm sm:text-base md:text-lg font-black text-gray-900 dark:text-white mb-4 truncate text-center sm:text-left">
             {topicTitle}
           </h1>
 
           {/* Process Steps */}
-          <div className="flex justify-between items-center gap-2 sm:gap-3">
+          <div className="flex justify-between items-center gap-2 sm:gap-4 max-w-xl mx-auto">
             {[
               { phase: "LEARN", number: "1", label: "Học từ", icon: BookText  },
               { phase: "PRACTICE_GAME", number: "2", label: "Ghép thẻ", icon: Gamepad2 },
@@ -305,19 +305,19 @@ export default function TopicStudyPage() {
               <React.Fragment key={step.phase}>
                 <button
                   onClick={() => setPhase(step.phase as Phase)}
-                  className={`flex flex-col items-center gap-1.5 transition-all flex-1 cursor-pointer`}
+                  className="flex flex-col items-center gap-2 transition-all flex-1 cursor-pointer"
                 >
                   <div
-                    className={`w-7 h-7 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all shadow-sm ${
+                    className={`w-8.5 h-8.5 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all shadow-xs ${
                       phase === step.phase
-                        ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg scale-105"
-                        : "border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105"
+                        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md shadow-blue-500/20 scale-110"
+                        : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105"
                     }`}
                   >
-                    <step.icon size={12} />
+                    <step.icon size={14} />
                   </div>
                   <span
-                    className={`text-[9px] font-bold text-center transition-colors hidden md:block ${
+                    className={`text-[10px] font-bold text-center transition-colors hidden md:block ${
                       phase === step.phase
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-gray-500 dark:text-gray-400"
@@ -328,10 +328,10 @@ export default function TopicStudyPage() {
                 </button>
                 {idx < 2 && (
                   <div
-                    className={`h-1 flex-1 rounded-full transition-all ${
+                    className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
                       phase === step.phase || (phase === "PRACTICE_GAME" && idx === 0) || (phase === "TEST" && idx < 1)
-                        ? "bg-gradient-to-r from-blue-600 to-blue-500"
-                        : "bg-gray-200 dark:bg-zinc-700"
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-600"
+                        : "bg-gray-100 dark:bg-zinc-800"
                     }`}
                   ></div>
                 )}
@@ -346,51 +346,51 @@ export default function TopicStudyPage() {
         {phase === "LEARN" && (
           <div className="flex flex-col items-center">
             {/* Progress Badge */}
-            <div className="mb-3 flex flex-col items-center gap-2">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full shadow-md">
-                <span className="text-xs font-bold">Từ {currentWordIndex + 1} / {words.length}</span>
-                <div className="h-1.5 w-20 bg-white/30 rounded-full overflow-hidden">
+            <div className="mb-4 flex flex-col items-center gap-3.5 w-full">
+              <div className="inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 rounded-full shadow-md shadow-blue-500/10">
+                <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase">Từ {currentWordIndex + 1} / {words.length}</span>
+                <div className="h-1.5 w-20 bg-white/20 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-white transition-all duration-300"
+                    className="h-full bg-white transition-all duration-350"
                     style={{ width: `${((currentWordIndex + 1) / words.length) * 100}%` }}
                   ></div>
                 </div>
               </div>
 
-              {/* Sub-phase Tabs */}
-              <div className="flex gap-1.5 justify-center flex-wrap">
+              {/* Sub-phase Tabs - iOS style selector */}
+              <div className="flex gap-1.5 p-1 bg-gray-100/60 dark:bg-zinc-900/60 backdrop-blur-xs rounded-xl border border-gray-200/50 dark:border-zinc-850/50 max-w-sm w-full mx-auto justify-center">
                 <button
                   onClick={() => setSubPhase("FLASHCARD")}
                   disabled={subPhase === "LISTEN_WRITE" || subPhase === "FILL_BLANK"}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                     subPhase === "FLASHCARD"
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-105"
-                      : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <BookText  className="inline w-3 h-3 mr-1" />1. Thẻ học
+                  <BookText className="w-3.5 h-3.5" /> Thẻ học
                 </button>
                 <button
                   onClick={() => setSubPhase("LISTEN_WRITE")}
                   disabled={subPhase === "FLASHCARD"}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                     subPhase === "LISTEN_WRITE"
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-105"
-                      : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <Volume2 className="inline w-3 h-3 mr-1" />2. Nghe & Viết
+                  <Volume2 className="w-3.5 h-3.5" /> Nghe & Viết
                 </button>
                 <button
                   onClick={() => setSubPhase("FILL_BLANK")}
                   disabled={subPhase === "FLASHCARD" || subPhase === "LISTEN_WRITE"}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                     subPhase === "FILL_BLANK"
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-105"
-                      : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <FileText className="inline w-3 h-3 mr-1" />3. Điền từ
+                  <FileText className="w-3.5 h-3.5" /> Điền từ
                 </button>
               </div>
             </div>
@@ -407,14 +407,14 @@ export default function TopicStudyPage() {
 
             {subPhase === "LISTEN_WRITE" && (
               <div className="w-full max-w-xl animate-fadeIn pb-6 md:pb-0">
-                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 p-4 md:p-6 shadow-md">
-                  <h2 className="text-base md:text-lg font-bold mb-3 text-center">
-                    <Volume2 className="inline w-4 h-4 mr-2" />
-                    Nghe và viết lại
+                <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md text-gray-900 dark:text-white rounded-2xl border border-gray-200/50 dark:border-zinc-800/80 p-5 md:p-8 shadow-xs">
+                  <h2 className="text-sm md:text-base font-black mb-4 text-center flex items-center justify-center gap-2">
+                    <Volume2 className="w-4.5 h-4.5 text-blue-500" />
+                    Nghe và viết lại từ
                   </h2>
 
                   {/* Audio Button */}
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-5">
                     <button
                       onClick={() => {
                         const audioUrl = words[currentWordIndex].audioUrl;
@@ -423,30 +423,30 @@ export default function TopicStudyPage() {
                         if (audioUrl) {
                           const audio = new Audio(audioUrl);
                           audio
-                            .play()
-                            .then(() => {
-                              console.log("Audio playing successfully");
-                            })
-                            .catch((e) => {
-                              console.error("Audio play error:", e);
-                              const utterance = new SpeechSynthesisUtterance(word);
-                              utterance.lang = "en-US";
-                              window.speechSynthesis.speak(utterance);
-                            });
+                             .play()
+                             .then(() => {
+                               console.log("Audio playing successfully");
+                             })
+                             .catch((e) => {
+                               console.error("Audio play error:", e);
+                               const utterance = new SpeechSynthesisUtterance(word);
+                               utterance.lang = "en-US";
+                               window.speechSynthesis.speak(utterance);
+                             });
                         } else {
                           const utterance = new SpeechSynthesisUtterance(word);
                           utterance.lang = "en-US";
                           window.speechSynthesis.speak(utterance);
                         }
                       }}
-                      className="w-12 h-12 rounded-full flex items-center justify-center transition-all transform hover:scale-105 shadow-lg border-2 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95"
+                      className="w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-105 shadow-md border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 active:scale-95 cursor-pointer"
                     >
                       <Volume2 size={24} className="text-white" />
                     </button>
                   </div>
 
-                  <p className="text-center text-xs md:text-sm mb-3 font-medium">
-                    Bạn nghe từ ở trên. Gõ lại từ bạn vừa nghe
+                  <p className="text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-4 font-semibold">
+                    Nghe phát âm bên trên và gõ lại từ vựng chính xác
                   </p>
 
                   {/* Input */}
@@ -468,57 +468,57 @@ export default function TopicStudyPage() {
                         }
                       }
                     }}
-                    placeholder="Nhập từ ở đây..."
-                    className="w-full px-3 py-2.5 rounded-lg text-gray-900 dark:text-white border-2 border-gray-200 dark:border-zinc-700 text-center text-sm md:text-base font-semibold mb-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all bg-white dark:bg-zinc-800"
+                    placeholder="Nhập từ bạn nghe được..."
+                    className="w-full px-4 py-3 rounded-xl text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-800 text-center text-sm md:text-lg font-bold mb-4 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-950/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all bg-white dark:bg-zinc-900"
                   />
 
                   {/* Feedback */}
                   {isAnswerChecked ? (
                     <div
-                      className={`rounded-lg p-3 border-l-4 shadow-sm transition-all ${
+                      className={`rounded-xl p-4 border-l-4 shadow-xs transition-all ${
                         isAnswerCorrect
-                          ? "bg-green-50 dark:bg-green-900/20 border-green-500"
-                          : "bg-red-50 dark:bg-red-900/20 border-red-500"
+                          ? "bg-green-50/50 dark:bg-green-950/20 border-green-500 text-green-900 dark:text-green-200"
+                          : "bg-red-50/50 dark:bg-red-950/20 border-red-500 text-red-900 dark:text-red-200"
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         {isAnswerCorrect ? (
-                          <CircleCheckBig  size={20} className="text-green-600 dark:text-green-400" />
+                          <CircleCheckBig size={20} className="text-green-600 dark:text-green-400" />
                         ) : (
                           <X size={20} className="text-red-600 dark:text-red-400" />
                         )}
-                        <h3 className={`text-sm font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
-                          {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
+                        <h3 className="text-sm font-black">
+                          {isAnswerCorrect ? "Chính xác!" : "Chưa chính xác!"}
                         </h3>
                       </div>
                       <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
-                    <p className="text-center text-xs text-gray-400"><Keyboard className="inline w-3 h-3 mr-1" />Nhấn Enter để kiểm tra</p>
+                    <p className="text-center text-xs text-gray-400"><Keyboard className="inline w-3.5 h-3.5 mr-1" />Nhấn Enter để kiểm tra</p>
                   )}
                 </div>
               </div>
             )}
 
             {subPhase === "FILL_BLANK" && (
-              <div className="w-full max-w-xl animate-fadeIn">
-                <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-xl shadow-md p-4 md:p-6 transition-all">
-                  <h2 className="text-base md:text-lg font-bold mb-3 text-center">
-                    <FileText className="inline w-4 h-4 mr-2" />
+              <div className="w-full max-w-xl animate-fadeIn pb-6 md:pb-0">
+                <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md text-gray-900 dark:text-white border border-gray-200/50 dark:border-zinc-800/80 rounded-2xl shadow-xs p-5 md:p-8 transition-all">
+                  <h2 className="text-sm md:text-base font-black mb-4 text-center flex items-center justify-center gap-2">
+                    <FileText className="w-4.5 h-4.5 text-blue-500" />
                     Điền từ vào chỗ trống
                   </h2>
 
                   {/* Meaning Hint */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4">
+                  <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/30 rounded-xl p-4 mb-5">
                     <p className="text-sm md:text-base font-bold text-blue-700 dark:text-blue-300 text-center">
                       {words[currentWordIndex].meaning || "Không có định nghĩa"}
                     </p>
                   </div>
 
                   {/* Input Area */}
-                  <div className="relative bg-gray-50 dark:bg-zinc-800 rounded-lg p-4 mb-4 border-2 border-dashed border-gray-300 dark:border-zinc-700">
+                  <div className="relative bg-gray-50/60 dark:bg-zinc-900/50 rounded-xl p-5 mb-5 border border-dashed border-gray-300 dark:border-zinc-800 flex flex-col items-center">
                     {/* Visual Layer */}
-                    <div className="flex justify-center flex-wrap gap-1.5 mb-3">
+                    <div className="flex justify-center flex-wrap gap-2 mb-4">
                       {words[currentWordIndex].word
                         .split("")
                         .map((char: string, idx: number) => {
@@ -545,13 +545,13 @@ export default function TopicStudyPage() {
                           return (
                             <div
                               key={idx}
-                              className={`w-6 h-8 md:w-8 md:h-10 flex items-center justify-center text-base md:text-lg font-bold rounded-md transition-all ${
+                              className={`w-7 h-9 md:w-9 md:h-11 flex items-center justify-center text-sm md:text-lg font-black rounded-lg transition-all border ${
                                 userChar
-                                  ? "bg-blue-600 text-white shadow-sm transform scale-105"
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-xs transform scale-[1.03]"
                                   : isHint
-                                    ? "bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-400"
-                                    : "bg-white dark:bg-zinc-900 text-transparent border border-gray-300 dark:border-zinc-600"
-                              } ${isCurrentCursor ? "ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900" : ""}`}
+                                    ? "bg-gray-200/80 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border-transparent font-bold"
+                                    : "bg-white dark:bg-zinc-900 text-transparent border-gray-300 dark:border-zinc-800"
+                              } ${isCurrentCursor ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-zinc-900 scale-[1.05]" : ""}`}
                             >
                               {displayChar.toUpperCase()}
                             </div>
@@ -574,10 +574,8 @@ export default function TopicStudyPage() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           if (isAnswerChecked) {
-                            // If already checked, proceed to next
                             handleContinueAfterCheck();
                           } else {
-                            // First time - check answer
                             handleCheckFillBlank();
                           }
                         }
@@ -588,37 +586,34 @@ export default function TopicStudyPage() {
                       spellCheck="false"
                     />
 
-                    <p className="text-center text-[11px] text-gray-500 dark:text-gray-400">
-                      {words[currentWordIndex].word.length} ký tự • Nhấn Enter để kiểm tra
+                    <p className="text-center text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                      {words[currentWordIndex].word.length} ký tự • Nhấp để gõ hoặc nhấn Enter để kiểm tra
                     </p>
                   </div>
 
                   {/* Feedback */}
                   {isAnswerChecked ? (
                     <div
-                      className={`rounded-lg p-3 border-l-4 shadow-sm transition-all ${
+                      className={`rounded-xl p-4 border-l-4 shadow-xs transition-all ${
                         isAnswerCorrect
-                          ? "bg-green-50 dark:bg-green-900/20 border-green-500"
-                          : "bg-red-50 dark:bg-red-900/20 border-red-500"
+                          ? "bg-green-50/50 dark:bg-green-950/20 border-green-500 text-green-900 dark:text-green-200"
+                          : "bg-red-50/50 dark:bg-red-950/20 border-red-500 text-red-900 dark:text-red-200"
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         {isAnswerCorrect ? (
-                          <Sparkles size={20} className="text-green-600 dark:text-green-400" />
+                          <CircleCheckBig size={20} className="text-green-600 dark:text-green-400" />
                         ) : (
                           <X size={20} className="text-red-600 dark:text-red-400" />
                         )}
-                        <h3 className={`text-sm font-bold ${isAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
-                          {isAnswerCorrect ? "Chính xác!" : "Chưa đúng!"}
+                        <h3 className="text-sm font-black">
+                          {isAnswerCorrect ? "Chính xác!" : "Chưa chính xác!"}
                         </h3>
                       </div>
                       <WordDetailFeedback word={words[currentWordIndex]} />
                     </div>
                   ) : (
-                    <div className="text-center h-8 flex items-center justify-center text-gray-400 animate-pulse text-xs">
-                      <Keyboard className="inline w-3 h-3 mr-1" />
-                      <span>Gõ để điền từ</span>
-                    </div>
+                    <p className="text-center text-xs text-gray-400"><Keyboard className="inline w-3.5 h-3.5 mr-1" />Nhấn Enter để kiểm tra</p>
                   )}
                 </div>
               </div>
@@ -743,21 +738,21 @@ export default function TopicStudyPage() {
         )}
 
         {phase === "COMPLETED" && (
-          <div className="text-center py-8 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl shadow-md border border-green-200 dark:border-green-800">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-3">
-              <CheckCircle size={24} />
+          <div className="text-center py-10 px-6 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl shadow-xs border border-green-500/20 dark:border-green-500/10 max-w-md mx-auto transition-all animate-fadeIn">
+            <div className="w-16 h-16 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-200/50 dark:border-green-800/40 relative">
+              <div className="absolute inset-0 bg-green-500/10 rounded-full animate-ping"></div>
+              <CheckCircle size={32} />
             </div>
-            <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mb-2">
-              Chúc mừng! <Sparkles className="inline w-5 h-5" />
+            <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-1.5">
+              Chúc mừng! <Sparkles className="text-yellow-500 animate-pulse" size={20} />
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-5 text-sm">
-              Bạn đã hoàn thành chủ đề từ vựng này
+            <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm font-semibold">
+              Bạn đã hoàn thành xuất sắc tất cả giai đoạn học của chủ đề từ vựng này.
             </p>
             <a
               href="/vocabulary"
-              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2"
+              className="inline-flex bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-black shadow-xs transition-all duration-300 hover:scale-[1.03] active:scale-98 items-center gap-2 cursor-pointer w-full justify-center"
             >
-              
               Về trang Từ vựng
             </a>
           </div>

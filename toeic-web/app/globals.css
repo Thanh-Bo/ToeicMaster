@@ -38,6 +38,7 @@
   /* Gradient Hero Light */
   --gradient-hero-start: #fb7185;
   --gradient-hero-end: #ec4899;
+  --grid-line: rgba(0, 0, 0, 0.05);
 }
 
 /* Only apply system preference when no explicit theme class is set */
@@ -71,6 +72,7 @@ html.dark {
   /* Gradient Hero Dark */
   --gradient-hero-start: #dc2626;
   --gradient-hero-end: #be185d;
+  --grid-line: rgba(255, 255, 255, 0.05);
 }
 
 body {
@@ -208,8 +210,8 @@ html.dark .prose div {
 
 .bg-grid-pattern {
   background-image: 
-    linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent),
-    linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent);
+    linear-gradient(0deg, transparent 24%, var(--grid-line) 25%, var(--grid-line) 26%, transparent 27%, transparent 74%, var(--grid-line) 75%, var(--grid-line) 76%, transparent 77%, transparent),
+    linear-gradient(90deg, transparent 24%, var(--grid-line) 25%, var(--grid-line) 26%, transparent 27%, transparent 74%, var(--grid-line) 75%, var(--grid-line) 76%, transparent 77%, transparent);
   background-size: 40px 40px;
 }
 

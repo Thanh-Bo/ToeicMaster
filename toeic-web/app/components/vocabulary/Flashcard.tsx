@@ -14,7 +14,7 @@ interface Props {
 export default function Flashcard({ word, onBookmark, onMaster, isMastered }: Props) {
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Xử lý Audio (Dùng Browser Speech API nếu không có file mp3)
+  // Audio Handler
   const handlePlayAudio = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (word.audioUrl) {
@@ -27,113 +27,164 @@ export default function Flashcard({ word, onBookmark, onMaster, isMastered }: Pr
   };
 
   return (
-    <div className="perspective-1000 w-full max-w-sm mx-auto h-[320px] sm:h-[380px] cursor-pointer group" onClick={() => setIsFlipped(!isFlipped)}>
-      <div className={`relative w-full h-full transition-transform duration-700 [perspective:1000px] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`} style={{transformStyle: 'preserve-3d'}}>
+    <div 
+      className="w-full max-w-sm mx-auto h-[340px] sm:h-[400px] cursor-pointer group" 
+      onClick={() => setIsFlipped(!isFlipped)}
+      style={{ perspective: "1000px", WebkitPerspective: "1000px" }}
+    >
+      <div 
+        className="relative w-full h-full transition-transform duration-500" 
+        style={{
+          transformStyle: 'preserve-3d',
+          WebkitTransformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+        }}
+      >
         
         {/* --- MẶT TRƯỚC (ENGLISH) --- */}
-        <div className="absolute w-full h-full backface-hidden bg-linear-to-br from-white to-blue-50 dark:from-zinc-900 dark:to-zinc-800 rounded-2xl shadow-xl border-2 border-gray-200 dark:border-zinc-700 flex flex-col items-center justify-center p-4 sm:p-5 gap-3 sm:gap-4">
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 dark:text-gray-500 text-xs flex items-center gap-1.5 bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-full">
-             <RotateCw size={12}/> Chạm để lật
+        <div 
+          className="absolute inset-0 w-full h-full rounded-2xl bg-white dark:bg-zinc-900 shadow-xs border border-gray-200/50 dark:border-zinc-800/80 flex flex-col items-center justify-center p-5 gap-4 transition-opacity duration-300"
+          style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            opacity: isFlipped ? 0 : 1,
+            pointerEvents: isFlipped ? "none" : "auto",
+          }}
+        >
+          <div className="absolute top-4 right-4 text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 bg-gray-100/80 dark:bg-zinc-800/80 px-2.5 py-1 rounded-full border border-gray-200/30 dark:border-zinc-800/30">
+            <RotateCw size={10} className="animate-spin-slow"/> Chạm để lật
           </div>
           
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2">{word.word}</h2>
-            <div className="flex items-center gap-2 justify-center text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 flex-wrap text-xs sm:text-sm">
-              <span className="italic font-serif">({word.type})</span>
-              <span className="font-semibold">{word.pronunciation}</span>
+          <div className="text-center mt-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight select-none">
+              {word.word}
+            </h2>
+            <div className="flex items-center gap-2 justify-center text-gray-600 dark:text-gray-400 mb-4 flex-wrap text-xs sm:text-sm">
+              <span className="italic font-serif font-bold text-blue-600 dark:text-blue-400">({word.type})</span>
+              <span className="font-semibold tracking-wide">{word.pronunciation}</span>
             </div>
           </div>
 
-          <button 
-            onClick={handlePlayAudio}
-            className="p-2.5 sm:p-3 bg-linear-to-br from-blue-500 to-blue-600 text-white rounded-full hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:scale-110 active:scale-95"
-          >
-            <Volume2 size={20} className="sm:w-6 sm:h-6" />
-          </button>
+          <div className="relative group/audio">
+            <div className="absolute -inset-1.5 bg-blue-500/20 rounded-full blur-xs opacity-0 group-hover/audio:opacity-100 transition-opacity animate-pulse"></div>
+            <button 
+              onClick={handlePlayAudio}
+              className="relative p-3.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all shadow-md active:scale-95 cursor-pointer z-10"
+            >
+              <Volume2 size={24} />
+            </button>
+          </div>
 
-          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-             Nhấp để nghe phát âm
+          <div className="text-[11px] text-gray-500 dark:text-gray-400 font-bold tracking-wide">
+            Nhấp để nghe phát âm
           </div>
         </div>
 
         {/* --- MẶT SAU (VIETNAMESE MEANING) --- */}
-        <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-linear-to-br from-blue-50 to-white dark:from-zinc-800 dark:to-zinc-900 rounded-2xl shadow-xl border-2 border-blue-200 dark:border-zinc-700 flex flex-col p-4 sm:p-5 ">
-           {/* Header: Actions */}
-           <div className="flex justify-between items-center mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-gray-200 dark:border-zinc-700">
-              <button onClick={(e) => {e.stopPropagation(); onBookmark()}} className={`p-2 rounded-full transition-all ${word.isBookmarked ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 shadow-md' : 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}>
-                <Bookmark size={16} className="sm:w-[18px] sm:h-[18px]"/>
-              </button>
-              
-              {/* Master Button - Icon only */}
-              <div className="flex items-center gap-2">
-                {onMaster && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const newState = !isMastered;
-                      onMaster(newState);
-                      if (newState) {
-                        toast.success('Đã đánh dấu là đã nhớ!');
-                      } else {
-                        toast.error('Đã bỏ đánh dấu');
-                      }
-                    }}
-                    className={`p-2 rounded-full transition-all shadow-md hover:shadow-lg ${
-                      isMastered
-                        ? 'text-green-500 bg-green-100 dark:bg-green-900/30'
-                        : 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                    }`}
-                    title={isMastered ? 'Đã nhớ (click để bỏ)' : 'Đánh dấu đã nhớ'}
-                  >
-                    {isMastered ? <CheckCircle size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Circle size={16} className="sm:w-[18px] sm:h-[18px]" />}
-                  </button>
-                )}
-                <button onClick={handlePlayAudio} className="p-2 text-white bg-linear-to-br from-blue-500 to-blue-600 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg">
-                  <Volume2 size={16} className="sm:w-[18px] sm:h-[18px]"/>
+        <div 
+          className="absolute inset-0 w-full h-full rounded-2xl bg-white dark:bg-zinc-900 shadow-xs border border-gray-200/50 dark:border-zinc-800/80 flex flex-col p-5 transition-opacity duration-300"
+          style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            opacity: isFlipped ? 1 : 0,
+            pointerEvents: isFlipped ? "auto" : "none",
+          }}
+        >
+          {/* Header Actions */}
+          <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-100 dark:border-zinc-800/80">
+            <button 
+              onClick={(e) => { e.stopPropagation(); onBookmark(); }} 
+              className={`p-2 rounded-xl transition-all border ${
+                word.isBookmarked 
+                  ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200/40 dark:border-yellow-800/30' 
+                  : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-zinc-800/40 hover:bg-gray-100 dark:hover:bg-zinc-800 border-transparent'
+              }`}
+            >
+              <Bookmark size={16} />
+            </button>
+            
+            <div className="flex items-center gap-2">
+              {onMaster && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newState = !isMastered;
+                    onMaster(newState);
+                    if (newState) {
+                      toast.success('Đã nhớ từ vựng!');
+                    } else {
+                      toast.error('Đã bỏ nhớ từ vựng');
+                    }
+                  }}
+                  className={`p-2 rounded-xl transition-all border ${
+                    isMastered
+                      ? 'text-green-600 bg-green-50 dark:bg-green-950/20 border-green-200/40 dark:border-green-800/30 font-bold'
+                      : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-zinc-800/40 hover:bg-gray-100 dark:hover:bg-zinc-800 border-transparent'
+                  }`}
+                  title={isMastered ? 'Đã thuộc (click để bỏ)' : 'Đánh dấu đã thuộc'}
+                >
+                  <CheckCircle size={16} />
                 </button>
-              </div>
-           </div>
-
-           {/* Nghĩa & Ảnh */}
-           <div className="text-center mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">{word.meaning}</h3>
-              {word.imageUrl && (
-                <img src={word.imageUrl} alt="illustration" className="h-20 mx-auto object-contain mb-2 rounded-lg" />
               )}
-           </div>
+              <button 
+                onClick={handlePlayAudio} 
+                className="p-2 text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all shadow-xs"
+              >
+                <Volume2 size={16} />
+              </button>
+            </div>
+          </div>
 
-           {/* Ví dụ */}
-           <div className="bg-blue-50 dark:bg-zinc-800 p-3 rounded-xl border border-blue-200 dark:border-zinc-700 mb-4">
-              <p className="text-gray-800 dark:text-white font-semibold text-sm mb-2">"{word.example}"</p>
-              <p className="text-gray-600 dark:text-gray-300 text-xs italic font-medium">{word.exampleTranslation}</p>
-           </div>
+          {/* Meaning & Image */}
+          <div className="text-center mb-4 flex-1 flex flex-col justify-center">
+            <h3 className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+              {word.meaning}
+            </h3>
+            {word.imageUrl && (
+              <div className="mt-3 overflow-hidden rounded-xl h-20 max-w-xs mx-auto">
+                <img src={word.imageUrl} alt={word.word} className="h-full w-full object-contain" />
+              </div>
+            )}
+          </div>
 
-           {/* Synonyms - Từ đồng nghĩa */}
-           {(() => {
-             // Parse JSON nếu synonyms là string
-             const synonyms = typeof word.synonyms === 'string' 
-               ? (word.synonyms ? JSON.parse(word.synonyms) : [])
-               : (word.synonyms || []);
-             
-             if (synonyms.length === 0) return null;
-             
-             return (
-               <div className="mb-4">
-                 <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Từ đồng nghĩa</p>
-                 <div className="space-y-1.5">
-                   {synonyms.map((syn: any, idx: number) => (
-                     <div key={idx} className="text-xs flex gap-2 p-2 rounded-lg bg-gray-50 dark:bg-zinc-700/50">
-                        <span className="font-bold text-blue-600 dark:text-blue-400 min-w-fit">{syn.word}</span>
-                        <span className="text-gray-600 dark:text-gray-400">- {syn.meaning}</span>
-                     </div>
-                   ))}
-                 </div>
-               </div>
-             );
-           })()}
+          {/* Example Quote Card */}
+          <div className="bg-blue-50/40 dark:bg-zinc-950/20 p-3.5 rounded-xl border-l-4 border-blue-500 dark:border-blue-500/80 mb-4 text-left">
+            <p className="text-gray-900 dark:text-white font-bold text-xs sm:text-sm mb-1.5 leading-relaxed">
+              "{word.example}"
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-[11px] sm:text-xs font-semibold">
+              {word.exampleTranslation}
+            </p>
+          </div>
 
-           
-
+          {/* Synonyms Tags */}
+          {(() => {
+            const synonyms = typeof word.synonyms === 'string' 
+              ? (word.synonyms ? JSON.parse(word.synonyms) : [])
+              : (word.synonyms || []);
+            
+            if (synonyms.length === 0) return null;
+            
+            return (
+              <div className="text-left mb-2">
+                <p className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">
+                  Từ đồng nghĩa
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto pr-1">
+                  {synonyms.map((syn: any, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-zinc-800 flex items-center gap-1"
+                    >
+                      <span className="text-blue-600 dark:text-blue-400">{syn.word}</span>
+                      <span className="text-gray-400 dark:text-gray-500">: {syn.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
       </div>

@@ -45,48 +45,43 @@ export default function BookmarksTab() {
     note: string;
   } | null>(null);
 
-
   const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
   const [reviewQuestions, setReviewQuestions] = useState<BookmarkItem[]>([]);
 
   // Handler khi bấm nút "Ôn tập ngẫu nhiên" trên Toolbar
   const handleOpenReview = () => {
-    // Logic "Thông minh": Nếu chưa chọn gì -> Có thể alert nhắc nhở hoặc mặc định là All
-    // Ở đây ta cứ mở Modal Setup lên, nó sẽ tự fetch theo filter hiện tại
     setIsSetupOpen(true);
   };
 
   // Handler khi bấm "Bắt đầu ôn" trong Setup Modal
   const handleStartReviewSession = (selectedQuestions: BookmarkItem[]) => {
     setReviewQuestions(selectedQuestions);
-    setIsSetupOpen(false); // Đóng setup
-    setIsTestOpen(true);   // Mở bài test
+    setIsSetupOpen(false);
+    setIsTestOpen(true);
   };
 
   const handleUpdateNote = async (newNote: string) => {
     if (!editModalData) return;
 
-    // 1. Gọi API (Dùng hàm add vì backend hỗ trợ update nếu đã tồn tại)
     try {
       await bookmarkService.add(editModalData.questionId, newNote);
 
-      // 2. Cập nhật giao diện ngay lập tức (Optimistic Update)
       setBookmarks((prev) =>
         prev.map((b) =>
           b.questionId === editModalData.questionId
-            ? { ...b, note: newNote } // Thay note cũ bằng note mới
+            ? { ...b, note: newNote }
             : b
         )
       );
 
-      // 3. Đóng modal
       setEditModalData(null);
     } catch (error) {
       console.error("Lỗi cập nhật note:", error);
       alert("Không thể cập nhật ghi chú");
     }
   };
+
   // --- 1. Load Stats (Chỉ chạy 1 lần khi mount) ---
   useEffect(() => {
     const fetchStats = async () => {
@@ -98,7 +93,7 @@ export default function BookmarksTab() {
       }
     };
     fetchStats();
-  }, [bookmarks.length]); // Reload stats nếu số lượng bookmark thay đổi
+  }, [bookmarks.length]);
 
   // --- 2. Load Bookmarks (Chạy khi filter thay đổi) ---
   useEffect(() => {
@@ -109,7 +104,6 @@ export default function BookmarksTab() {
   const loadBookmarks = async () => {
     setLoading(true);
     try {
-      // Xử lý ngày: Nếu chọn ngày cụ thể, tạo range từ 00:00 đến 23:59
       let fromDate, toDate;
       if (selectedDate) {
         fromDate = `${selectedDate}T00:00:00`;
@@ -136,13 +130,11 @@ export default function BookmarksTab() {
   // --- HELPER: Format Date & Time ---
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
-    // Format ngày: 12/02/2024
     const dateStr = date.toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-    // Format giờ: 14:20
     const timeStr = date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -159,7 +151,6 @@ export default function BookmarksTab() {
     try {
       await bookmarkService.remove(questionId);
       setBookmarks((prev) => prev.filter((b) => b.questionId !== questionId));
-      // Cập nhật lại stats ở client luôn cho mượt (optional)
     } catch (error) {
       alert("Xóa thất bại");
     } finally {
@@ -182,35 +173,76 @@ export default function BookmarksTab() {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900">
+    <div className="bg-transparent">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-              Kho lưu trữ
-              <span className="text-sm border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full">
-                {stats.total} câu
-              </span>
-            </h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-gray-150/40 dark:border-zinc-800/50 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-2xl">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                Kho câu hỏi đã lưu
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-405 mt-0.5">
+                Lưu trữ và xem lại các câu hỏi TOEIC quan trọng của bạn · <span className="font-bold text-gray-700 dark:text-gray-300">{stats.total} câu</span>
+              </p>
+            </div>
           </div>
 
           <button
             disabled={bookmarks.length === 0}
             onClick={handleOpenReview}
-            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 px-5 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] px-5 py-3 rounded-xl font-bold text-sm transition-all duration-250 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <PlayCircle size={18} /> Ôn tập ngẫu nhiên
+            <PlayCircle size={18} className="fill-current stroke-[2.5]" />
+            <span>Ôn tập ngẫu nhiên</span>
           </button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* --- MOBILE HORIZONTAL FILTERS --- */}
+          <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-none flex-nowrap mb-2">
+            <button
+              onClick={() => setSelectedPart(null)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 shrink-0 ${
+                selectedPart === null
+                  ? "bg-blue-600 dark:bg-blue-550 text-white shadow-sm shadow-blue-500/20"
+                  : "bg-white/80 dark:bg-zinc-900/60 border border-gray-200/50 dark:border-zinc-800/80 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <Filter size={12} />
+              <span>Tất cả ({stats.total})</span>
+            </button>
+            {[1, 2, 3, 4, 5, 6, 7].map((num) => {
+              const count = stats.parts[num] || 0;
+              return (
+                <button
+                  key={num}
+                  onClick={() => setSelectedPart(num)}
+                  className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 shrink-0 ${
+                    selectedPart === num
+                      ? "bg-blue-600 dark:bg-blue-550 text-white shadow-sm shadow-blue-500/20"
+                      : "bg-white/80 dark:bg-zinc-900/60 border border-gray-200/50 dark:border-zinc-800/80 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  <span>Part {num}</span>
+                  {count > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedPart === num ? "bg-white/25 text-white" : "bg-gray-200 dark:bg-zinc-800 text-gray-500 dark:text-gray-400"}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
           {/* --- LEFT SIDEBAR (FILTERS & STATS) --- */}
-          <div className="lg:w-1/4">
-            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 p-4 sticky top-24">
-              <h3 className="font-bold text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wider mb-4 px-2">
-                Bộ lọc kỹ năng
+          <div className="hidden lg:block lg:w-1/4">
+            <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-zinc-800/80 p-4 sticky top-24 shadow-2xs">
+              <h3 className="font-bold text-gray-400 dark:text-gray-500 text-[11px] uppercase tracking-widest mb-4 px-2">
+                Phân loại kỹ năng
               </h3>
 
               <SidebarFilterItem
@@ -219,30 +251,30 @@ export default function BookmarksTab() {
                 count={stats.total}
                 isActive={selectedPart === null}
                 onClick={setSelectedPart}
-                icon={<Filter size={16} />}
+                icon={<Filter size={14} className="mr-0.5" />}
               />
 
-              <div className="my-3 border-t border-gray-100 dark:border-slate-700"></div>
+              <div className="my-3.5 border-t border-gray-150/40 dark:border-zinc-800/50"></div>
 
               <div className="space-y-1">
-                <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-1 uppercase">
-                  Listening
+                <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-2 uppercase tracking-wider">
+                  Listening (Nghe)
                 </h4>
                 {[1, 2, 3, 4].map((num) => (
                   <SidebarFilterItem
                     key={num}
                     label={`Part ${num}`}
                     partNum={num}
-                    count={stats.parts[num] || 0} // Show số lượng từ API
+                    count={stats.parts[num] || 0}
                     isActive={selectedPart === num}
                     onClick={setSelectedPart}
                   />
                 ))}
               </div>
 
-              <div className="space-y-1 mt-4">
-                <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-1 uppercase">
-                  Reading
+              <div className="space-y-1 mt-5">
+                <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-2 uppercase tracking-wider">
+                  Reading (Đọc)
                 </h4>
                 {[5, 6, 7].map((num) => (
                   <SidebarFilterItem
@@ -259,41 +291,41 @@ export default function BookmarksTab() {
           </div>
 
           {/* --- MAIN CONTENT --- */}
-          <div className="lg:w-3/4">
+          <div className="w-full lg:w-3/4">
             {/* Toolbar: Date & Sort */}
-            <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 mb-6">
+            <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 dark:border-zinc-800/80 mb-6 shadow-2xs">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Date Picker Section */}
-                <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700">
-                  <Calendar size={16} className="text-gray-400 dark:text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 bg-gray-50/50 dark:bg-zinc-850/50 px-3 py-2.5 rounded-xl border border-gray-205/30 dark:border-zinc-800/60 shrink-0">
+                  <Calendar size={15} className="text-gray-400 dark:text-gray-500" />
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
                     Ngày lưu:
                   </span>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-transparent text-sm outline-none text-gray-700 dark:text-gray-300"
+                    className="bg-transparent text-xs font-semibold outline-none text-gray-700 dark:text-gray-300 border-none p-0 cursor-pointer"
                   />
                   {selectedDate && (
                     <button
                       onClick={() => setSelectedDate("")}
-                      className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                      className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 ml-1 transition"
                     >
-                      <X size={16} />
+                      <X size={15} />
                     </button>
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="bg-white dark:bg-zinc-900 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 transition">
-                    <ArrowUpDown size={16} className="text-gray-400 dark:text-gray-500" />
+                <div className="flex items-center gap-3 ml-auto sm:ml-0">
+                  <div className="bg-white/80 dark:bg-zinc-900 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-850 shadow-2xs">
+                    <ArrowUpDown size={15} className="text-gray-400 dark:text-gray-500" />
                     <select
                       value={sortOrder}
                       onChange={(e) =>
                         setSortOrder(e.target.value as "newest" | "oldest")
                       }
-                      className="bg-transparent text-sm font-medium cursor-pointer text-gray-700 dark:text-gray-300 outline-none"
+                      className="bg-transparent text-xs font-bold cursor-pointer text-gray-750 dark:text-gray-250 outline-none"
                     >
                       <option value="newest">Mới nhất</option>
                       <option value="oldest">Cũ nhất</option>
@@ -303,8 +335,8 @@ export default function BookmarksTab() {
                   {bookmarks.length > 0 && (
                     <button
                       onClick={handleRemoveAll}
-                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:text-red-400 rounded-lg transition"
-                      title="Xóa tất cả"
+                      className="p-2.5 text-red-500 hover:bg-red-500/10 dark:hover:bg-red-950/20 dark:text-red-400 rounded-xl transition hover:scale-105 active:scale-95"
+                      title="Xóa tất cả bookmark"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -316,107 +348,101 @@ export default function BookmarksTab() {
             {/* List */}
             {loading ? (
               <div className="flex justify-center py-20">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-zinc-700 border-t-gray-900 dark:border-t-white"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-zinc-700 border-t-blue-500"></div>
               </div>
             ) : bookmarks.length === 0 ? (
-              <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-700">
-                <div className="text-6xl mb-4">📭</div>
+              <div className="text-center py-20 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700">
+                <div className="text-5xl mb-4">📭</div>
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white">
-                  Không có dữ liệu
+                  Kho lưu trữ trống
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
                   {selectedDate
-                    ? `Không có bookmark nào trong ngày ${
+                    ? `Không tìm thấy câu hỏi đã lưu nào trong ngày ${
                         formatDateTime(selectedDate).dateStr
                       }`
-                    : "Chưa có bookmark nào."}
+                    : "Bạn chưa lưu câu hỏi nào từ các bài thi."}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {bookmarks.map((item) => {
                   const { dateStr, timeStr } = formatDateTime(item.createdAt);
+                  const isExpanded = expandedId === item.id;
                   return (
                     <div
                       key={item.id}
-                      className={`bg-white dark:bg-zinc-900 rounded-xl border transition-all duration-200 hover:shadow-md
+                      className={`bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border transition-all duration-300 hover:shadow-md
                             ${
-                              expandedId === item.id
-                                ? "ring-2 ring-gray-400 dark:ring-zinc-500 border-transparent shadow-md"
-                                : "border-gray-200 dark:border-zinc-700"
+                              isExpanded
+                                ? "ring-2 ring-blue-500/30 border-transparent shadow-lg"
+                                : "border-gray-200/50 dark:border-zinc-800/60"
                             }`}
                     >
                       <div
-                        className="p-5 cursor-pointer"
+                        className="p-4 sm:p-5 cursor-pointer group"
                         onClick={() =>
-                          setExpandedId(expandedId === item.id ? null : item.id)
+                          setExpandedId(isExpanded ? null : item.id)
                         }
                       >
                         <div className="flex justify-between items-start gap-4">
-                          <div className="flex gap-4 flex-1">
+                          <div className="flex gap-3 sm:gap-4 flex-1">
                             <div
-                              className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 font-bold border
-                                            ${
-                                              item.question.partNumber <= 4
-                                                ? "bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-zinc-700"
-                                                : "bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-zinc-700"
-                                            }
-                                        `}
+                              className="w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 font-extrabold border bg-gray-50/50 dark:bg-zinc-800/50 text-gray-600 dark:text-gray-300 border-gray-200/50 dark:border-zinc-800/50"
                             >
-                              <span className="text-[10px] uppercase">
+                              <span className="text-[9px] uppercase tracking-wider text-gray-400">
                                 Part
                               </span>
-                              <span className="text-lg leading-none">
+                              <span className="text-lg leading-none mt-0.5">
                                 {item.question.partNumber}
                               </span>
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                {/* Hiển thị Ngày và Giờ riêng biệt */}
-                                <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-700 px-2 py-0.5 rounded">
-                                  <Calendar size={12} />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-405 bg-gray-150/55 dark:bg-zinc-800/60 px-2 py-0.5 rounded-md">
+                                  <Calendar size={11} className="text-gray-400" />
                                   <span>{dateStr}</span>
-                                  <span className="w-1 h-1 bg-gray-400 dark:bg-zinc-600 rounded-full"></span>
+                                  <span className="w-1 h-1 bg-gray-400 rounded-full mx-0.5"></span>
                                   <span className="text-gray-700 dark:text-gray-300 font-bold">
                                     {timeStr}
                                   </span>
                                 </div>
 
                                 {item.sourceTestName && (
-                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded border border-gray-200 dark:border-zinc-700 truncate max-w-[150px]">
+                                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-405 bg-gray-150/55 dark:bg-zinc-800/60 px-2 py-0.5 rounded-md border border-gray-205/30 dark:border-zinc-800/50 truncate max-w-[160px]" title={item.sourceTestName}>
                                     {item.sourceTestName}
                                   </span>
                                 )}
                               </div>
-                              <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">
+                              <h4 className="font-bold text-gray-900 dark:text-white line-clamp-2 text-sm sm:text-base leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 Câu {item.question.questionNo} :{" "}
                                 {item.question.content ||
-                                  "(Câu hỏi hình ảnh/âm thanh)"}
+                                  "(Câu hỏi dạng hình ảnh / âm thanh)"}
                               </h4>
-                              {/* --- PHẦN HIỂN THỊ NOTE & NÚT EDIT (ĐÃ SỬA) --- */}
+                              
+                              {/* NOTE & EDIT BUTTON */}
                               {item.note && (
-                                <div className="mt-2 flex items-center gap-2 group">
-                                  <p className="text-sm text-yellow-800 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900 px-3 py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700 flex items-center gap-2">
-                                    <span> {item.note}</span>
-                                  </p>
+                                <div className="mt-2.5 flex items-center gap-2">
+                                  <div className="text-xs sm:text-sm text-amber-800 dark:text-amber-350 bg-amber-500/10 px-3.5 py-1.5 rounded-xl border border-amber-300/30 dark:border-amber-500/30 flex items-center gap-2 font-medium">
+                                    <span className="break-all">{item.note}</span>
+                                  </div>
 
-                                  {/* Nút Bút Chì */}
                                   <button
                                     onClick={(e) => {
-                                      e.stopPropagation(); // Chặn click lan ra ngoài (để không mở accordion)
+                                      e.stopPropagation();
                                       setEditModalData({
                                         questionId: item.questionId,
                                         note: item.note || "",
                                       });
                                     }}
-                                    className="p-1.5 text-gray-400 dark:text-gray-500 bg-blue-50 dark:bg-blue-900 rounded-full transition opacity-100"
+                                    className="p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-500/15 rounded-lg transition"
                                     title="Sửa ghi chú"
                                   >
                                     <Edit size={14} />
                                   </button>
                                 </div>
                               )}
-                              {/* Nếu chưa có note thì hiện nút thêm (Optional) */}
+                              
                               {!item.note && (
                                 <button
                                   onClick={(e) => {
@@ -426,9 +452,10 @@ export default function BookmarksTab() {
                                       note: "",
                                     });
                                   }}
-                                  className="mt-2 text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition"
+                                  className="mt-2 text-xs font-bold text-blue-500 dark:text-blue-400 hover:text-blue-650 flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-all duration-300"
                                 >
-                                  <Edit size={12} /> Thêm ghi chú
+                                  <Edit size={12} />
+                                  <span>Thêm ghi chú</span>
                                 </button>
                               )}
                             </div>
@@ -438,66 +465,70 @@ export default function BookmarksTab() {
                               e.stopPropagation();
                               handleRemove(item.questionId);
                             }}
-                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-full transition"
+                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition shrink-0"
                           >
                             {removing === item.questionId ? (
-                              <div className="animate-spin h-4 w-4 border-2 border-red-500 dark:border-red-400 border-t-transparent rounded-full" />
+                              <div className="animate-spin h-4.5 w-4.5 border-2 border-red-500 dark:border-red-400 border-t-transparent rounded-full" />
                             ) : (
-                              <Trash2 size={18} />
+                              <Trash2 size={17} />
                             )}
                           </button>
                         </div>
                       </div>
 
-                      {/* Expanded Content (Details) - Phần này giữ nguyên như cũ */}
-                      {expandedId === item.id && (
-                        <div className="px-5 pb-5 pt-2 border-t border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 rounded-b-xl">
-                          {/* Nội dung chi tiết câu hỏi (copy lại phần render Audio/Image/Text/Answers như cũ) */}
+                      {/* Expanded Content (Details) */}
+                      {isExpanded && (
+                        <div className="px-4 sm:px-6 pb-5 pt-3 border-t border-gray-150/40 dark:border-zinc-800/50 bg-gray-50/30 dark:bg-zinc-900/30 rounded-b-2xl">
                           {item.question.imageUrl && (
-                            <img
-                              src={`http://localhost:5298${item.question.imageUrl}`}
-                              className="max-w-xs rounded-lg border shadow-sm mb-4 mt-2"
-                              alt="Q"
-                            />
+                            <div className="mb-4 mt-2">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`http://localhost:5298${item.question.imageUrl}`}
+                                className="max-w-md w-full rounded-xl border border-gray-200/50 shadow-sm"
+                                alt="Question Image"
+                              />
+                            </div>
                           )}
                           {item.question.audioUrl && (
-                            <audio
-                              controls
-                              className="w-full h-8 mb-4 mt-2"
-                              src={`http://localhost:5298${item.question.audioUrl}`}
-                            />
+                            <div className="mb-4 mt-2">
+                              <audio
+                                controls
+                                className="w-full h-9 rounded-lg"
+                                src={`http://localhost:5298${item.question.audioUrl}`}
+                              />
+                            </div>
                           )}
                           {item.question.textContent && (
                             <div
-                              className="mb-4 p-4 bg-white dark:bg-zinc-700 rounded border border-gray-200 dark:border-zinc-600 text-sm text-gray-800 dark:text-gray-100 max-h-40 overflow-y-auto"
+                              className="mb-4 p-4 bg-white/60 dark:bg-zinc-900/40 rounded-xl border border-gray-200/50 dark:border-zinc-800/50 text-sm text-gray-805 dark:text-gray-200 max-h-40 overflow-y-auto leading-relaxed"
                               dangerouslySetInnerHTML={{
                                 __html: item.question.textContent,
                               }}
                             />
                           )}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                             {item.question.answers.map((ans) => {
                               const isCorrect =
                                 ans.label === item.question.correctOption;
                               return (
                                 <div
                                   key={ans.label}
-                                  className={`p-3 rounded-lg border flex gap-3 items-center ${
+                                  className={`p-3.5 rounded-xl border flex gap-3 items-center ${
                                     isCorrect
-                                      ? "bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200"
-                                      : "bg-white dark:bg-zinc-700 border-gray-200 dark:border-zinc-600 text-gray-600 dark:text-gray-300"
+                                      ? "bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/30 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-semibold shadow-2xs"
+                                      : "bg-white/80 dark:bg-zinc-900/60 border-gray-200/50 dark:border-zinc-800/60 text-gray-600 dark:text-gray-300"
                                   }`}
                                 >
                                   <span
-                                    className={`font-bold w-6 h-6 flex items-center justify-center rounded ${
+                                    className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all duration-305 ${
                                       isCorrect
-                                        ? "bg-green-600 dark:bg-green-700 text-white"
-                                        : "bg-gray-200 dark:bg-zinc-700 dark:text-gray-400"
+                                        ? "bg-emerald-600 text-white font-extrabold shadow-xs"
+                                        : "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 font-bold"
                                     }`}
                                   >
                                     {ans.label}
                                   </span>
-                                  <span>{ans.content}</span>
+                                  <span className="text-sm">{ans.content}</span>
                                 </div>
                               );
                             })}
@@ -512,21 +543,21 @@ export default function BookmarksTab() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
+              <div className="flex justify-center items-center gap-2 mt-8">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
+                  className="px-4 py-2 bg-white/80 dark:bg-zinc-900/80 border border-gray-200/50 dark:border-zinc-700/60 rounded-xl hover:bg-gray-150/40 text-gray-600 dark:text-gray-400 disabled:opacity-50 transition font-bold text-xs sm:text-sm shadow-2xs"
                 >
                   Trước
                 </button>
-                <span className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-lg">
+                <span className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm shadow-blue-500/20">
                   {page} / {totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 text-gray-600 dark:text-gray-400 transition"
+                  className="px-4 py-2 bg-white/80 dark:bg-zinc-900/80 border border-gray-200/50 dark:border-zinc-700/60 rounded-xl hover:bg-gray-150/40 text-gray-600 dark:text-gray-400 disabled:opacity-50 transition font-bold text-xs sm:text-sm shadow-2xs"
                 >
                   Sau
                 </button>
@@ -544,21 +575,20 @@ export default function BookmarksTab() {
       />
 
       <ReviewSetupModal
-          isOpen={isSetupOpen}
-          onClose={() => setIsSetupOpen(false)}
-          currentPart={selectedPart}
-          currentSort={sortOrder}
-          fromDate={selectedDate ? `${selectedDate}T00:00:00` : undefined}
-          toDate={selectedDate ? `${selectedDate}T23:59:59` : undefined}
-          onStartReview={handleStartReviewSession}
-       />
+        isOpen={isSetupOpen}
+        onClose={() => setIsSetupOpen(false)}
+        currentPart={selectedPart}
+        currentSort={sortOrder}
+        fromDate={selectedDate ? `${selectedDate}T00:00:00` : undefined}
+        toDate={selectedDate ? `${selectedDate}T23:59:59` : undefined}
+        onStartReview={handleStartReviewSession}
+      />
 
-       <ReviewTestModal
-          isOpen={isTestOpen}
-          onClose={() => setIsTestOpen(false)}
-          questions={reviewQuestions}
-       />
-
+      <ReviewTestModal
+        isOpen={isTestOpen}
+        onClose={() => setIsTestOpen(false)}
+        questions={reviewQuestions}
+      />
     </div>
   );
 }

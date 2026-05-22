@@ -154,29 +154,31 @@ export default function GrammarHub() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div className="flex flex-row gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-700">
-          <button
-            onClick={() => setActiveTab("practice")}
-            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-2 transition text-sm sm:text-base ${
-              activeTab === "practice"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
-          >
-            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-            Học
-          </button>
-          <button
-            onClick={() => setActiveTab("progress")}
-            className={`px-3 sm:px-4 py-2 sm:py-3 font-medium border-b-2 flex items-center gap-2 transition text-sm sm:text-base ${
-              activeTab === "progress"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
-          >
-            <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            Tiến độ
-          </button>
+        <div className="flex justify-start mb-6 sm:mb-8">
+          <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl w-full sm:w-auto">
+            <button
+              onClick={() => setActiveTab("practice")}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm ${
+                activeTab === "practice"
+                  ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-xs"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Học
+            </button>
+            <button
+              onClick={() => setActiveTab("progress")}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm ${
+                activeTab === "progress"
+                  ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-xs"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              <BarChart2 className="w-4 h-4" />
+              Tiến độ
+            </button>
+          </div>
         </div>
 
         {/* Tab Content */}
@@ -248,17 +250,23 @@ export default function GrammarHub() {
                   return (
                     <div
                       key={group.groupGuid}
-                      className={`rounded-xl border-1 bg-white dark:bg-zinc-900 overflow-hidden ${getGroupColor(
-                        group.order,
-                      )}`}
+                      className="rounded-xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md overflow-hidden hover:shadow-md hover:border-blue-400/40 dark:hover:border-blue-600/40 transition-all duration-200"
                     >
                       {/* Group Header - Clickable to toggle */}
                       <button
                         onClick={() => toggleGroup(group.groupGuid)}
-                        className="w-full flex items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-6 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        className="w-full flex items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-6 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors"
                       >
                         {/* Icon */}
-                        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          group.order === 1 
+                            ? "bg-blue-50 dark:bg-blue-950/30" 
+                            : group.order === 2 
+                            ? "bg-amber-50 dark:bg-amber-950/30" 
+                            : group.order === 3 
+                            ? "bg-purple-50 dark:bg-purple-950/30" 
+                            : "bg-gray-100 dark:bg-zinc-800"
+                        }`}>
                           {getGroupIcon(group.order)}
                         </div>
 
@@ -268,7 +276,15 @@ export default function GrammarHub() {
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
                               {group.title}
                             </h3>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 w-fit">
+                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit ${
+                              group.order === 1 
+                                ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" 
+                                : group.order === 2 
+                                ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400" 
+                                : group.order === 3 
+                                ? "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400" 
+                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                            }`}>
                               {group.totalTopics} chủ đề
                             </span>
                           </div>

@@ -461,33 +461,41 @@ export default function TopicCard({ topic }: Props) {
   return (
     <>
       <Link href={`/vocabulary/${topic.topicGuid || topic.id}`}>
-      <div className="bg-white dark:bg-zinc-900/70 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md dark:shadow-2xl/40 border border-gray-200 dark:border-zinc-800 hover:shadow-xl dark:hover:shadow-2xl/50 transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1 cursor-pointer">
-        {/* Top Gradient Border Accent */}
-        <div className="h-1 sm:h-1.5 bg-linear-to-br from-blue-500 via-blue-600 to-blue-400 group-hover:via-blue-500 transition-all"></div>
+      <div className={`bg-white dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl shadow-xs hover:shadow-xl dark:hover:shadow-2xl/40 border border-gray-200/70 dark:border-zinc-800/80 transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1.5 cursor-pointer ${
+        topic.currentLevel === 5 ? 'ring-1 ring-yellow-400/30' : ''
+      }`}>
+        {/* Top Gradient Border Accent - Dynamic based on state */}
+        <div className={`h-1.5 transition-all ${
+          topic.currentLevel === 5
+            ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-300'
+            : topic.canReviewNow
+            ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-300'
+            : 'bg-gradient-to-r from-blue-500 via-indigo-600 to-cyan-400'
+        }`}></div>
 
-        <div className="p-4 sm:p-7 flex-1 flex flex-col">
+        <div className="p-5 sm:p-6 flex-1 flex flex-col">
           {/* Header: Icon + Level + Progress */}
-          <div className="flex justify-between items-start mb-3 sm:mb-5 gap-3 sm:gap-4">
-            <div className="flex items-start gap-2 sm:gap-4 flex-1">
+          <div className="flex justify-between items-start mb-4 gap-3">
+            <div className="flex items-start gap-3 sm:gap-4 flex-1">
               {/* Icon */}
-              <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 group-hover:shadow-lg transition-all flex-shrink-0">
-                <div className="w-6 h-6 sm:w-8 sm:h-8">{icon}</div>
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 group-hover:shadow-md transition-all flex-shrink-0">
+                <div className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5">{icon}</div>
               </div>
               
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-1.5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {topic.title}
                 </h3>
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                  <span className={`text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-colors ${
-                    topic.level === 'Basic' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                    topic.level === 'Intermediate' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                    'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full transition-colors ${
+                    topic.level === 'Basic' ? 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400' :
+                    topic.level === 'Intermediate' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400' :
+                    'bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400'
                   }`}>
                     {topic.level}
                   </span>
                   {topic.isExplanationPremiumRequired && (
-                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+                    <Crown className="h-3.5 w-3.5 text-yellow-500 animate-pulse" />
                   )}
                 </div>
               </div>
@@ -496,109 +504,91 @@ export default function TopicCard({ topic }: Props) {
           
           {/* Description */}
           {descriptionText && (
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-5 line-clamp-2 font-medium">{descriptionText}</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 font-medium leading-relaxed">
+              {descriptionText}
+            </p>
           )}
           
           {/* PHASE 1: 5-Level SRS Progress Bar */}
           <div className="mt-auto">
             {/* Header: Current Level */}
-            <div className="flex justify-between items-center mb-2 sm:mb-3">
-              <span className="text-[10px] sm:text-xs font-bold text-gray-600 dark:text-gray-400">Cấp độ ghi nhớ</span>
-              <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">{topic.currentLevel}/5</span>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400">Trạng thái ghi nhớ</span>
+              <span className="text-xs sm:text-sm font-extrabold text-blue-600 dark:text-blue-400">{topic.currentLevel}/5</span>
             </div>
             
-            {/* 5-Block Progress Visualization - PHASE 3: Animations */}
-            <div className="flex gap-1 sm:gap-2 mb-3 sm:mb-4">
+            {/* 5-Block Progress Visualization - Custom Pill shapes */}
+            <div className="flex gap-1.5 mb-3.5">
               {[1, 2, 3, 4, 5].map((level, idx) => {
-                // Màu sắc cho từng level
                 const levelColors = {
-                  1: { light: 'from-teal-400 to-teal-500 border-teal-600 shadow-teal-400/50', dark: 'dark:from-teal-600 dark:to-teal-700 dark:border-teal-700 dark:shadow-teal-600/30' },
-                  2: { light: 'from-blue-500 to-blue-600 border-blue-700 shadow-blue-500/50', dark: 'dark:from-blue-600 dark:to-blue-700 dark:border-blue-700 dark:shadow-blue-600/30' },
-                  3: { light: 'from-indigo-500 to-indigo-600 border-indigo-700 shadow-indigo-500/50', dark: 'dark:from-indigo-600 dark:to-indigo-700 dark:border-indigo-700 dark:shadow-indigo-600/30' },
-                  4: { light: 'from-orange-500 to-orange-600 border-orange-700 shadow-orange-500/50', dark: 'dark:from-orange-600 dark:to-orange-700 dark:border-orange-700 dark:shadow-orange-600/30' },
-                  5: { light: 'from-yellow-400 to-yellow-500 border-yellow-600 shadow-yellow-400/50', dark: 'dark:from-yellow-500 dark:to-yellow-600 dark:border-yellow-600 dark:shadow-yellow-500/30' },
+                  1: { light: 'from-teal-400 to-teal-500 border-teal-500 shadow-xs shadow-teal-500/20', dark: 'dark:from-teal-600 dark:to-teal-700 dark:border-teal-700' },
+                  2: { light: 'from-blue-500 to-blue-600 border-blue-500 shadow-xs shadow-blue-500/20', dark: 'dark:from-blue-600 dark:to-blue-700 dark:border-blue-700' },
+                  3: { light: 'from-indigo-500 to-indigo-600 border-indigo-500 shadow-xs shadow-indigo-500/20', dark: 'dark:from-indigo-600 dark:to-indigo-700 dark:border-indigo-700' },
+                  4: { light: 'from-orange-500 to-orange-600 border-orange-500 shadow-xs shadow-orange-500/20', dark: 'dark:from-orange-600 dark:to-orange-700 dark:border-orange-700' },
+                  5: { light: 'from-yellow-400 to-yellow-500 border-yellow-500 shadow-xs shadow-yellow-500/20', dark: 'dark:from-yellow-500 dark:to-yellow-600 dark:border-yellow-600' },
                 };
                 
                 const colors = levelColors[level as keyof typeof levelColors];
+                const isActive = level <= topic.currentLevel;
                 
                 return (
                   <div
                     key={level}
-                    className={`flex-1 h-5 sm:h-8 rounded-md sm:rounded-lg border-2 transition-all duration-500 ${
-                      level <= topic.currentLevel
-                        ? `bg-linear-to-br ${colors.light} ${colors.dark}`
-                        : 'bg-gray-100 dark:bg-zinc-700 border-gray-300 dark:border-zinc-600 hover:border-gray-400 dark:hover:border-zinc-500'
-                    } flex items-center justify-center text-[10px] sm:text-xs font-bold ${
-                      level <= topic.currentLevel ? 'text-white' : 'text-gray-500 dark:text-gray-400'
-                    } hover:scale-105 transition-transform cursor-default`}
+                    className={`flex-1 h-5 sm:h-7.5 rounded-lg border transition-all duration-300 ${
+                      isActive
+                        ? `bg-linear-to-br ${colors.light} ${colors.dark} text-white`
+                        : 'bg-gray-50/50 dark:bg-zinc-800/40 border-gray-200 dark:border-zinc-800/80 text-gray-400 dark:text-zinc-600 hover:border-gray-300 dark:hover:border-zinc-700'
+                    } flex items-center justify-center text-[10px] sm:text-xs font-bold hover:scale-105 cursor-default`}
                     style={{
-                      animation: level <= topic.currentLevel 
-                        ? `slideUp 0.4s ease-out ${idx * 50}ms forwards` 
-                        : 'none',
-                      opacity: level <= topic.currentLevel ? 1 : 0.6,
+                      opacity: isActive ? 1 : 0.7,
                     }}
-                    title={`Level ${level}${topic.wordCounts && topic.wordCounts[level] > 0 ? `: ${topic.wordCounts[level]} từ` : ''}`}
+                    title={`Cấp độ ${level}${topic.wordCounts && topic.wordCounts[level] > 0 ? `: ${topic.wordCounts[level]} từ` : ''}`}
                   >
-                    {level <= topic.currentLevel && (
-                      <span className="text-[10px] sm:text-xs font-bold">{level}</span>
+                    {isActive ? (
+                      <span className="text-[10px] sm:text-xs font-black">{level}</span>
+                    ) : (
+                      <span className="text-[9px] sm:text-[10px] font-bold opacity-40">{level}</span>
                     )}
                   </div>
                 );
               })}
             </div>
 
-            <style jsx>{`
-              @keyframes slideUp {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-              @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.7; }
-              }
-              @keyframes glow {
-                0%, 100% { box-shadow: 0 0 10px rgba(251, 146, 60, 0.5); }
-                50% { box-shadow: 0 0 20px rgba(251, 146, 60, 0.8); }
-              }
-            `}</style>
-
-            {/* Status: Ready / Cooldown / Mastered - PHASE 2: Enhanced State Detection */}
-            <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 text-[10px] sm:text-xs">
+            {/* Status Info */}
+            <div className="flex items-center gap-1.5 mb-2.5 text-[10px] sm:text-xs">
               {topic.currentLevel === 5 ? (
                 <>
                   <Award className="text-yellow-500 dark:text-yellow-400 animate-bounce" size={14} />
-                  <span className="font-semibold text-yellow-700 dark:text-yellow-300">Đã thành thạo 🎉</span>
+                  <span className="font-bold text-yellow-600 dark:text-yellow-400">Đã thành thạo 🎉</span>
                 </>
               ) : topic.canReviewNow ? (
                 <>
                   <Zap 
-                    className="text-amber-500 dark:text-amber-400"
+                    className="text-amber-500 dark:text-amber-400 animate-pulse"
                     size={14}
-                    style={{ animation: 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
                   />
-                  <span className="font-semibold text-amber-700 dark:text-amber-300">Cần ôn ngay ⚡</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400">Cần ôn tập ngay ⚡</span>
                 </>
               ) : (
                 <>
-                  <Clock className="text-gray-500 dark:text-gray-400" size={14} />
-                  <span className="font-semibold text-gray-600 dark:text-gray-400 tabular-nums">
-                    {timeRemaining && topic.nextReviewAt ? `Nên làm lại sau ${timeRemaining}` : 'Đang chờ...'}
+                  <Clock className="text-gray-400 dark:text-gray-500" size={14} />
+                  <span className="font-bold text-gray-500 dark:text-gray-400 tabular-nums">
+                    {timeRemaining && topic.nextReviewAt ? `Ôn tập sau ${timeRemaining}` : 'Chưa kích hoạt'}
                   </span>
                 </>
               )}
             </div>
 
             {/* Word count info */}
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-500">
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
-              <span>{topic.totalWords} từ </span>
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>{topic.totalWords} từ vựng</span>
             </div>
           </div>
         </div>
 
-        {/* Footer Button - PHASE 2: Enhanced CTA Text */}
-        <div className="px-4 sm:px-7 py-3 sm:py-5 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 relative">
-          {/* PHASE 4: Confetti Canvas */}
+        {/* Footer Button - Enhanced CTA */}
+        <div className="px-5 py-4 border-t border-gray-100 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/30 relative">
           {showConfetti && (
             <canvas
               ref={confettiRef}
@@ -617,72 +607,69 @@ export default function TopicCard({ topic }: Props) {
                 window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }
             }}
-            className={`w-full py-2 sm:py-2.5 px-3 sm:px-4 text-white font-bold rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-md hover:shadow-lg active:scale-95 group/btn text-xs sm:text-sm ${
+            className={`w-full py-2.5 px-4 text-white font-black rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 group/btn text-xs sm:text-sm cursor-pointer ${
               topic.currentLevel === 5
-                ? 'bg-linear-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 shadow-yellow-500/30'
+                ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 shadow-sm shadow-yellow-500/10'
                 : topic.canReviewNow
-                ? 'bg-linear-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-amber-500/30 animate-pulse'
-                : 'bg-linear-to-br from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm shadow-amber-500/10 animate-pulse'
+                : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-sm shadow-blue-500/10'
             }`}
           >
-            <PlayCircle size={16} className="group-hover/btn:scale-110 transition-transform sm:w-[18px] sm:h-[18px]" />
-            
-            {/* PHASE 2: Smart CTA Text */}
+            <PlayCircle size={16} className="group-hover/btn:scale-110 transition-transform" />
             {topic.currentLevel === 5
-              ? " Ôn tập tự do"
-              : ` Giai đoạn ${topic.currentLevel + 1}`}
+              ? "Ôn tập tự do"
+              : `Giai đoạn ${topic.currentLevel + 1}`}
           </button>
         </div>
       </div>
     </Link>
 
-    {/* Warning Modal - Show when trying to review before scheduled time */}
+    {/* Warning Modal - Glassmorphic overlay */}
     {showWarningModal && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 sm:p-8 mx-4 animate-in fade-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl max-w-sm w-full p-6 sm:p-7 mx-4 border border-gray-100 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-200">
           {/* Icon */}
-          <div className="flex justify-center mb-3 sm:mb-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <Clock className="text-orange-600 dark:text-orange-400" size={24} />
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
+              <Clock className="text-amber-600 dark:text-amber-400" size={22} />
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-lg sm:text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+          <h2 className="text-lg font-bold text-center text-gray-900 dark:text-white mb-2">
             Chưa đến lịch ôn tập
           </h2>
 
           {/* Message */}
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-2 text-sm">
-            Lịch ôn tập của bạn là:
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-1">
+            Lịch ôn tập hiệu quả nhất của bạn là sau:
           </p>
-          <p className="text-center text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400 mb-4 sm:mb-6">
+          <p className="text-center text-lg font-extrabold text-amber-600 dark:text-amber-400 mb-5">
             {timeRemaining}
           </p>
 
           {/* Description */}
-          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-500 mb-6 sm:mb-8">
-            Hãy chờ đến thời gian nếu muốn hiệu quả tối đa. Bạn có thể làm bài ngay nếu muốn.
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500 mb-6 leading-relaxed">
+            Để đạt hiệu quả ghi nhớ tối ưu của thuật toán SRS, bạn nên chờ đến giờ ôn. Tuy nhiên bạn vẫn có thể làm bài ngay nếu muốn.
           </p>
 
           {/* Buttons */}
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-3">
             <button
               onClick={() => setShowWarningModal(false)}
-              
-              className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+              className="flex-1 py-2.5 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 dark:bg-zinc-850 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300 transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
             >
-              <X size={18} />
-              Hủy
+              <X size={16} />
+              Quay lại
             </button>
             <button
               onClick={() => {
                 setShowWarningModal(false);
                 window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }}
-              className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+              className="flex-1 py-2.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-600 text-white transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
             >
-              <Check size={18} />
+              <Check size={16} />
               Làm ngay
             </button>
           </div>

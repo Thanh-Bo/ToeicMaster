@@ -70,25 +70,25 @@ export default function VocabularyPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-gray-200 dark:border-zinc-700">
+        {/* Tabs - iOS Style Segment Control */}
+        <div className="flex gap-1.5 p-1.5 bg-gray-100/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-xl max-w-xs mb-6 sm:mb-8 border border-gray-200/50 dark:border-zinc-800/50">
           <button
             onClick={() => setActiveTab("practice")}
-            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
+            className={`flex-1 py-2 px-3 text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
               activeTab === "practice"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             }`}
           >
             <Book className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Học 
+            Học
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 flex items-center gap-1.5 transition ${
+            className={`flex-1 py-2 px-3 text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
               activeTab === "progress"
-                ? "text-gray-900 dark:text-white border-gray-900 dark:border-white"
-                : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -102,12 +102,12 @@ export default function VocabularyPage() {
         ) : (
           <>
             {/* Search Section with Level Filter */}
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="mb-8">
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 {/* Search Box */}
-                <div className="relative max-w-md w-full">
+                <div className="relative max-w-md w-full group">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400 dark:text-gray-500 transition-transform duration-300 group-focus-within:scale-110 pointer-events-none"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -121,38 +121,46 @@ export default function VocabularyPage() {
                   </svg>
                   <input
                     type="text"
-                    placeholder="Tìm kiếm chủ đề..."
+                    placeholder="Tìm kiếm chủ đề từ vựng..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 dark:border-zinc-700 rounded-lg
-                      bg-white dark:bg-zinc-800 text-gray-900 dark:text-white
-                      placeholder-gray-500 dark:placeholder-gray-400
-                      focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 transition-all
-                      text-sm font-medium shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-zinc-800 rounded-xl
+                      bg-white dark:bg-zinc-900 text-gray-900 dark:text-white
+                      placeholder-gray-400 dark:placeholder-gray-500
+                      focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-950/30 transition-all
+                      text-sm font-semibold shadow-xs"
                   />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Level Filter Buttons */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {[
                     { key: "all", label: "Tất cả", color: "gray" },
-                    { key: "basic", label: "Basic", color: "emerald" },
-                    { key: "intermediate", label: "Intermediate", color: "blue" },
-                    { key: "advanced", label: "Advanced", color: "purple" },
+                    { key: "basic", label: "Cơ bản", color: "emerald" },
+                    { key: "intermediate", label: "Trung cấp", color: "blue" },
+                    { key: "advanced", label: "Nâng cao", color: "purple" },
                   ].map((filter) => (
                     <button
                       key={filter.key}
                       onClick={() => setSelectedLevel(filter.key as typeof selectedLevel)}
-                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                      className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
                         selectedLevel === filter.key
                           ? filter.color === "gray"
-                            ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 shadow-md"
+                            ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-md shadow-zinc-200 dark:shadow-none"
                             : filter.color === "emerald"
-                            ? "bg-emerald-600 text-white dark:bg-emerald-500 shadow-md"
+                            ? "bg-linear-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/20"
                             : filter.color === "blue"
-                            ? "bg-blue-600 text-white dark:bg-blue-500 shadow-md"
-                            : "bg-purple-600 text-white dark:bg-purple-500 shadow-md"
-                          : `bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700 hover:shadow-sm`
+                            ? "bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/20"
+                            : "bg-linear-to-br from-purple-500 to-purple-600 text-white shadow-md shadow-purple-500/20"
+                          : "bg-gray-50/80 text-gray-600 border border-gray-200/80 hover:bg-gray-100 dark:bg-zinc-900/60 dark:text-zinc-400 dark:border-zinc-800/80 dark:hover:bg-zinc-800/80 hover:shadow-xs"
                       }`}
                     >
                       {filter.label}

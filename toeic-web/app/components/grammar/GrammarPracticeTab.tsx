@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 
 import { useState, useEffect } from "react";
 import { QuestionGrammar } from "@/app/types";
@@ -179,9 +179,9 @@ export function GrammarPracticeTab({
   const isSubmitted = submittedAnswers.has(currentQuestionIndex);
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-6 sm:pb-8">
+    <div className="space-y-5 sm:space-y-6 pb-6 sm:pb-8">
       {/* Mode Selection Tabs - Responsive */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
         {(['easy', 'medium', 'hard'] as const).map((mode) => {
           const config = modeConfig[mode];
           const Icon = config.icon;
@@ -190,14 +190,14 @@ export function GrammarPracticeTab({
           
           const colorClasses = {
             easy: isSelected 
-              ? 'bg-green-100 dark:bg-green-950/50 border-green-400 dark:border-green-600 text-green-600 dark:text-green-400'
-              : 'border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-green-300 dark:hover:border-green-700',
+              ? 'bg-emerald-500/10 dark:bg-emerald-500/5 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+              : 'border-gray-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 text-gray-600 dark:text-zinc-400 hover:border-emerald-300 dark:hover:border-emerald-700/50',
             medium: isSelected 
-              ? 'bg-blue-100 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-700',
+              ? 'bg-blue-500/10 dark:bg-blue-500/5 border-blue-500 text-blue-600 dark:text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+              : 'border-gray-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 text-gray-600 dark:text-zinc-400 hover:border-blue-300 dark:hover:border-blue-700/50',
             hard: isSelected 
-              ? 'bg-red-100 dark:bg-red-950/50 border-red-400 dark:border-red-600 text-red-600 dark:text-red-400'
-              : 'border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-red-300 dark:hover:border-red-700',
+              ? 'bg-rose-500/10 dark:bg-rose-500/5 border-rose-500 text-rose-600 dark:text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.1)]'
+              : 'border-gray-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 text-gray-600 dark:text-zinc-400 hover:border-rose-300 dark:hover:border-rose-700/50',
           };
 
           return (
@@ -205,15 +205,19 @@ export function GrammarPracticeTab({
               key={mode}
               onClick={() => {
                 onModeChange(mode);
-                // State reset is handled by useEffect when selectedMode changes
               }}
               disabled={isLoading}
-              className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 lg:p-4 rounded-xl border-1 font-semibold transition-all duration-200 ${colorClasses[mode]} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`relative flex flex-col items-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-xl border font-bold transition-all duration-200 ${colorClasses[mode]} disabled:opacity-50 disabled:cursor-not-allowed`}
             >
+              {isSelected && (
+                <span className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
+                  mode === 'easy' ? 'bg-emerald-500' : mode === 'medium' ? 'bg-blue-500' : 'bg-rose-500'
+                } animate-pulse`} />
+              )}
               <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
               <div className="text-center">
                 <div className="text-xs sm:text-sm">{config.label}</div>
-                <div className="text-xs opacity-80 hidden sm:block">{count} câu</div>
+                <div className="text-[10px] opacity-75 font-mono mt-0.5">{count} câu</div>
               </div>
             </button>
           );
@@ -221,22 +225,31 @@ export function GrammarPracticeTab({
       </div>
 
       {/* Mode Description - Responsive */}
-      <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white  dark:bg-zinc-900 p-3 sm:p-4">
-        <div className="flex items-center gap-2">
-          <currentMode.icon className={`w-4 h-4 text-${currentMode.color}-600 dark:text-${currentMode.color}-400`} />
-          <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
-            <span className="font-semibold">{currentMode.label}:</span> {currentMode.description}
+      <div className="rounded-xl border border-gray-200 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md p-4">
+        <div className="flex items-center gap-2.5">
+          <div className={`p-1.5 rounded-lg ${
+            selectedMode === 'easy' 
+              ? 'bg-emerald-500/10 text-emerald-500' 
+              : selectedMode === 'medium'
+              ? 'bg-blue-500/10 text-blue-500'
+              : 'bg-rose-500/10 text-rose-500'
+          }`}>
+            <currentMode.icon className="w-4 h-4" />
+          </div>
+          <p className="text-xs sm:text-sm text-gray-700 dark:text-zinc-300 font-medium">
+            <span className="font-bold text-gray-900 dark:text-white">{currentMode.label}:</span> {currentMode.description}
           </p>
         </div>
       </div>
 
       {isLocked && (
-        <div className="rounded-xl p-6 sm:p-8 border border-yellow-300 dark:border-yellow-500/40 bg-yellow-50 dark:bg-yellow-500/10 text-center">
-          <Crown className="mx-auto mb-3 h-8 w-8 text-yellow-600 dark:text-yellow-300" />
-          <p className="text-yellow-800 dark:text-yellow-200 font-semibold mb-2 text-sm sm:text-base">
+        <div className="rounded-xl p-6 sm:p-8 border border-amber-200 dark:border-amber-900/40 bg-amber-500/5 dark:bg-amber-950/10 text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+          <Crown className="mx-auto mb-3 h-8 w-8 text-amber-500 dark:text-amber-450 animate-bounce" />
+          <p className="text-amber-800 dark:text-amber-400 font-bold mb-2 text-sm sm:text-base">
             Câu hỏi của quy tắc này dành cho Premium
           </p>
-          <p className="text-yellow-700 dark:text-yellow-300 text-xs sm:text-sm">
+          <p className="text-amber-700/80 dark:text-zinc-400 text-xs sm:text-sm">
             Bài học vẫn miễn phí. Nâng cấp Premium để luyện tập câu hỏi của quy tắc này.
           </p>
         </div>
@@ -244,11 +257,11 @@ export function GrammarPracticeTab({
 
       {/* No Questions Message - Responsive */}
       {questions.length === 0 && !isLoading && !isLocked && (
-        <div className="rounded-xl p-6 sm:p-8 border-1 border-dashed border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-950/20 text-center">
-          <p className="text-yellow-700 dark:text-yellow-400 font-semibold mb-2 text-sm sm:text-base">
+        <div className="rounded-xl p-6 sm:p-8 border border-dashed border-zinc-300 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 text-center">
+          <p className="text-zinc-500 dark:text-zinc-400 font-semibold mb-2 text-sm sm:text-base">
             Chưa có câu hỏi luyện tập
           </p>
-          <p className="text-yellow-600 dark:text-yellow-300 text-xs sm:text-sm">
+          <p className="text-zinc-400 dark:text-zinc-500 text-xs sm:text-sm">
             Hãy quay lại sau khi thêm câu hỏi cho quy tắc này
           </p>
         </div>
@@ -256,9 +269,9 @@ export function GrammarPracticeTab({
 
       {/* Loading State - Responsive */}
       {questions.length === 0 && isLoading && (
-        <div className="rounded-xl p-6 sm:p-8 border-1 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 text-center">
+        <div className="rounded-xl p-6 sm:p-8 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 backdrop-blur-md text-center">
           <div className="animate-spin w-6 h-6 sm:w-8 sm:h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-blue-700 dark:text-blue-400 font-semibold text-sm sm:text-base">
+          <p className="text-gray-500 dark:text-zinc-400 font-semibold text-sm sm:text-base">
             Đang tải câu hỏi...
           </p>
         </div>
@@ -266,34 +279,34 @@ export function GrammarPracticeTab({
 
       {/* Page Stats Header - Responsive */}
       {questions.length > 0 && (
-        <div className="grid grid-cols-5 gap-2 sm:gap-4">
-          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng số câu</p>
-            <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+        <div className="rounded-xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md overflow-hidden grid grid-cols-5 p-2 sm:p-4">
+          <div className="text-center py-1 sm:py-2 border-r border-gray-200 dark:border-zinc-800/80 last:border-r-0">
+            <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1">Tổng số</p>
+            <p className="text-lg sm:text-2xl font-black text-zinc-600 dark:text-zinc-300 font-mono">
               {questions.length}
             </p>
           </div>
-          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Đã hoàn thành</p>
-            <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
-              {totalAttempted}/{questions.length}
+          <div className="text-center py-1 sm:py-2 border-r border-gray-200 dark:border-zinc-800/80 last:border-r-0">
+            <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1">Đã làm</p>
+            <p className="text-lg sm:text-2xl font-black text-blue-600 dark:text-blue-400 font-mono">
+              {totalAttempted}
             </p>
           </div>
-          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng điểm</p>
-            <p className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
+          <div className="text-center py-1 sm:py-2 border-r border-gray-200 dark:border-zinc-800/80 last:border-r-0">
+            <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1">Điểm số</p>
+            <p className="text-lg sm:text-2xl font-black text-purple-600 dark:text-purple-400 font-mono">
               {totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0}%
             </p>
           </div>
-          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Số câu đúng</p>
-            <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+          <div className="text-center py-1 sm:py-2 border-r border-gray-200 dark:border-zinc-800/80 last:border-r-0">
+            <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1">Đúng</p>
+            <p className="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
               {totalCorrect}
             </p>
           </div>
-          <div className="rounded-lg border-1 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 sm:p-4 text-center">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Số câu sai</p>
-            <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
+          <div className="text-center py-1 sm:py-2 last:border-r-0">
+            <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1">Sai</p>
+            <p className="text-lg sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
               {totalAttempted - totalCorrect}
             </p>
           </div>
@@ -304,7 +317,7 @@ export function GrammarPracticeTab({
       {questions.length > 0 && currentQuestion && (
         <div className="space-y-4 sm:space-y-6">
           {/* Question Card */}
-          <div className="border-1 border-gray-200 dark:border-zinc-700 rounded-xl p-4 sm:p-6 bg-white dark:bg-zinc-900">
+          <div className="border border-gray-200/80 dark:border-zinc-800/80 rounded-2xl p-5 sm:p-8 bg-white dark:bg-zinc-900/60 backdrop-blur-md">
             <GrammarQuestion
               question={currentQuestion}
               questionNumber={questionNumber}
@@ -326,22 +339,23 @@ export function GrammarPracticeTab({
                 setQuestionStartTime(Date.now()); // Reset timer for new question
               }}
               disabled={!canGoPrevious}
-              className={`flex items-center justify-center border  border-gray-200 dark:border-zinc-700  gap-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 w-full sm:w-auto ${
+              className={`flex items-center justify-center border gap-2 px-4 py-2.5 rounded-lg font-bold text-sm transition-all duration-200 w-full sm:w-auto ${
                 canGoPrevious
-                  ? 'bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                  : 'bg-gray-50 dark:bg-zinc-900 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                  ? 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800/80 hover:border-gray-300'
+                  : 'bg-zinc-50 dark:bg-zinc-950 border-gray-200 dark:border-zinc-900 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-50'
               }`}
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span className="hidden sm:inline">Câu trước</span>
+              <ChevronLeft className="w-4 h-4" />
+              <span>Câu trước</span>
             </button>
 
             {/* Question Number List - Responsive */}
-            <div className="flex-1 flex items-center justify-center gap-1 flex-wrap px-1 sm:px-2 order-first sm:order-none">
+            <div className="flex-1 flex items-center justify-center gap-1.5 flex-wrap px-1 sm:px-2 order-first sm:order-none">
               {questions.map((_, index) => {
                 const isCurrent = index === currentQuestionIndex;
                 const isAnswered = userAnswers[index] !== undefined;
                 const isSubmitted = submittedAnswers.has(index);
+                const isCorrectAnswer = isAnswered && userAnswers[index] === questions[index]?.correctOption;
                 
                 return (
                   <button
@@ -350,16 +364,18 @@ export function GrammarPracticeTab({
                       setCurrentQuestionIndex(index);
                       setQuestionStartTime(Date.now()); // Reset timer for new question
                     }}
-                    className={`w-8 h-8 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center border ${
                       isCurrent
-                        ? 'bg-blue-500 text-white ring-2 ring-blue-300 dark:ring-blue-700'
+                        ? 'bg-blue-500 text-white border-blue-500 ring-4 ring-blue-500/20'
                         : isSubmitted
-                          ? isAnswered && userAnswers[index] === questions[index]?.correctOption
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700'
-                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-700'
-                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                          ? isCorrectAnswer
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold'
+                            : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 font-extrabold'
+                          : isAnswered
+                            ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 font-bold'
+                            : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800'
                     }`}
-                    title={`Câu ${index + 1}${isSubmitted ? (userAnswers[index] === questions[index]?.correctOption ? ' - Đúng' : ' - Sai') : ''}`}
+                    title={`Câu ${index + 1}${isSubmitted ? (isCorrectAnswer ? ' - Đúng' : ' - Sai') : ''}`}
                   >
                     {index + 1}
                   </button>
@@ -374,21 +390,18 @@ export function GrammarPracticeTab({
                 setQuestionStartTime(Date.now()); // Reset timer for new question
               }}
               disabled={!canGoNext}
-              className={`flex items-center border  border-gray-200 dark:border-zinc-700 justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 w-full sm:w-auto ${
+              className={`flex items-center justify-center border gap-2 px-4 py-2.5 rounded-lg font-bold text-sm transition-all duration-200 w-full sm:w-auto ${
                 canGoNext
-                  ? 'bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                  : 'bg-gray-50 dark:bg-zinc-900 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                  ? 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800/80 hover:border-gray-300'
+                  : 'bg-zinc-50 dark:bg-zinc-950 border-gray-200 dark:border-zinc-900 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-50'
               }`}
             >
-              <span className="hidden sm:inline">Câu tiếp</span>
-              <ChevronRight className="w-5 h-5" />
+              <span>Câu tiếp</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
-
-      
-      
     </div>
   );
 }

@@ -253,7 +253,7 @@ export default function ResultQuestionItem({
             <div className="mb-2 xs:mb-3 sm:mb-4">
               <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 mb-1.5 xs:mb-2 sm:mb-2">
                 <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-0.5 xs:gap-1 sm:gap-1">
-                  <Languages size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden xs:inline">Dịch câu hỏi</span>
+                  <Languages size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className=" xs:inline">Dịch câu hỏi</span>
                 </h4>
               </div>
               <p
@@ -272,11 +272,11 @@ export default function ResultQuestionItem({
               >
                 {q.isDetailOpen ? (
                   <>
-                    <ChevronUp size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden xs:inline">Ẩn chi tiết</span>
+                    <ChevronUp size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className=" xs:inline">Ẩn chi tiết</span>
                   </>
                 ) : (
                   <>
-                    <ChevronDown size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden xs:inline">Xem chi tiết</span>
+                    <ChevronDown size={11} className="xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5" /> <span className=" xs:inline">Xem chi tiết</span>
                   </>
                 )}
               </button>
