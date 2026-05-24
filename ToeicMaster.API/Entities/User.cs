@@ -43,6 +43,8 @@ public partial class User
 
     public virtual ICollection<PracticeSession> PracticeSessions { get; set; } = new List<PracticeSession>();
 
+    public virtual ICollection<ReadingSession> ReadingSessions { get; set; } = new List<ReadingSession>();
+
     public virtual ICollection<TestAttempt> TestAttempts { get; set; } = new List<TestAttempt>();
 
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();

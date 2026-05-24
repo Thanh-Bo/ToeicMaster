@@ -157,6 +157,15 @@ export default function HomePage() {
       accentColor: "group-hover:border-emerald-500/40 dark:group-hover:bg-emerald-500/[0.02]",
       iconWrapper: "bg-emerald-500/10 text-emerald-500 dark:text-emerald-400",
     },
+    {
+      icon: <BookOpen className="w-6 h-6" />,
+      title: "Reading Part 6 & 7",
+      description: "Luyen doc theo passage rieng, cham dap an va xem giai thich sau moi phien.",
+      href: "/reading",
+      badge: "Reading",
+      accentColor: "group-hover:border-amber-500/40 dark:group-hover:bg-amber-500/[0.02]",
+      iconWrapper: "bg-amber-500/10 text-amber-500 dark:text-amber-400",
+    },
   ];
 
   // Dynamic Navigation bar links builder
@@ -164,6 +173,7 @@ export default function HomePage() {
     { href: "/grammar", label: "Grammar", icon: Library },
     { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
     { href: "/practice", label: "Practice", icon: FileText },
+    { href: "/reading", label: "Reading", icon: BookOpen },
   ];
   if (user?.role?.toLowerCase() === "admin") {
     navLinks.push({ href: "/admin", label: "Admin Panel", icon: Users });
@@ -223,7 +233,7 @@ export default function HomePage() {
 
       {/* ── 2. CORE SECTIONS NAV TILES ── */}
       <section className="max-w-5xl mx-auto px-6 py-6 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {mainSections.map((section, i) => (
             <Link
               key={i}
@@ -442,6 +452,7 @@ export default function HomePage() {
         links={[
           { label: "Trang chủ", href: "/" },
           { label: "Luyện đề", href: "/practice" },
+          { label: "Reading", href: "/reading" },
           { label: "Từ vựng", href: "/vocabulary" },
           { label: "Ngữ Pháp", href: "/grammar" },
         ]}

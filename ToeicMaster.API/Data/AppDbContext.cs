@@ -56,6 +56,20 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<PracticeAnswer> PracticeAnswers { get; set; }
 
+    public virtual DbSet<ReadingPassage> ReadingPassages { get; set; }
+
+    public virtual DbSet<ReadingTopic> ReadingTopics { get; set; }
+
+    public virtual DbSet<ReadingQuestion> ReadingQuestions { get; set; }
+
+    public virtual DbSet<ReadingAnswer> ReadingAnswers { get; set; }
+
+    public virtual DbSet<ReadingSession> ReadingSessions { get; set; }
+
+    public virtual DbSet<ReadingSessionPassage> ReadingSessionPassages { get; set; }
+
+    public virtual DbSet<ReadingSessionAnswer> ReadingSessionAnswers { get; set; }
+
     public virtual DbSet<Comment> Comments { get; set; }
 
     public virtual DbSet<CommentLike> CommentLikes { get; set; }
@@ -391,6 +405,125 @@ public partial class AppDbContext : DbContext
                 .WithMany(q => q.PracticeAnswers)
                 .HasForeignKey(e => e.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Reading Practice configuration
+        modelBuilder.Entity<ReadingTopic>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.PartType, e.Difficulty, e.IsActive }, "IX_ReadingTopics_PartType_Difficulty_IsActive");
+
+            entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Description).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.Difficulty).HasMaxLength(20);
+            entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasMany(e => e.Passages)
+                .WithOne(p => p.Topic)
+                .HasForeignKey(p => p.TopicId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<ReadingPassage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.PartType, e.IsActive }, "IX_ReadingPassages_PartType_IsActive");
+            entity.HasIndex(e => e.TopicId, "IX_ReadingPassages_TopicId");
+
+            entity.Property(e => e.Title).HasMaxLength(255);
+            entity.Property(e => e.TextContent).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.ImageUrl).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.TextContentTranslation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.PassageType).HasMaxLength(50);
+            entity.Property(e => e.Difficulty).HasMaxLength(20);
+            entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasMany(e => e.Questions)
+                .WithOne(q => q.Passage)
+                .HasForeignKey(q => q.PassageId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReadingQuestion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.PassageId, "IX_ReadingQuestions_PassageId");
+
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.CorrectOption).HasMaxLength(5);
+            entity.Property(e => e.ShortExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.FullExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.QuestionType).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        modelBuilder.Entity<ReadingAnswer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ReadingQuestionId, "IX_ReadingAnswers_ReadingQuestionId");
+            entity.HasIndex(e => new { e.ReadingQuestionId, e.Label }, "UX_ReadingAnswers_Question_Label").IsUnique();
+
+            entity.Property(e => e.Label).HasMaxLength(5);
+            entity.Property(e => e.Content).HasColumnType("nvarchar(max)");
+
+            entity.HasOne(e => e.ReadingQuestion)
+                .WithMany(q => q.Answers)
+                .HasForeignKey(e => e.ReadingQuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReadingSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.StartedAt }, "IX_ReadingSessions_UserId_StartedAt");
+
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("in_progress");
+            entity.Property(e => e.StartedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.ReadingSessions)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReadingSessionPassage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.SessionId, e.PassageId }, "UX_ReadingSessionPassages_Session_Passage").IsUnique();
+
+            entity.HasOne(e => e.Session)
+                .WithMany(s => s.ReadingSessionPassages)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Passage)
+                .WithMany(p => p.ReadingSessionPassages)
+                .HasForeignKey(e => e.PassageId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReadingSessionAnswer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SessionId, "IX_ReadingSessionAnswers_SessionId");
+            entity.HasIndex(e => new { e.SessionId, e.ReadingQuestionId }, "UX_ReadingSessionAnswers_Session_Question").IsUnique();
+
+            entity.Property(e => e.SelectedOption).HasMaxLength(5);
+            entity.Property(e => e.AnsweredAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(e => e.Session)
+                .WithMany(s => s.ReadingSessionAnswers)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.ReadingQuestion)
+                .WithMany(q => q.ReadingSessionAnswers)
+                .HasForeignKey(e => e.ReadingQuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         // Comment configuration

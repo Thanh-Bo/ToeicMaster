@@ -623,3 +623,116 @@ export interface GrammarTestResult {
   totalCount: number;
   message: string;
 }
+
+// --------------------------------------------
+// Reading Practice Types
+// --------------------------------------------
+export interface ReadingAnswer {
+  id: number;
+  label: string;
+  content: string;
+}
+
+export interface ReadingQuestion {
+  id: number;
+  questionNo: number;
+  content: string | null;
+  questionType?: string | null;
+  correctOption?: string | null;
+  isCorrect?: boolean | null;
+  shortExplanation?: string | null;
+  fullExplanation?: string | null;
+  explanationLocked?: boolean;
+  selectedOption?: string | null;
+  answers: ReadingAnswer[];
+}
+
+export interface ReadingPassage {
+  id: number;
+  topicId?: number | null;
+  title: string | null;
+  textContent: string | null;
+  imageUrl: string | null;
+  textContentTranslation?: string | null;
+  passageType?: string | null;
+  partType: number;
+  difficulty?: "easy" | "medium" | "hard" | string | null;
+  displayOrder: number;
+  questions: ReadingQuestion[];
+}
+
+export interface ReadingLesson {
+  id: number;
+  topicId?: number | null;
+  title: string | null;
+  partType: number;
+  difficulty?: "easy" | "medium" | "hard" | string | null;
+  questionCount: number;
+  shortDescription?: string | null;
+}
+
+export interface ReadingTopic {
+  id: number;
+  title: string;
+  description?: string | null;
+  partType: number;
+  difficulty?: "easy" | "medium" | "hard" | string | null;
+  displayOrder: number;
+  passageCount: number;
+  questionCount: number;
+}
+
+export interface ReadingTopicDetail extends ReadingTopic {
+  passages: ReadingLesson[];
+}
+
+export interface ReadingSession {
+  sessionId: number;
+  status: "in_progress" | "completed" | string;
+  totalPassages: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  timeSpentSeconds: number;
+  startedAt: string;
+  completedAt?: string | null;
+  accuracy?: number;
+  canViewExplanation?: boolean;
+  passages: ReadingPassage[];
+}
+
+export interface ReadingResult {
+  sessionId: number;
+  totalPassages: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  accuracy: number;
+  timeSpent: number;
+  completedAt: string;
+}
+
+export interface ReadingHistoryItem {
+  id: number;
+  totalPassages: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  accuracy: number;
+  timeSpentSeconds: number;
+  startedAt: string;
+  completedAt: string;
+  partTypes?: number[];
+}
+
+export interface ReadingStats {
+  totalSessions: number;
+  totalQuestions: number;
+  totalCorrect: number;
+  accuracy: number;
+  totalTimeSeconds: number;
+  activePassages: number;
+  partStats?: {
+    partType: number;
+    totalQuestions: number;
+    correctAnswers: number;
+    accuracy: number;
+  }[];
+}

@@ -88,6 +88,7 @@ export default function PracticePage() {
           { href: "/grammar", label: "Grammar", icon: Library },
           { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
           { href: "/practice", label: "Practice", icon: FileText },
+          { href: "/reading", label: "Reading", icon: BookOpen },
         ]}
       />
 
