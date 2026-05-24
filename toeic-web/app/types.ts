@@ -720,6 +720,7 @@ export interface ReadingHistoryItem {
   startedAt: string;
   completedAt: string;
   partTypes?: number[];
+  topicIds?: number[];
 }
 
 export interface ReadingStats {

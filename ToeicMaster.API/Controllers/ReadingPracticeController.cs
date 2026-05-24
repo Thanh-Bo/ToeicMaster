@@ -1132,6 +1132,7 @@ public class ReadingPracticeController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] int? partType = null,
+        [FromQuery] int? topicId = null,
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null,
         [FromQuery] string sort = "newest")
@@ -1150,6 +1151,8 @@ public class ReadingPracticeController : ControllerBase
             query = query.Where(s => s.CompletedAt <= to.Value);
         if (partType is 6 or 7)
             query = query.Where(s => s.ReadingSessionPassages.Any(sp => sp.Passage.PartType == partType));
+        if (topicId.HasValue)
+            query = query.Where(s => s.ReadingSessionPassages.Any(sp => sp.Passage.TopicId == topicId.Value));
 
         query = sort.ToLowerInvariant() switch
         {
@@ -1174,7 +1177,12 @@ public class ReadingPracticeController : ControllerBase
                 s.TimeSpentSeconds,
                 s.StartedAt,
                 s.CompletedAt,
-                PartTypes = s.ReadingSessionPassages.Select(sp => sp.Passage.PartType).Distinct().OrderBy(p => p)
+                PartTypes = s.ReadingSessionPassages.Select(sp => sp.Passage.PartType).Distinct().OrderBy(p => p),
+                TopicIds = s.ReadingSessionPassages
+                    .Where(sp => sp.Passage.TopicId != null)
+                    .Select(sp => sp.Passage.TopicId!.Value)
+                    .Distinct()
+                    .OrderBy(id => id)
             })
             .ToListAsync();
 

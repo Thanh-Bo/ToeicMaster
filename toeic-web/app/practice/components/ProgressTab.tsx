@@ -108,7 +108,7 @@ export default function ProgressTab() {
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
               selectedPeriod === period
                 ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
             }`}
           >
             {PERIOD_LABELS[period]}
@@ -140,7 +140,7 @@ export default function ProgressTab() {
                   <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                     day.hasActivity
                       ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20 scale-105"
-                      : "border border-gray-200 dark:border-zinc-800 text-gray-400 dark:text-zinc-650 bg-white/50 dark:bg-zinc-900/50"
+                      : "border border-gray-200 dark:border-zinc-800 text-gray-400 dark:text-zinc-500 bg-white/50 dark:bg-zinc-900/50"
                   }`}>
                     {day.hasActivity ? <Check size={14} className="stroke-[3]" /> : <Circle size={14} className="opacity-40" />}
                   </div>
@@ -192,7 +192,7 @@ export default function ProgressTab() {
 
       {/* Parts Analysis */}
       <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200/50 dark:border-zinc-800/50 rounded-2xl p-5 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-5 sm:mb-6 border-b border-gray-150/40 dark:border-zinc-800/50 pb-3">Phân tích theo Part</h2>
+        <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-5 sm:mb-6 border-b border-gray-200/40 dark:border-zinc-800/50 pb-3">Phân tích theo Part</h2>
 
         {!partsData || partsData.parts.length === 0 ? (
           <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm sm:text-base">
@@ -217,7 +217,7 @@ export default function ProgressTab() {
                     </span>
                   </div>
                 </div>
-                <div className="h-2.5 bg-gray-100 dark:bg-zinc-850 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${getAccuracyBg(part.accuracy)} rounded-full transition-all duration-500`}
                     style={{ width: `${part.accuracy}%` }}

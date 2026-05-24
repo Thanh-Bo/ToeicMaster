@@ -96,6 +96,7 @@ export const readingService = {
     page = 1,
     pageSize = 10,
     partType?: number,
+    topicId?: number | string,
     sort?: string,
     from?: string,
     to?: string,
@@ -107,7 +108,7 @@ export const readingService = {
       pageSize: number;
       totalPages: number;
     }>("/reading-practice/history", {
-      params: { page, pageSize, partType, sort, from, to },
+      params: { page, pageSize, partType, topicId, sort, from, to },
     });
     return response.data;
   },

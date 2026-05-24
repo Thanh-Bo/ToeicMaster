@@ -2,13 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, FileText, Library, ALargeSmall, Send } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Send } from "lucide-react";
 import toast from "react-hot-toast";
-import { PageHeader } from "@/app/components/layout";
 import ReadingPassageView from "@/app/components/reading/ReadingPassageView";
 import ReadingQuestionList from "@/app/components/reading/ReadingQuestionList";
 import ReadingResultView from "@/app/components/reading/ReadingResultView";
-import ReadingSessionSidebar from "@/app/components/reading/ReadingSessionSidebar";
 import { readingService } from "@/app/services/readingService";
 import type { ReadingSession } from "@/app/types";
 
@@ -108,14 +106,7 @@ export default function ReadingSessionPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-zinc-950">
-        <PageHeader
-          navLinks={[
-            { href: "/grammar", label: "Grammar", icon: Library },
-            { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
-            { href: "/practice", label: "Practice", icon: FileText },
-            { href: "/reading", label: "Reading", icon: BookOpen },
-          ]}
-        />
+       
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 animate-pulse">
           {/* Top buttons skeleton */}
           <div className="mb-6 flex items-center justify-between gap-4 border-b border-gray-100 pb-5 dark:border-zinc-900">

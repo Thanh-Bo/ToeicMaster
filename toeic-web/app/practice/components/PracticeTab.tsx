@@ -78,7 +78,7 @@ export default function PracticeTab({
           onClick={() => onPrefixChange("all")}
           className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
             filterPrefix === "all"
-              ? "bg-blue-600 dark:bg-blue-550 text-white shadow-sm shadow-blue-500/20"
+              ? "bg-blue-600 dark:bg-blue-500 text-white shadow-sm shadow-blue-500/20"
               : "bg-gray-100/50 dark:bg-zinc-800/40 border border-gray-200/40 dark:border-zinc-800/45 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/80"
           }`}
         >
@@ -92,7 +92,7 @@ export default function PracticeTab({
             onClick={() => onPrefixChange(prefix)}
             className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
               filterPrefix === prefix
-                ? "bg-blue-600 dark:bg-blue-550 text-white shadow-sm shadow-blue-500/20"
+                ? "bg-blue-600 dark:bg-blue-500 text-white shadow-sm shadow-blue-500/20"
                 : "bg-gray-100/50 dark:bg-zinc-800/40 border border-gray-200/40 dark:border-zinc-800/45 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/80"
             }`}
           >
@@ -123,7 +123,7 @@ export default function PracticeTab({
             placeholder="Tìm kiếm bộ đề..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-4 sm:px-6 py-3 pl-10 sm:pl-12 rounded-xl bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200/50 dark:border-zinc-800/85 text-gray-800 dark:text-gray-200 placeholder-gray-450 dark:placeholder-gray-550 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:ring-blue-500/10 dark:focus:border-blue-500/50 transition-all text-sm sm:text-base shadow-xs"
+            className="w-full px-4 sm:px-6 py-3 pl-10 sm:pl-12 rounded-xl bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200/50 dark:border-zinc-800/85 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:ring-blue-500/10 dark:focus:border-blue-500/50 transition-all text-sm sm:text-base shadow-xs"
           />
         </div>
       </div>

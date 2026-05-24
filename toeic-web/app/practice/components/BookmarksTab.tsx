@@ -176,7 +176,7 @@ export default function BookmarksTab() {
     <div className="bg-transparent">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-gray-150/40 dark:border-zinc-800/50 pb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-gray-200/40 dark:border-zinc-800/50 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-2xl">
               <BookOpen className="w-6 h-6" />
@@ -185,7 +185,7 @@ export default function BookmarksTab() {
               <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
                 Kho câu hỏi đã lưu
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-405 mt-0.5">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Lưu trữ và xem lại các câu hỏi TOEIC quan trọng của bạn · <span className="font-bold text-gray-700 dark:text-gray-300">{stats.total} câu</span>
               </p>
             </div>
@@ -208,7 +208,7 @@ export default function BookmarksTab() {
               onClick={() => setSelectedPart(null)}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 shrink-0 ${
                 selectedPart === null
-                  ? "bg-blue-600 dark:bg-blue-550 text-white shadow-sm shadow-blue-500/20"
+                  ? "bg-blue-600 dark:bg-blue-600 text-white shadow-sm shadow-blue-500/20"
                   : "bg-white/80 dark:bg-zinc-900/60 border border-gray-200/50 dark:border-zinc-800/80 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
               }`}
             >
@@ -223,13 +223,13 @@ export default function BookmarksTab() {
                   onClick={() => setSelectedPart(num)}
                   className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 shrink-0 ${
                     selectedPart === num
-                      ? "bg-blue-600 dark:bg-blue-550 text-white shadow-sm shadow-blue-500/20"
+                      ? "bg-blue-600 dark:bg-blue-600 text-white shadow-sm shadow-blue-500/20"
                       : "bg-white/80 dark:bg-zinc-900/60 border border-gray-200/50 dark:border-zinc-800/80 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
                   }`}
                 >
                   <span>Part {num}</span>
                   {count > 0 && (
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedPart === num ? "bg-white/25 text-white" : "bg-gray-200 dark:bg-zinc-800 text-gray-500 dark:text-gray-400"}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedPart === num ? "bg-white/25 text-white" : "bg-gray-200 dark:bg-zinc-800 text-gray-500 dark:text-gray-400"}`}>
                       {count}
                     </span>
                   )}
@@ -254,7 +254,7 @@ export default function BookmarksTab() {
                 icon={<Filter size={14} className="mr-0.5" />}
               />
 
-              <div className="my-3.5 border-t border-gray-150/40 dark:border-zinc-800/50"></div>
+              <div className="my-3 border-t border-gray-200/40 dark:border-zinc-800/50"></div>
 
               <div className="space-y-1">
                 <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 mb-2 uppercase tracking-wider">
@@ -296,7 +296,7 @@ export default function BookmarksTab() {
             <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 dark:border-zinc-800/80 mb-6 shadow-2xs">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Date Picker Section */}
-                <div className="flex items-center gap-2 bg-gray-50/50 dark:bg-zinc-850/50 px-3 py-2.5 rounded-xl border border-gray-205/30 dark:border-zinc-800/60 shrink-0">
+                <div className="flex items-center gap-2 bg-gray-50/50 dark:bg-zinc-800/50 px-3 py-2.5 rounded-xl border border-gray-200/30 dark:border-zinc-800/60 shrink-0">
                   <Calendar size={15} className="text-gray-400 dark:text-gray-500" />
                   <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
                     Ngày lưu:
@@ -318,14 +318,14 @@ export default function BookmarksTab() {
                 </div>
 
                 <div className="flex items-center gap-3 ml-auto sm:ml-0">
-                  <div className="bg-white/80 dark:bg-zinc-900 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-850 shadow-2xs">
+                  <div className="bg-white/80 dark:bg-zinc-900 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-2xs">
                     <ArrowUpDown size={15} className="text-gray-400 dark:text-gray-500" />
                     <select
                       value={sortOrder}
                       onChange={(e) =>
                         setSortOrder(e.target.value as "newest" | "oldest")
                       }
-                      className="bg-transparent text-xs font-bold cursor-pointer text-gray-750 dark:text-gray-250 outline-none"
+                      className="bg-transparent text-xs font-bold cursor-pointer text-gray-700 dark:text-gray-300 outline-none"
                     >
                       <option value="newest">Mới nhất</option>
                       <option value="oldest">Cũ nhất</option>
@@ -399,7 +399,7 @@ export default function BookmarksTab() {
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-405 bg-gray-150/55 dark:bg-zinc-800/60 px-2 py-0.5 rounded-md">
+                                <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-200/40 dark:bg-zinc-800/60 px-2 py-0.5 rounded-md">
                                   <Calendar size={11} className="text-gray-400" />
                                   <span>{dateStr}</span>
                                   <span className="w-1 h-1 bg-gray-400 rounded-full mx-0.5"></span>
@@ -409,7 +409,7 @@ export default function BookmarksTab() {
                                 </div>
 
                                 {item.sourceTestName && (
-                                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-405 bg-gray-150/55 dark:bg-zinc-800/60 px-2 py-0.5 rounded-md border border-gray-205/30 dark:border-zinc-800/50 truncate max-w-[160px]" title={item.sourceTestName}>
+                                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-200/40 dark:bg-zinc-800/60 px-2 py-0.5 rounded-md border border-gray-200/30 dark:border-zinc-800/50 truncate max-w-[160px]" title={item.sourceTestName}>
                                     {item.sourceTestName}
                                   </span>
                                 )}
@@ -423,7 +423,7 @@ export default function BookmarksTab() {
                               {/* NOTE & EDIT BUTTON */}
                               {item.note && (
                                 <div className="mt-2.5 flex items-center gap-2">
-                                  <div className="text-xs sm:text-sm text-amber-800 dark:text-amber-350 bg-amber-500/10 px-3.5 py-1.5 rounded-xl border border-amber-300/30 dark:border-amber-500/30 flex items-center gap-2 font-medium">
+                                  <div className="text-xs sm:text-sm text-amber-800 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-xl border border-amber-300/30 dark:border-amber-500/30 flex items-center gap-2 font-medium">
                                     <span className="break-all">{item.note}</span>
                                   </div>
 
@@ -452,7 +452,7 @@ export default function BookmarksTab() {
                                       note: "",
                                     });
                                   }}
-                                  className="mt-2 text-xs font-bold text-blue-500 dark:text-blue-400 hover:text-blue-650 flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-all duration-300"
+                                  className="mt-2 text-xs font-bold text-blue-500 dark:text-blue-400 hover:text-blue-600 flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-all duration-300"
                                 >
                                   <Edit size={12} />
                                   <span>Thêm ghi chú</span>
@@ -468,7 +468,7 @@ export default function BookmarksTab() {
                             className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition shrink-0"
                           >
                             {removing === item.questionId ? (
-                              <div className="animate-spin h-4.5 w-4.5 border-2 border-red-500 dark:border-red-400 border-t-transparent rounded-full" />
+                              <div className="animate-spin h-4 w-4 border-2 border-red-500 dark:border-red-400 border-t-transparent rounded-full" />
                             ) : (
                               <Trash2 size={17} />
                             )}
@@ -478,7 +478,7 @@ export default function BookmarksTab() {
 
                       {/* Expanded Content (Details) */}
                       {isExpanded && (
-                        <div className="px-4 sm:px-6 pb-5 pt-3 border-t border-gray-150/40 dark:border-zinc-800/50 bg-gray-50/30 dark:bg-zinc-900/30 rounded-b-2xl">
+                        <div className="px-4 sm:px-6 pb-5 pt-3 border-t border-gray-200/40 dark:border-zinc-800/50 bg-gray-50/30 dark:bg-zinc-900/30 rounded-b-2xl">
                           {item.question.imageUrl && (
                             <div className="mb-4 mt-2">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -500,7 +500,7 @@ export default function BookmarksTab() {
                           )}
                           {item.question.textContent && (
                             <div
-                              className="mb-4 p-4 bg-white/60 dark:bg-zinc-900/40 rounded-xl border border-gray-200/50 dark:border-zinc-800/50 text-sm text-gray-805 dark:text-gray-200 max-h-40 overflow-y-auto leading-relaxed"
+                              className="mb-4 p-4 bg-white/60 dark:bg-zinc-900/40 rounded-xl border border-gray-200/50 dark:border-zinc-800 text-sm text-gray-800 dark:text-gray-200 max-h-40 overflow-y-auto leading-relaxed"
                               dangerouslySetInnerHTML={{
                                 __html: item.question.textContent,
                               }}
@@ -520,7 +520,7 @@ export default function BookmarksTab() {
                                   }`}
                                 >
                                   <span
-                                    className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all duration-305 ${
+                                    className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all duration-300 ${
                                       isCorrect
                                         ? "bg-emerald-600 text-white font-extrabold shadow-xs"
                                         : "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 font-bold"
@@ -547,7 +547,7 @@ export default function BookmarksTab() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white/80 dark:bg-zinc-900/80 border border-gray-200/50 dark:border-zinc-700/60 rounded-xl hover:bg-gray-150/40 text-gray-600 dark:text-gray-400 disabled:opacity-50 transition font-bold text-xs sm:text-sm shadow-2xs"
+                  className="px-4 py-2 bg-white/80 dark:bg-zinc-900/80 border border-gray-200/50 dark:border-zinc-700/60 rounded-xl hover:bg-gray-100/40 text-gray-600 dark:text-gray-400 disabled:opacity-50 transition font-bold text-xs sm:text-sm shadow-2xs"
                 >
                   Trước
                 </button>
@@ -557,7 +557,7 @@ export default function BookmarksTab() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-white/80 dark:bg-zinc-900/80 border border-gray-200/50 dark:border-zinc-700/60 rounded-xl hover:bg-gray-150/40 text-gray-600 dark:text-gray-400 disabled:opacity-50 transition font-bold text-xs sm:text-sm shadow-2xs"
+                  className="px-4 py-2 bg-white/80 dark:bg-zinc-900/80 border border-gray-200/50 dark:border-zinc-700/60 rounded-xl hover:bg-gray-100/40 text-gray-600 dark:text-gray-400 disabled:opacity-50 transition font-bold text-xs sm:text-sm shadow-2xs"
                 >
                   Sau
                 </button>

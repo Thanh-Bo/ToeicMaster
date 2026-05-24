@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   ALargeSmall,
   ArrowLeft,
   BookOpen,
   FileText,
+  History,
   Library,
   PlayCircle,
   Target,
@@ -78,7 +80,7 @@ export default function ReadingTopicPage() {
     try {
       setStartingId(passageId);
       const session = await readingService.startLesson(passageId);
-      router.push(`/reading/topics/${topicId}/pratice/${session.sessionId}`);
+      router.push(`/reading/topics/${topicId}/practice/${session.sessionId}`);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Không thể bắt đầu bài Reading."));
     } finally {
@@ -253,6 +255,27 @@ export default function ReadingTopicPage() {
             </div>
           </div>
         </section>
+
+        <div className="mb-8 flex max-w-sm gap-1.5 rounded-xl border border-gray-200/70 bg-gray-100/80 p-1.5 dark:border-zinc-800/70 dark:bg-zinc-900/70">
+          <Link
+            href={`/reading/topics/${topicId}`}
+            className="flex-1 rounded-lg bg-white px-3 py-2 text-center text-sm font-bold text-blue-600 shadow-sm transition dark:bg-zinc-800 dark:text-blue-400"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Bài luyện
+            </span>
+          </Link>
+          <Link
+            href={`/reading/topics/${topicId}/history`}
+            className="flex-1 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-500 transition hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <History className="h-4 w-4" />
+              Lịch sử
+            </span>
+          </Link>
+        </div>
 
         {topic.passages.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center dark:border-zinc-800">

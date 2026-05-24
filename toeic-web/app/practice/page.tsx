@@ -101,7 +101,7 @@ export default function PracticePage() {
             className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "practice"
                 ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -112,7 +112,7 @@ export default function PracticePage() {
             className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "progress"
                 ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
             }`}
           >
             <BarChart2 className="w-4 h-4" />
@@ -123,7 +123,7 @@ export default function PracticePage() {
             className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "history"
                 ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
             }`}
           >
             <History className="w-4 h-4" />
@@ -134,7 +134,7 @@ export default function PracticePage() {
             className={`flex-1 sm:flex-initial px-4 py-2.5 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-sm ${
               activeTab === "bookmarks"
                 ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-850"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
             }`}
           >
             <Bookmark className="w-4 h-4" />

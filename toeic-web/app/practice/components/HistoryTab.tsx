@@ -59,7 +59,7 @@ export default function HistoryTab() {
   const getScoreStrokeColor = (pct: number) => {
     if (pct >= 80) return "stroke-emerald-500 dark:stroke-emerald-400";
     if (pct >= 60) return "stroke-amber-500 dark:stroke-amber-400";
-    return "stroke-rose-500 dark:stroke-rose-455";
+    return "stroke-rose-500 dark:stroke-rose-400";
   };
 
   const getScoreTextColor = (pct: number) => {
@@ -99,7 +99,7 @@ export default function HistoryTab() {
     <div className="space-y-8">
       {filteredAndSortedHistory.length === 0 && history.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700 p-12 text-center bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md">
-          <FileText className="w-12 h-12 mx-auto text-gray-300 dark:text-zinc-650 mb-4" />
+          <FileText className="w-12 h-12 mx-auto text-gray-300 dark:text-zinc-600 mb-4" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có bài làm nào</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Hãy bắt đầu làm bài thi đầu tiên của bạn!</p>
           <Link
@@ -142,14 +142,14 @@ export default function HistoryTab() {
                   placeholder="Tìm kiếm tên bài thi..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/80 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm shadow-2xs"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/80 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm shadow-2xs"
                 />
               </div>
               <div className="w-full sm:w-48">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-850 rounded-xl bg-white/85 dark:bg-zinc-900 text-gray-855 dark:text-gray-250 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition cursor-pointer text-sm font-semibold shadow-2xs"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-800 rounded-xl bg-white/85 dark:bg-zinc-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition cursor-pointer text-sm font-semibold shadow-2xs"
                 >
                   <option value="newest">Mới nhất</option>
                   <option value="oldest">Cũ nhất</option>
@@ -161,9 +161,9 @@ export default function HistoryTab() {
 
             {/* Pagination Controls */}
             {filteredAndSortedHistory.length > 0 && (
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-4 mt-4 border-t border-gray-150/40 dark:border-zinc-800/50">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-4 mt-4 border-t border-gray-200/40 dark:border-zinc-800/50">
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-semibold mr-2">
-                  Trang <span className="text-gray-800 dark:text-gray-200 font-bold">{currentPage}</span> / <span className="text-gray-850 dark:text-gray-200 font-bold">{totalPages}</span>
+                  Trang <span className="text-gray-800 dark:text-gray-200 font-bold">{currentPage}</span> / <span className="text-gray-800 dark:text-gray-200 font-bold">{totalPages}</span>
                 </p>
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -212,8 +212,8 @@ export default function HistoryTab() {
             )}
             
             {searchQuery && (
-              <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-405 mt-3">
-                Tìm thấy <span className="font-bold text-blue-600 dark:text-blue-450">{filteredAndSortedHistory.length}</span> kết quả phù hợp
+              <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 mt-3">
+                Tìm thấy <span className="font-bold text-blue-600 dark:text-blue-400">{filteredAndSortedHistory.length}</span> kết quả phù hợp
               </p>
             )}
           </div>
@@ -221,7 +221,7 @@ export default function HistoryTab() {
           {/* No Results */}
           {filteredAndSortedHistory.length === 0 && (
             <div className="rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700 p-12 text-center bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md">
-              <Search className="w-10 h-10 mx-auto text-gray-300 dark:text-zinc-650 mb-3" />
+              <Search className="w-10 h-10 mx-auto text-gray-300 dark:text-zinc-600 mb-3" />
               <h2 className="text-base font-bold text-gray-700 dark:text-white mb-1">Không tìm thấy kết quả làm bài</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">Hãy thử tìm kiếm với từ khóa khác</p>
             </div>
@@ -230,10 +230,10 @@ export default function HistoryTab() {
           {/* History List */}
           {filteredAndSortedHistory.length > 0 && (
             <div className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200/50 dark:border-zinc-800/50 rounded-2xl overflow-hidden shadow-xs">
-              <div className="px-5 py-4 border-b border-gray-150/40 dark:border-zinc-800/50 bg-gray-50/50 dark:bg-zinc-900/40">
+              <div className="px-5 py-4 border-b border-gray-200/40 dark:border-zinc-800/50 bg-gray-50/50 dark:bg-zinc-900/40">
                 <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">Chi tiết lịch sử làm bài</h2>
               </div>
-              <div className="divide-y divide-gray-150/30 dark:divide-zinc-800/40">
+              <div className="divide-y divide-gray-200/30 dark:divide-zinc-800/40">
                 {paginatedHistory.map((item, index) => {
                   const pct = item.totalQuestions > 0 ? Math.round((item.correctAnswers / item.totalQuestions) * 100) : 0;
                   const strokeColor = getScoreStrokeColor(pct);
@@ -245,7 +245,7 @@ export default function HistoryTab() {
                   return (
                     <div
                       key={item.attemptId}
-                      className="p-4 sm:p-5 hover:bg-gray-100/45 dark:hover:bg-zinc-850/20 transition-all duration-300"
+                      className="group p-4 sm:p-5 hover:bg-gray-100/40 dark:hover:bg-zinc-800/40 transition-all duration-300"
                     >
                       {/* Mobile Layout: Stack vertically */}
                       <div className="flex flex-col gap-3 sm:hidden">
@@ -256,7 +256,7 @@ export default function HistoryTab() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-snug break-words">{item.testTitle}</h3>
-                            <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-1">
+                            <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-400 mt-1 flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5" />
                               {formatDate(item.completedAt)}
                             </p>
@@ -291,7 +291,7 @@ export default function HistoryTab() {
                           
                           <Link
                             href={`/results/${item.attemptGuid}`}
-                            className="inline-flex items-center justify-center gap-1 px-4 py-2 bg-blue-500/10 text-blue-600 hover:bg-blue-650 hover:text-white dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white rounded-xl font-bold text-xs transition-all duration-300"
+                            className="inline-flex items-center justify-center gap-1 px-4 py-2 bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white rounded-xl font-bold text-xs transition-all duration-300"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             Chi tiết
@@ -317,7 +317,7 @@ export default function HistoryTab() {
 
                         {/* Middle - Circular Score */}
                         <div className="flex items-center gap-6">
-                          <div className="flex items-center gap-3 border-r border-gray-150/40 dark:border-zinc-800/50 pr-6">
+                          <div className="flex items-center gap-3 border-r border-gray-200/40 dark:border-zinc-800/50 pr-6">
                             <div className="relative w-14 h-14 shrink-0">
                               <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 80 80">
                                 <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="5" fill="none" className="text-gray-100 dark:text-zinc-800/60" />
@@ -357,9 +357,9 @@ export default function HistoryTab() {
               </div>
 
               {/* Bottom Info */}
-              <div className="px-5 py-3.5 border-t border-gray-150/40 dark:border-zinc-800/50 bg-gray-50/50 dark:bg-zinc-900/40">
-                <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-450">
-                  Hiển thị <span className="text-gray-805 dark:text-gray-200">{startIndex + 1}</span> - <span className="text-gray-805 dark:text-gray-200">{Math.min(endIndex, filteredAndSortedHistory.length)}</span> của <span className="text-gray-805 dark:text-gray-200">{filteredAndSortedHistory.length}</span> bài thi
+              <div className="px-5 py-3.5 border-t border-gray-200/40 dark:border-zinc-800/50 bg-gray-50/50 dark:bg-zinc-900/40">
+                <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400">
+                  Hiển thị <span className="text-gray-800 dark:text-gray-200">{startIndex + 1}</span> - <span className="text-gray-800 dark:text-gray-200">{Math.min(endIndex, filteredAndSortedHistory.length)}</span> của <span className="text-gray-800 dark:text-gray-200">{filteredAndSortedHistory.length}</span> bài thi
                 </p>
               </div>
             </div>
