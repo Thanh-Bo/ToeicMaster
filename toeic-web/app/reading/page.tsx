@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  History,
   Layers,
   Library,
   Search,
@@ -19,6 +20,7 @@ import {
 import toast from "react-hot-toast";
 import { PageHeader } from "../components/layout";
 import ReadingHistoryList from "../components/reading/ReadingHistoryList";
+import ReadingStatsView from "../components/reading/ReadingStatsView";
 import { readingService } from "../services/readingService";
 import type { ReadingHistoryItem, ReadingStats, ReadingTopic } from "../types";
 
@@ -56,12 +58,6 @@ const topicAccents = [
   "border-t-violet-500",
 ];
 
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}m ${secs.toString().padStart(2, "0")}s`;
-};
-
 const getErrorMessage = (error: unknown, fallback: string) => {
   const apiError = error as { response?: { data?: { error?: string } } };
   return apiError.response?.data?.error || fallback;
@@ -69,7 +65,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 
 export default function ReadingPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"study" | "progress">("study");
+  const [activeTab, setActiveTab] = useState<"study" | "progress" | "history">("study");
   const [partType, setPartType] = useState("all");
   const [difficulty, setDifficulty] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -86,7 +82,7 @@ export default function ReadingPage() {
       try {
         const [statsData, historyData] = await Promise.all([
           readingService.getStats(),
-          readingService.getHistory(1, 5),
+          readingService.getHistory(1, 50),
         ]);
         if (!mounted) return;
         setStats(statsData);
@@ -169,7 +165,7 @@ export default function ReadingPage() {
           </p>
         </section>
 
-        <div className="mb-8 flex max-w-xs gap-1.5 rounded-xl border border-gray-200/70 bg-gray-100/80 p-1.5 dark:border-zinc-800/70 dark:bg-zinc-900/70">
+        <div className="mb-8 flex max-w-lg gap-1.5 rounded-xl border border-gray-200/70 bg-gray-100/80 p-1.5 dark:border-zinc-800/70 dark:bg-zinc-900/70">
           <button
             type="button"
             onClick={() => setActiveTab("study")}
@@ -198,75 +194,31 @@ export default function ReadingPage() {
               Tiến độ
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 rounded-lg px-3 py-2 text-sm font-bold transition ${
+              activeTab === "history"
+                ? "bg-white text-blue-600 shadow-sm dark:bg-zinc-800 dark:text-blue-400"
+                : "text-gray-500 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+            }`}
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <History className="h-4 w-4" />
+              Lịch sử
+            </span>
+          </button>
         </div>
 
         {activeTab === "progress" ? (
-          <section className="space-y-8">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
-                <BookOpen className="mb-4 h-5 w-5 text-blue-500" />
-                <p className="text-3xl font-black">{stats?.activePassages ?? 0}</p>
-                <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-zinc-400">Bài đang mở</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
-                <TrendingUp className="mb-4 h-5 w-5 text-emerald-500" />
-                <p className="text-3xl font-black">{stats?.accuracy ?? 0}%</p>
-                <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-zinc-400">Độ chính xác TB</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
-                <CheckCircle2 className="mb-4 h-5 w-5 text-cyan-500" />
-                <p className="text-3xl font-black">{stats?.totalSessions ?? 0}</p>
-                <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-zinc-400">Phiên hoàn thành</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
-                <Clock className="mb-4 h-5 w-5 text-amber-500" />
-                <p className="text-3xl font-black">{formatTime(stats?.totalTimeSeconds ?? 0)}</p>
-                <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-zinc-400">Tổng thời gian</p>
-              </div>
+          <ReadingStatsView stats={stats} />
+        ) : activeTab === "history" ? (
+          <section>
+            <div className="mb-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Lịch sử</p>
+              <h2 className="text-xl font-black text-gray-950 dark:text-white">Phiên Reading đã hoàn thành</h2>
             </div>
-
-            {stats?.partStats && stats.partStats.length > 0 && (
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Theo từng Part</p>
-                  <h2 className="text-xl font-black text-gray-950 dark:text-white">Hiệu suất Reading</h2>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {stats.partStats.map((part) => (
-                    <div
-                      key={part.partType}
-                      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70"
-                    >
-                      <div className="mb-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-lg font-black text-gray-950 dark:text-white">Part {part.partType}</p>
-                          <p className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
-                            {part.correctAnswers}/{part.totalQuestions} câu đúng
-                          </p>
-                        </div>
-                        <div className="rounded-full bg-blue-50 px-3 py-1 text-sm font-black text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
-                          {part.accuracy}%
-                        </div>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
-                        <div
-                          className="h-full rounded-full bg-blue-600"
-                          style={{ width: `${Math.min(100, Math.max(0, part.accuracy))}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <div className="mb-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Lịch sử</p>
-                <h2 className="text-xl font-black text-gray-950 dark:text-white">Phiên gần đây</h2>
-              </div>
-              <ReadingHistoryList items={history} loading={loadingHistory} />
-            </div>
+            <ReadingHistoryList items={history} loading={loadingHistory} />
           </section>
         ) : (
           <section>

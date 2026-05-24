@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { Loader, ArrowLeft, Book, X, Library, ALargeSmall, FileText, BarChart2 } from "lucide-react";
+import { Loader, ArrowLeft, Book, BookOpen, X, Library, ALargeSmall, FileText, BarChart2 } from "lucide-react";
 import { vocabularyService } from "../services/vocabularyService";
 import TopicCard from "../components/vocabulary/TopicCard";
 import { VocabularyProgressTab } from "../components/vocabulary/VocabularyProgressTab";
@@ -28,9 +28,9 @@ export default function VocabularyPage() {
       setLoading(true);
       const data = await vocabularyService.getTopics();
       setTopics(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch error:", err);
-      setError(err.message || "Lỗi khi tải chủ đề từ vựng");
+      setError(err instanceof Error ? err.message : "Loi khi tai chu de tu vung");
     } finally {
       setLoading(false);
     }
@@ -65,6 +65,7 @@ export default function VocabularyPage() {
           { href: "/grammar", label: "Grammar", icon: Library },
           { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
           { href: "/practice", label: "Practice", icon: FileText },
+          { href: "/reading", label: "Reading", icon: BookOpen },
         ]}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

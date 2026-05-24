@@ -6,15 +6,11 @@ import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
 import {
+  ALargeSmall,
   BookOpen,
-  Mic,
-  Eye,
   FileText,
-  MoreHorizontal,
-  ShoppingBag,
-  Bell,
+  Library,
   LogOut,
-  GraduationCap,
   Crown,
   MessageCircle,
 } from "lucide-react";
@@ -55,11 +51,10 @@ interface Props {
 }
 
 const defaultNavLinks: NavLink[] = [
-  // { href: "/grammar", label: "Grammar", icon: BookOpen },
-  // { href: "/vocabulary", label: "Vocab", icon: BookOpen },
-  // { href: "/listening", label: "Listening", icon: Mic },
-  // { href: "/reading", label: "Reading", icon: Eye },
-  // { href: "/practice", label: "Test", icon: FileText },
+  { href: "/grammar", label: "Grammar", icon: Library },
+  { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
+  { href: "/practice", label: "Practice", icon: FileText },
+  { href: "/reading", label: "Reading", icon: BookOpen },
 ];
 
 export default function PageHeader({
@@ -77,11 +72,6 @@ export default function PageHeader({
   };
 
   const links = navLinks || (showDefaultLinks ? defaultNavLinks : []);
-
-  const handleLogout = () => {
-    logout();
-    setShowLogoutConfirm(false);
-  };
 
   return (
     <header className="bg-white dark:bg-zinc-950 text-gray-700 dark:text-white sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-800">
