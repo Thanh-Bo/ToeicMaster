@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TOEIC Master",
+  title: "TOEIC Masters",
   description: "Ứng dụng luyện thi TOEIC với ngữ pháp, từ vựng và đề thi",
   icons: {
     icon: "/logo.ico",
