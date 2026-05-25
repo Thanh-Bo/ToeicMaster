@@ -217,7 +217,7 @@ export default function ReadingSessionPage() {
               showResult={isCompleted}
             />
 
-            <div className="mt-6 flex items-center justify-between gap-3 border-t border-gray-100 dark:border-zinc-900 pt-4">
+            {/* <div className="mt-6 flex items-center justify-between gap-3 border-t border-gray-100 dark:border-zinc-900 pt-4">
               <button
                 type="button"
                 onClick={() => setCurrentPassageIndex((value) => Math.max(0, value - 1))}
@@ -240,7 +240,7 @@ export default function ReadingSessionPage() {
                 Tiếp theo
                 <ChevronRight className="h-4 w-4" />
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </main>

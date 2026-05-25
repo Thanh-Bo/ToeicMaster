@@ -30,7 +30,7 @@ const defaultLinks: FooterLink[] = [
 
 export default function Footer({
   links = defaultLinks,
-  copyright = `© ${new Date().getFullYear()} TOEIC Master. All rights reserved.`,
+  copyright = `© ${new Date().getFullYear()} TOEIC Masters. All rights reserved.`,
 }: Props) {
   return (
     <footer className="bg-white/80 dark:bg-zinc-950/60 backdrop-blur-md text-gray-700 dark:text-gray-400 py-10 mt-16 border-t border-gray-250/30 dark:border-zinc-900/60 transition-colors duration-300">
@@ -39,7 +39,7 @@ export default function Footer({
           {/* Logo */}
           <div className="flex items-center gap-2">
             <span className="text-xl font-black text-blue-600 dark:text-blue-400">
-              TOEIC Master
+              TOEIC Masters
             </span>
           </div>
 

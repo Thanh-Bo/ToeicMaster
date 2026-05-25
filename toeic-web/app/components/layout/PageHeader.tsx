@@ -58,7 +58,7 @@ const defaultNavLinks: NavLink[] = [
 ];
 
 export default function PageHeader({
-  logoText = "TOEIC Master",
+  logoText = "TOEIC Masters",
   navLinks,
   showDefaultLinks = true,
 }: Props) {
