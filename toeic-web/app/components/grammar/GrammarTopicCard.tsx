@@ -94,29 +94,7 @@ export function GrammarTopicCard({ topic, groupId, href }: GrammarTopicCardProps
       onClick={handleClick}
       className="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-zinc-800/80 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-zinc-900 hover:shadow-lg dark:hover:shadow-blue-600/10 hover:-translate-y-1 transition-all duration-200 cursor-pointer h-full"
     >
-      {/* Image or Fallback */}
-      {topic.imageUrl ? (
-        <div className="w-full h-24 sm:h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
-          <img
-            src={topic.imageUrl}
-            alt={topic.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-      ) : (
-        <div className={`w-full h-24 sm:h-32 rounded-lg ${palette.bg} ${palette.border} border flex flex-col items-center justify-center relative overflow-hidden`}>
-          {/* Subtle decorative background circles */}
-          <div className={`absolute -right-4 -bottom-4 w-16 h-16 rounded-full border ${palette.border} opacity-10 pointer-events-none`} />
-          <div className={`absolute -left-2 -top-2 w-12 h-12 rounded-full border ${palette.border} opacity-10 pointer-events-none`} />
-          
-          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white dark:bg-zinc-900 shadow-xs border ${palette.border} flex items-center justify-center font-black text-lg sm:text-xl font-mono tracking-wider ${palette.text} mb-1.5 z-10`}>
-            {abbreviation}
-          </div>
-          <span className={`text-[9px] uppercase font-bold tracking-widest ${palette.text} opacity-80 z-10`}>
-            {topic.category || "NGỮ PHÁP"}
-          </span>
-        </div>
-      )}
+     
 
       {/* Category Badge */}
       <div className="inline-flex items-center gap-2 w-fit flex-wrap">

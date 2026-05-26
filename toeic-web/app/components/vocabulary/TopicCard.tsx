@@ -461,24 +461,19 @@ export default function TopicCard({ topic }: Props) {
   return (
     <>
       <Link href={`/vocabulary/${topic.topicGuid || topic.id}`}>
-      <div className={`bg-white dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl shadow-xs hover:shadow-xl dark:hover:shadow-2xl/40 border border-gray-200/70 dark:border-zinc-800/80 transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1.5 cursor-pointer ${
-        topic.currentLevel === 5 ? 'ring-1 ring-yellow-400/30' : ''
+      <div className={`bg-white dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl shadow-xs hover:shadow-xl dark:hover:shadow-2xl/40 border transition-all duration-300 overflow-hidden flex flex-col h-full group hover:-translate-y-1.5 cursor-pointer ${
+        topic.currentLevel === 5
+          ? 'border-yellow-500/30 dark:border-yellow-500/20 ring-1 ring-yellow-500/10'
+          : topic.canReviewNow
+          ? 'border-amber-500/30 dark:border-amber-500/20 ring-1 ring-amber-500/10'
+          : 'border-gray-200/70 dark:border-zinc-800/80'
       }`}>
-        {/* Top Gradient Border Accent - Dynamic based on state */}
-        <div className={`h-1.5 transition-all ${
-          topic.currentLevel === 5
-            ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-300'
-            : topic.canReviewNow
-            ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-300'
-            : 'bg-gradient-to-r from-blue-500 via-indigo-600 to-cyan-400'
-        }`}></div>
-
         <div className="p-5 sm:p-6 flex-1 flex flex-col">
           {/* Header: Icon + Level + Progress */}
           <div className="flex justify-between items-start mb-4 gap-3">
             <div className="flex items-start gap-3 sm:gap-4 flex-1">
               {/* Icon */}
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 group-hover:shadow-md transition-all flex-shrink-0">
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/40 group-hover:shadow-xs transition-all flex-shrink-0">
                 <div className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5">{icon}</div>
               </div>
               
@@ -500,6 +495,17 @@ export default function TopicCard({ topic }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Status Dot */}
+            <div className="flex-shrink-0 pt-1">
+              <span className={`flex h-2.5 w-2.5 rounded-full ${
+                topic.currentLevel === 5
+                  ? 'bg-yellow-500 shadow-xs shadow-yellow-500/50'
+                  : topic.canReviewNow
+                  ? 'bg-amber-500 shadow-xs shadow-amber-500/50 animate-pulse'
+                  : 'bg-blue-500'
+              }`} />
+            </div>
           </div>
           
           {/* Description */}
@@ -509,47 +515,37 @@ export default function TopicCard({ topic }: Props) {
             </p>
           )}
           
-          {/* PHASE 1: 5-Level SRS Progress Bar */}
+          {/* PHASE 1: Sleek Progress Segment Bar */}
           <div className="mt-auto">
             {/* Header: Current Level */}
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-1.5">
               <span className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400">Trạng thái ghi nhớ</span>
-              <span className="text-xs sm:text-sm font-extrabold text-blue-600 dark:text-blue-400">{topic.currentLevel}/5</span>
+              <span className={`text-xs sm:text-sm font-extrabold ${
+                topic.currentLevel === 5 ? 'text-yellow-600 dark:text-yellow-400' :
+                topic.canReviewNow ? 'text-amber-600 dark:text-amber-400' :
+                'text-blue-600 dark:text-blue-400'
+              }`}>{topic.currentLevel}/5</span>
             </div>
             
-            {/* 5-Block Progress Visualization - Custom Pill shapes */}
-            <div className="flex gap-1.5 mb-3.5">
-              {[1, 2, 3, 4, 5].map((level, idx) => {
-                const levelColors = {
-                  1: { light: 'from-teal-400 to-teal-500 border-teal-500 shadow-xs shadow-teal-500/20', dark: 'dark:from-teal-600 dark:to-teal-700 dark:border-teal-700' },
-                  2: { light: 'from-blue-500 to-blue-600 border-blue-500 shadow-xs shadow-blue-500/20', dark: 'dark:from-blue-600 dark:to-blue-700 dark:border-blue-700' },
-                  3: { light: 'from-indigo-500 to-indigo-600 border-indigo-500 shadow-xs shadow-indigo-500/20', dark: 'dark:from-indigo-600 dark:to-indigo-700 dark:border-indigo-700' },
-                  4: { light: 'from-orange-500 to-orange-600 border-orange-500 shadow-xs shadow-orange-500/20', dark: 'dark:from-orange-600 dark:to-orange-700 dark:border-orange-700' },
-                  5: { light: 'from-yellow-400 to-yellow-500 border-yellow-500 shadow-xs shadow-yellow-500/20', dark: 'dark:from-yellow-500 dark:to-yellow-600 dark:border-yellow-600' },
-                };
-                
-                const colors = levelColors[level as keyof typeof levelColors];
+            {/* 5-Segment Progress Bar */}
+            <div className="flex gap-1 h-2 w-full bg-gray-100 dark:bg-zinc-800/80 rounded-full mb-3.5 p-0.5"
+                 title={`Trạng thái: ${topic.currentLevel}/5`}>
+              {[1, 2, 3, 4, 5].map((level) => {
                 const isActive = level <= topic.currentLevel;
+                const activeColor = 
+                  topic.currentLevel === 5
+                    ? 'bg-yellow-500'
+                    : topic.canReviewNow
+                    ? 'bg-amber-500'
+                    : 'bg-blue-600 dark:bg-blue-500';
                 
                 return (
                   <div
                     key={level}
-                    className={`flex-1 h-5 sm:h-7.5 rounded-lg border transition-all duration-300 ${
-                      isActive
-                        ? `bg-linear-to-br ${colors.light} ${colors.dark} text-white`
-                        : 'bg-gray-50/50 dark:bg-zinc-800/40 border-gray-200 dark:border-zinc-800/80 text-gray-400 dark:text-zinc-600 hover:border-gray-300 dark:hover:border-zinc-700'
-                    } flex items-center justify-center text-[10px] sm:text-xs font-bold hover:scale-105 cursor-default`}
-                    style={{
-                      opacity: isActive ? 1 : 0.7,
-                    }}
-                    title={`Cấp độ ${level}${topic.wordCounts && topic.wordCounts[level] > 0 ? `: ${topic.wordCounts[level]} từ` : ''}`}
-                  >
-                    {isActive ? (
-                      <span className="text-[10px] sm:text-xs font-black">{level}</span>
-                    ) : (
-                      <span className="text-[9px] sm:text-[10px] font-bold opacity-40">{level}</span>
-                    )}
-                  </div>
+                    className={`flex-1 h-full transition-all duration-300 rounded-[2px] ${
+                      isActive ? activeColor : 'bg-transparent'
+                    }`}
+                  />
                 );
               })}
             </div>
@@ -607,12 +603,12 @@ export default function TopicCard({ topic }: Props) {
                 window.location.href = `/vocabulary/${topic.topicGuid || topic.id}`;
               }
             }}
-            className={`w-full py-2.5 px-4 text-white font-black rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 group/btn text-xs sm:text-sm cursor-pointer ${
+            className={`w-full py-2.5 px-4 font-black rounded-xl flex items-center justify-center gap-2 transition-all border active:scale-98 group/btn text-xs sm:text-sm cursor-pointer ${
               topic.currentLevel === 5
-                ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 shadow-sm shadow-yellow-500/10'
+                ? 'border-yellow-500/30 text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 hover:bg-yellow-500 hover:text-white dark:bg-yellow-500/10 dark:hover:bg-yellow-600 dark:hover:text-white shadow-xs'
                 : topic.canReviewNow
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm shadow-amber-500/10 animate-pulse'
-                : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-sm shadow-blue-500/10'
+                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-50/50 hover:bg-amber-500 hover:text-white dark:bg-amber-500/10 dark:hover:bg-amber-600 dark:hover:text-white shadow-xs animate-pulse'
+                : 'border-blue-600/30 text-blue-600 dark:text-blue-400 bg-blue-50/50 hover:bg-blue-600 hover:text-white dark:bg-blue-900/10 dark:hover:bg-blue-600 dark:hover:text-white shadow-xs'
             }`}
           >
             <PlayCircle size={16} className="group-hover/btn:scale-110 transition-transform" />

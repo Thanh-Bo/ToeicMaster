@@ -24,8 +24,6 @@ export function GrammarProgressTab({ period }: GrammarProgressTabProps) {
   const [stats, setStats] = useState<any>(null);
   const [streak, setStreak] = useState<any>(null);
 
-  
-
   useEffect(() => {
     if (user?.id) {
       loadData();
@@ -43,11 +41,9 @@ export function GrammarProgressTab({ period }: GrammarProgressTabProps) {
           grammarService.getGroupProgress(user!.id),
         ],
       );
-     
+
       setStats(statsData);
       setStreak(streakData);
-
-      
     } catch (error) {
       console.error("Error loading progress data:", error);
     } finally {
@@ -82,8 +78,6 @@ export function GrammarProgressTab({ period }: GrammarProgressTabProps) {
 
       {/* Stats Cards */}
       {stats && <StatsCards stats={stats} />}
-
-      
     </div>
   );
 }
@@ -105,8 +99,14 @@ function StreakCard({ streak }: { streak: any }) {
               {streak.currentStreak} ngày liên tục
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-              Kỷ lục: <span className="font-bold text-gray-700 dark:text-zinc-300">{streak.longestStreak} ngày</span> · Tổng:{" "}
-              <span className="font-bold text-gray-700 dark:text-zinc-300">{streak.totalStudyDays} ngày học</span>
+              Kỷ lục:{" "}
+              <span className="font-bold text-gray-700 dark:text-zinc-300">
+                {streak.longestStreak} ngày
+              </span>{" "}
+              · Tổng:{" "}
+              <span className="font-bold text-gray-700 dark:text-zinc-300">
+                {streak.totalStudyDays} ngày học
+              </span>
             </div>
           </div>
         </div>
@@ -127,7 +127,9 @@ function StreakCard({ streak }: { streak: any }) {
                 >
                   {day.charAt(0)}
                 </div>
-                <div className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 font-bold hidden sm:block">{day}</div>
+                <div className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 font-bold hidden sm:block">
+                  {day}
+                </div>
               </div>
             );
           })}
@@ -181,21 +183,45 @@ function StatsCards({ stats }: { stats: any }) {
       {/* Card 3: Accuracy Circular Gauge */}
       <div className="rounded-2xl border border-zinc-200/50 dark:border-zinc-800/40 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md p-4 sm:p-5 flex items-center gap-3 sm:gap-4 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.15)] transition-all duration-250 transform">
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="5" className="text-zinc-200 dark:text-zinc-800/80" fill="transparent" />
-            <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="5" className={`${
-              accuracy >= 75
-                ? "text-emerald-500 drop-shadow-[0_0_6px_rgba(16,185,129,0.15)]"
-                : accuracy >= 50
-                ? "text-sky-500 drop-shadow-[0_0_6px_rgba(14,165,233,0.15)]"
-                : "text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.15)]"
-            } transition-all duration-500`} fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * (accuracy / 100))} />
+          <svg
+            className="w-full h-full transform -rotate-90"
+            viewBox="0 0 100 100"
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="5"
+              className="text-zinc-200 dark:text-zinc-800/80"
+              fill="transparent"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="5"
+              className={`${
+                accuracy >= 75
+                  ? "text-emerald-500 drop-shadow-[0_0_6px_rgba(16,185,129,0.15)]"
+                  : accuracy >= 50
+                  ? "text-sky-500 drop-shadow-[0_0_6px_rgba(14,165,233,0.15)]"
+                  : "text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.15)]"
+              } transition-all duration-500`}
+              fill="transparent"
+              strokeDasharray="251.2"
+              strokeDashoffset={251.2 - 251.2 * (accuracy / 100)}
+            />
           </svg>
-          <span className="absolute text-sm sm:text-base font-black text-gray-900 dark:text-white font-mono">{accuracy}%</span>
+          <span className="absolute text-sm sm:text-base font-black text-gray-900 dark:text-white font-mono">
+            {accuracy}%
+          </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold">Độ chính xác</span>
-          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 leading-tight">Tỉ lệ trả lời đúng</span>
+          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold">
+            Độ chính xác
+          </span>
         </div>
       </div>
 
@@ -205,7 +231,10 @@ function StatsCards({ stats }: { stats: any }) {
           <div className="w-9 h-9 rounded-xl bg-purple-500/10 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3 border border-purple-500/10 dark:border-purple-900/20">
             <Clock className="w-5 h-5" />
           </div>
-          <div className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white font-mono truncate" title={stats.totalStudyTimeFormatted}>
+          <div
+            className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white font-mono truncate"
+            title={stats.totalStudyTimeFormatted}
+          >
             {stats.totalStudyTimeFormatted || "0m"}
           </div>
         </div>

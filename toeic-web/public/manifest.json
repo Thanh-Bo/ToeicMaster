@@ -1,7 +1,7 @@
 {
-  "name": "TOEIC Master - Luyện thi TOEIC",
-  "short_name": "TOEIC Master",
-  "description": "Ứng dụng luyện thi TOEIC với ngữ pháp, từ vựng và đề thi",
+  "name": "TOEIC Masters - Luyện TOEIC",
+  "short_name": "TOEIC Masters",
+  "description": "Ứng dụng luyện TOEIC với ngữ pháp, từ vựng, luyện đọc và luyện đề",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -56,22 +56,22 @@
   ],
   "shortcuts": [
     {
-      "name": "Luyện Grammar",
-      "short_name": "Grammar",
+      "name": "Luyện ngữ pháp",
+      "short_name": "Ngữ pháp",
       "description": "Luyện tập ngữ pháp TOEIC",
       "url": "/grammar",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Từ vựng",
-      "short_name": "Vocabulary",
+      "short_name": "Từ vựng",
       "description": "Học từ vựng TOEIC",
       "url": "/vocabulary",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Làm đề",
-      "short_name": "Practice",
+      "name": "Luyện đề",
+      "short_name": "Luyện đề",
       "description": "Luyện đề TOEIC",
       "url": "/practice",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]

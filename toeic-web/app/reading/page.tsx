@@ -49,15 +49,6 @@ const difficultyStyles: Record<string, string> = {
   hard: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
 
-const topicAccents = [
-  "border-t-blue-500",
-  "border-t-emerald-500",
-  "border-t-amber-500",
-  "border-t-cyan-500",
-  "border-t-rose-500",
-  "border-t-violet-500",
-];
-
 const getErrorMessage = (error: unknown, fallback: string) => {
   const apiError = error as { response?: { data?: { error?: string } } };
   return apiError.response?.data?.error || fallback;
@@ -309,18 +300,17 @@ export default function ReadingPage() {
                   const difficultyLabel = difficultyKey
                     ? difficultyLabels[difficultyKey] || difficultyKey
                     : "Chưa phân loại";
-                  const accent = topicAccents[index % topicAccents.length];
 
                   return (
                     <button
                       key={topic.id}
                       type="button"
                       onClick={() => router.push(`/reading/topics/${topic.id}`)}
-                      className={`group flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-gray-200 border-t-4 ${accent} bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70`}
+                      className="group flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70"
                     >
                       <div className="flex flex-1 flex-col p-5">
                         <div className="mb-5 flex items-start gap-4">
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/40 text-blue-600 dark:text-blue-400">
                             {topic.partType === 6 ? (
                               <FileText className="h-7 w-7" />
                             ) : (
@@ -365,8 +355,8 @@ export default function ReadingPage() {
                         )}
                       </div>
 
-                      <div className="border-t border-gray-100 p-5 dark:border-zinc-800">
-                        <span className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition group-hover:bg-blue-700">
+                      <div className="border-t border-gray-100 p-5 dark:border-zinc-800 bg-gray-50/30 dark:bg-zinc-900/30">
+                        <span className="inline-flex w-full items-center justify-center rounded-xl border border-blue-600/30 bg-blue-50/50 text-blue-600 dark:text-blue-400 px-4 py-3 text-sm font-black transition hover:bg-blue-600 hover:text-white dark:bg-blue-900/10 dark:hover:bg-blue-600 dark:hover:text-white">
                           Xem bài luyện
                         </span>
                       </div>

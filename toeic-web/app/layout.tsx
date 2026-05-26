@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TOEIC Masters",
-  description: "Ứng dụng luyện thi TOEIC với ngữ pháp, từ vựng và đề thi",
+  description: "Ứng dụng luyện TOEIC với ngữ pháp, từ vựng, luyện đọc và luyện đề",
   icons: {
     icon: "/logo.ico",
     apple: "/icons/icon-192x192.png",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "TOEIC Master",
+    title: "TOEIC Masters",
   },
 };
 
@@ -51,8 +51,8 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="TOEIC Master" />
-        <meta name="application-name" content="TOEIC Master" />
+        <meta name="apple-mobile-web-app-title" content="TOEIC Masters" />
+        <meta name="application-name" content="TOEIC Masters" />
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-tap-highlight" content="no" />
       </head>

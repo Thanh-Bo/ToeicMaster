@@ -2,31 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-import { useAuth } from "../../contexts/AuthContext";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import {
   ALargeSmall,
   BookOpen,
+  Crown,
   FileText,
   Library,
   LogOut,
-  Crown,
   MessageCircle,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext";
 
-// Load ThemeToggle dynamically with SSR disabled - to avoid ThemeProvider error on server
 const ThemeToggle = dynamic(
   () => import("../common/ThemeToggle").then((mod) => mod.default),
   {
     ssr: false,
-    loading: () => <div className="w-9 h-9" />, // Placeholder while loading
+    loading: () => <div className="w-9 h-9" />,
   },
 );
 
-// Load FeedbackModal dynamically
 const FeedbackModal = dynamic(
   () => import("../feedback/FeedbackModal").then((mod) => mod.default),
   {
@@ -42,19 +39,16 @@ interface NavLink {
 }
 
 interface Props {
-  /** Logo text - mặc định "TOEIC Master" */
   logoText?: string;
-  /** Các links hiển thị trên nav */
   navLinks?: NavLink[];
-  /** Có hiển thị các quick links mặc định không */
   showDefaultLinks?: boolean;
 }
 
 const defaultNavLinks: NavLink[] = [
-  { href: "/grammar", label: "Grammar", icon: Library },
-  { href: "/vocabulary", label: "Vocab", icon: ALargeSmall },
-  { href: "/practice", label: "Practice", icon: FileText },
-  { href: "/reading", label: "Reading", icon: BookOpen },
+  { href: "/grammar", label: "Ngữ pháp", icon: Library },
+  { href: "/vocabulary", label: "Từ vựng", icon: ALargeSmall },
+  { href: "/practice", label: "Luyện đề", icon: FileText },
+  { href: "/reading", label: "Luyện đọc", icon: BookOpen },
 ];
 
 export default function PageHeader({
@@ -76,22 +70,19 @@ export default function PageHeader({
   return (
     <header className="bg-white dark:bg-zinc-950 text-gray-700 dark:text-white sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-8">
-        {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">
           <div className="size-15 flex items-center justify-center">
-            <img src="/logo.ico" alt="TOEIC Master Logo" />
+            <img src="/logo.ico" alt="TOEIC Masters Logo" />
           </div>
           <span className="text-lg font-bold hidden sm:block">{logoText}</span>
         </Link>
 
-        {/* Middle: Navigation */}
         <nav className="flex items-center gap-8">
-          {/* Nav Links with Icons */}
           {links.map((link) => (
-            <Link 
+            <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-2  transition font-medium text-sm hidden md:flex"
+              className="flex items-center gap-2 transition font-medium text-sm hidden md:flex"
             >
               {link.icon && <link.icon className="w-5 h-5" />}
               <span>{link.label}</span>
@@ -99,7 +90,6 @@ export default function PageHeader({
           ))}
         </nav>
 
-        {/* Right: Actions */}
         {user ? (
           <div className="flex items-center gap-8 flex-shrink-0">
             <button
@@ -109,9 +99,9 @@ export default function PageHeader({
               <Crown size={16} />
               Nâng cấp PRO
             </button>
-          
-              <ThemeToggle />
-            {/* Feedback Button */}
+
+            <ThemeToggle />
+
             <button
               onClick={() => setShowFeedback(true)}
               className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition"
@@ -121,9 +111,6 @@ export default function PageHeader({
             </button>
             {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
 
-            {/* Notification Bell */}
-
-            {/* User Profile */}
             <Link
               href="/profile"
               className="flex items-center justify-center w-9 h-9 rounded-full text-white dark:text-gray-900 font-bold text-sm hover:opacity-80 transition overflow-hidden"
@@ -141,7 +128,6 @@ export default function PageHeader({
               )}
             </Link>
 
-            {/* Logout Button */}
             <div className="relative">
               <button
                 onClick={() => setShowLogoutConfirm((v) => !v)}
@@ -183,7 +169,6 @@ export default function PageHeader({
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-shrink-0">
-            
             <Link
               href="/login"
               className="border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg transition font-medium text-sm px-3 py-2"

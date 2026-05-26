@@ -16,9 +16,7 @@ interface FooterLink {
 }
 
 interface Props {
-  /** Các links footer */
   links?: FooterLink[];
-  /** Text copyright */
   copyright?: string;
 }
 
@@ -36,14 +34,12 @@ export default function Footer({
     <footer className="bg-white/80 dark:bg-zinc-950/60 backdrop-blur-md text-gray-700 dark:text-gray-400 py-10 mt-16 border-t border-gray-250/30 dark:border-zinc-900/60 transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
-          {/* Logo */}
           <div className="flex items-center gap-2">
             <span className="text-xl font-black text-blue-600 dark:text-blue-400">
               TOEIC Masters
             </span>
           </div>
 
-          {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             {links.map((link) => (
               <Link
@@ -60,7 +56,6 @@ export default function Footer({
           </div>
         </div>
 
-        {/* Copyright */}
         <div className="border-t border-zinc-150/40 dark:border-zinc-900/50 mt-8 pt-8 text-center text-xs sm:text-sm text-zinc-500 dark:text-zinc-550 font-medium">
           {copyright}
         </div>
