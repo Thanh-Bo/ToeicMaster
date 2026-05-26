@@ -17,9 +17,9 @@ public class SubscriptionPlanService : ISubscriptionPlanService
 {
     private static readonly SubscriptionPlan[] Plans =
     [
-        new("premium_1m", "Premium 1 Thang", 30000m, 1),
-        new("premium_3m", "Premium 3 Thang", 79000m, 3),
-        new("premium_6m", "Premium 6 Thang", 149000m, 6)
+        new("premium_1m", "PRO 1 Thang", 50000m, 1),
+        new("premium_3m", "PRO 3 Thang", 120000m, 3),
+        new("premium_12m", "PRO 12 Thang", 360000m, 12)
     ];
 
     public IReadOnlyCollection<SubscriptionPlan> GetPlans() => Plans;
