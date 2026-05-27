@@ -23,8 +23,12 @@ import {
 export default function HomePage() {
   const { user } = useAuth();
   const [testCount, setTestCount] = useState<number | null>(null);
-  const [grammarTopicsCount, setGrammarTopicsCount] = useState<number | null>(null);
-  const [grammarQuestionsCount, setGrammarQuestionsCount] = useState<number | null>(null);
+  const [grammarTopicsCount, setGrammarTopicsCount] = useState<number | null>(
+    null,
+  );
+  const [grammarQuestionsCount, setGrammarQuestionsCount] = useState<
+    number | null
+  >(null);
   const [vocabTopicsCount, setVocabTopicsCount] = useState<number | null>(null);
   const [vocabCount, setVocabCount] = useState<number | null>(null);
 
@@ -66,16 +70,21 @@ export default function HomePage() {
       title: "Ngữ pháp",
       description: "Ôn các điểm ngữ pháp thường gặp trong bài thi TOEIC.",
       href: "/grammar",
-      stat: grammarTopicsCount !== null ? `${grammarTopicsCount}+ chuyên đề` : "Đang cập nhật",
+      stat:
+        grammarTopicsCount !== null
+          ? `${grammarTopicsCount}+ chuyên đề`
+          : "Đang cập nhật",
       color: "text-blue-600 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/40",
     },
     {
       icon: ALargeSmall,
       title: "Từ vựng",
-      description: "Học từ theo nhóm nội dung quen thuộc trong môi trường TOEIC.",
+      description:
+        "Học từ theo nhóm nội dung quen thuộc trong môi trường TOEIC.",
       href: "/vocabulary",
       stat: vocabCount !== null ? `${vocabCount}+ từ vựng` : "Đang cập nhật",
-      color: "text-violet-600 bg-violet-50 dark:text-violet-300 dark:bg-violet-950/40",
+      color:
+        "text-violet-600 bg-violet-50 dark:text-violet-300 dark:bg-violet-950/40",
     },
     {
       icon: BookOpen,
@@ -83,7 +92,8 @@ export default function HomePage() {
       description: "Làm quen đoạn văn, câu hỏi và cách xử lý thông tin.",
       href: "/reading",
       stat: "Part 6 & Part 7",
-      color: "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40",
+      color:
+        "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40",
     },
     {
       icon: FileText,
@@ -91,7 +101,8 @@ export default function HomePage() {
       description: "Làm bài test TOEIC, xem kết quả và quay lại luyện thêm.",
       href: "/practice",
       stat: testCount !== null ? `${testCount}+ bài test` : "Đang cập nhật",
-      color: "text-emerald-600 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/40",
+      color:
+        "text-emerald-600 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/40",
     },
   ];
 
@@ -99,17 +110,20 @@ export default function HomePage() {
     {
       icon: PlayCircle,
       title: "Làm bài test TOEIC",
-      description: "Bắt đầu bằng bài luyện đề để kiểm tra mức độ quen với cấu trúc đề.",
+      description:
+        "Bắt đầu bằng bài luyện đề để kiểm tra mức độ quen với cấu trúc đề.",
     },
     {
       icon: Search,
       title: "Xem phần cần cải thiện",
-      description: "Dựa trên kết quả để chọn lại phần Ngữ pháp, Từ vựng, Luyện đọc hoặc Luyện đề.",
+      description:
+        "Dựa trên kết quả để chọn lại phần Ngữ pháp, Từ vựng, Luyện đọc hoặc Luyện đề.",
     },
     {
       icon: LineChart,
       title: "Theo dõi tiến độ học",
-      description: "Xem lịch sử làm bài và tiếp tục luyện tập theo nhịp học của bạn.",
+      description:
+        "Xem lịch sử làm bài và tiếp tục luyện tập theo nhịp học của bạn.",
     },
   ];
 
@@ -124,7 +138,8 @@ export default function HomePage() {
     },
     {
       label: "Câu hỏi ngữ pháp",
-      value: grammarQuestionsCount !== null ? `${grammarQuestionsCount}+` : "...",
+      value:
+        grammarQuestionsCount !== null ? `${grammarQuestionsCount}+` : "...",
     },
     {
       label: "Nhóm từ vựng",
@@ -149,7 +164,8 @@ export default function HomePage() {
                 TOEIC Masters
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 dark:text-zinc-400 sm:text-lg">
-                Luyện TOEIC theo từng phần: Ngữ pháp, Từ vựng, Luyện đọc và Luyện đề trong cùng một hệ thống.
+                Luyện TOEIC theo từng phần: Ngữ pháp, Từ vựng, Luyện đọc và
+                Luyện đề trong cùng một hệ thống.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -208,36 +224,30 @@ export default function HomePage() {
                         key={area.title}
                         className="rounded-lg border border-slate-200 p-4 dark:border-zinc-800"
                       >
-                        <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${area.color}`}>
+                        <div
+                          className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${area.color}`}
+                        >
                           <Icon className="h-5 w-5" />
                         </div>
-                        <p className="font-bold text-slate-950 dark:text-white">{area.title}</p>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">{area.stat}</p>
+                        <p className="font-bold text-slate-950 dark:text-white">
+                          {area.title}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">
+                          {area.stat}
+                        </p>
                       </div>
                     );
                   })}
-                </div>
-
-                <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-bold text-slate-950 dark:text-white">Bài test gần đây</p>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">
-                        Xem kết quả, quay lại câu sai và luyện tiếp.
-                      </p>
-                    </div>
-                    <BarChart2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="mt-4 h-2 rounded-full bg-slate-200 dark:bg-zinc-800">
-                    <div className="h-2 w-2/3 rounded-full bg-blue-600" />
-                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="practice-areas" className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
+        <section
+          id="practice-areas"
+          className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8"
+        >
           <div className="mb-8 max-w-2xl">
             <p className="text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">
               Các phần luyện tập
@@ -246,7 +256,8 @@ export default function HomePage() {
               Chọn đúng phần bạn cần luyện
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-zinc-400">
-              TOEIC Masters đặt các phần học chính vào cùng một hệ thống để bạn dễ quay lại và tiếp tục.
+              TOEIC Masters đặt các phần học chính vào cùng một hệ thống để bạn
+              dễ quay lại và tiếp tục.
             </p>
           </div>
 
@@ -259,15 +270,23 @@ export default function HomePage() {
                   href={area.href}
                   className="group rounded-lg border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg hover:shadow-slate-200/60 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-blue-900 dark:hover:shadow-black/20"
                 >
-                  <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg ${area.color}`}>
+                  <div
+                    className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg ${area.color}`}
+                  >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-extrabold text-slate-950 dark:text-white">{area.title}</h3>
+                    <h3 className="font-extrabold text-slate-950 dark:text-white">
+                      {area.title}
+                    </h3>
                     <ChevronIcon />
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-zinc-400">{area.description}</p>
-                  <p className="mt-4 text-xs font-bold text-slate-500 dark:text-zinc-500">{area.stat}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-zinc-400">
+                    {area.description}
+                  </p>
+                  <p className="mt-4 text-xs font-bold text-slate-500 dark:text-zinc-500">
+                    {area.stat}
+                  </p>
                 </Link>
               );
             })}
@@ -284,7 +303,8 @@ export default function HomePage() {
                 Làm bài, xem kết quả, luyện lại khi cần
               </h2>
               <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-zinc-400">
-                Người dùng thường có thể làm bài không giới hạn. Khi cần học kỹ từng câu, tài khoản PRO có thể xem phần giải thích chi tiết hơn.
+                Người dùng thường có thể làm bài không giới hạn. Khi cần học kỹ
+                từng câu, tài khoản PRO có thể xem phần giải thích chi tiết hơn.
               </p>
               <Link
                 href="/practice"
@@ -299,15 +319,24 @@ export default function HomePage() {
               {workflow.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
+                  <div
+                    key={item.title}
+                    className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40"
+                  >
                     <div className="mb-4 flex items-center justify-between">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <span className="text-xs font-bold text-slate-400">0{index + 1}</span>
+                      <span className="text-xs font-bold text-slate-400">
+                        0{index + 1}
+                      </span>
                     </div>
-                    <h3 className="font-extrabold text-slate-950 dark:text-white">{item.title}</h3>
-                    <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-zinc-400">{item.description}</p>
+                    <h3 className="font-extrabold text-slate-950 dark:text-white">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-zinc-400">
+                      {item.description}
+                    </p>
                   </div>
                 );
               })}
@@ -325,21 +354,26 @@ export default function HomePage() {
                 Không cần tách nhiều nơi học khác nhau
               </h2>
               <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-zinc-400">
-                Bạn có thể ôn nền tảng, luyện đọc, làm bài test và xem lại tiến độ trong cùng một tài khoản.
+                Bạn có thể ôn nền tảng, luyện đọc, làm bài test và xem lại tiến
+                độ trong cùng một tài khoản.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
                 <ClipboardList className="mb-4 h-6 w-6 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-extrabold text-slate-950 dark:text-white">Lịch sử làm bài</h3>
+                <h3 className="font-extrabold text-slate-950 dark:text-white">
+                  Lịch sử làm bài
+                </h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-zinc-400">
                   Xem lại các bài đã hoàn thành và tiếp tục luyện theo nhu cầu.
                 </p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
                 <BarChart2 className="mb-4 h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="font-extrabold text-slate-950 dark:text-white">Theo dõi tiến độ</h3>
+                <h3 className="font-extrabold text-slate-950 dark:text-white">
+                  Theo dõi tiến độ
+                </h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-zinc-400">
                   Nhìn lại kết quả học tập để biết phần nào nên luyện tiếp.
                 </p>
@@ -361,9 +395,16 @@ export default function HomePage() {
 
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {stats.map((item) => (
-                <div key={item.label} className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
-                  <p className="text-2xl font-extrabold text-slate-950 dark:text-white">{item.value}</p>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">{item.label}</p>
+                <div
+                  key={item.label}
+                  className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40"
+                >
+                  <p className="text-2xl font-extrabold text-slate-950 dark:text-white">
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -378,7 +419,8 @@ export default function HomePage() {
             Bắt đầu với phần bạn cần luyện hôm nay
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-zinc-400">
-            Chọn một bài test TOEIC hoặc quay lại phần Ngữ pháp, Từ vựng, Luyện đọc khi bạn cần ôn kỹ hơn.
+            Chọn một bài test TOEIC hoặc quay lại phần Ngữ pháp, Từ vựng, Luyện
+            đọc khi bạn cần ôn kỹ hơn.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link

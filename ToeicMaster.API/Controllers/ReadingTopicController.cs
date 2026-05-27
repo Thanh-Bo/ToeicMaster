@@ -326,6 +326,74 @@ public class ReadingTopicController : ReadingPracticeBaseController
         });
     }
 
+    [HttpPut("bulk")]
+    public async Task<IActionResult> UpdateTopicsBulk([FromBody] List<BulkUpdateReadingTopicItem> items)
+    {
+        if (!await IsAdminAsync())
+            return Forbid();
+
+        if (items == null || items.Count == 0)
+            return BadRequest(new { error = "Danh sách topic không được để trống." });
+
+        if (items.Count > 100)
+            return BadRequest(new { error = "Chỉ được cập nhật tối đa 100 topic mỗi lần." });
+
+        var ids = items.Select(i => i.Id).ToHashSet();
+        var topics = await _context.ReadingTopics
+            .Where(t => ids.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id);
+
+        var notFound = ids.Where(id => !topics.ContainsKey(id)).ToList();
+        if (notFound.Count > 0)
+            return NotFound(new
+            {
+                error = $"Không tìm thấy topic: {string.Join(", ", notFound)}",
+                notFound
+            });
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        foreach (var item in items)
+        {
+            var topic = topics[item.Id];
+
+            if (!string.IsNullOrWhiteSpace(item.Title))
+                topic.Title = item.Title.Trim();
+
+            if (item.Description != null)
+                topic.Description = string.IsNullOrWhiteSpace(item.Description) ? null : item.Description.Trim();
+
+            if (item.Difficulty != null)
+            {
+                var diff = ParseDifficultyFilter(item.Difficulty);
+                if (diff != null)
+                    topic.Difficulty = diff;
+                else if (IsAllFilter(item.Difficulty))
+                    topic.Difficulty = null;
+            }
+
+            if (item.DisplayOrder.HasValue)
+                topic.DisplayOrder = item.DisplayOrder.Value;
+        }
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return Ok(new
+        {
+            message = $"Đã cập nhật {items.Count} topic.",
+            count = items.Count,
+            items = items.Select(i => new
+            {
+                i.Id,
+                topics[i.Id].Title,
+                topics[i.Id].Description,
+                topics[i.Id].Difficulty,
+                topics[i.Id].DisplayOrder
+            })
+        });
+    }
+
     [HttpDelete("{topicId:int}/clear")]
     public async Task<IActionResult> ClearTopic(int topicId)
     {
@@ -426,4 +494,13 @@ public class UpsertReadingTopicRequest
     public string? Difficulty { get; set; }
     public int? DisplayOrder { get; set; }
     public bool? IsActive { get; set; }
+}
+
+public class BulkUpdateReadingTopicItem
+{
+    public int Id { get; set; }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public string? Difficulty { get; set; }
+    public int? DisplayOrder { get; set; }
 }

@@ -6,17 +6,20 @@ public class AiExplanationService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
+    private readonly string _model;
+    private const string BaseUrl = "https://api.deepseek.com/v1/chat/completions";
 
     public AiExplanationService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
-        // Lấy key an toàn từ file cấu hình
-        _apiKey = configuration["Gemini:ApiKey"];
+        _apiKey = configuration["DeepSeek:ApiKey"]!;
+        _model = configuration["DeepSeek:Model"] ?? "deepseek-v4-flash";
 
         if (string.IsNullOrEmpty(_apiKey))
-        {
-            throw new Exception("Chưa cấu hình API Key trong appsettings.json!");
-        }
+            throw new Exception("Chưa cấu hình DeepSeek:ApiKey trong appsettings.json!");
+
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
     }
 
     /// <summary>
@@ -256,10 +259,11 @@ Các đáp án:
         // Build prompt phù hợp với Part
         var prompt = BuildPromptByPart(partNumber, question, answers, transcript);
 
-        // Cấu trúc Body gửi lên Google Gemini
+        // Cấu trúc Body gửi lên DeepSeek (OpenAI format)
         var requestBody = new
         {
-            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+            model = _model,
+            messages = new[] { new { role = "user", content = prompt } },
         };
 
         var jsonContent = new StringContent(
@@ -268,33 +272,25 @@ Các đáp án:
             "application/json"
         );
 
-        var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
-
-        var response = await _httpClient.PostAsync(url, jsonContent);
+        var response = await _httpClient.PostAsync(BaseUrl, jsonContent);
 
         if (!response.IsSuccessStatusCode)
         {
-            // Đọc chi tiết lỗi Google trả về
             var errorContent = await response.Content.ReadAsStringAsync();
-            // Trả về nội dung lỗi để hiển thị lên màn hình
             return ($"Lỗi: {response.StatusCode}", $"Chi tiết: {errorContent}");
         }
 
         var responseString = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(responseString);
 
-        // Gemini trả về cấu trúc hơi sâu, cần trích xuất text ra
         try
         {
             var textResult = doc
-                .RootElement.GetProperty("candidates")[0]
+                .RootElement.GetProperty("choices")[0]
+                .GetProperty("message")
                 .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
                 .GetString();
 
-            // Cắt bỏ phần ```json nếu có
             textResult = textResult?.Replace("```json", "").Replace("```", "").Trim();
 
             // Parse JSON từ text của AI để lấy 2 trường Short/Full
@@ -319,10 +315,11 @@ Các đáp án:
         // Build prompt for vocabulary
         var prompt = BuildPromptForVocabulary(content, options, correctOption);
 
-        // Send to Gemini
+        // Send to DeepSeek
         var requestBody = new
         {
-            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+            model = _model,
+            messages = new[] { new { role = "user", content = prompt } },
         };
 
         var jsonContent = new StringContent(
@@ -331,10 +328,7 @@ Các đáp án:
             "application/json"
         );
 
-        var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
-
-        var response = await _httpClient.PostAsync(url, jsonContent);
+        var response = await _httpClient.PostAsync(BaseUrl, jsonContent);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -348,10 +342,9 @@ Các đáp án:
         try
         {
             var textResult = doc
-                .RootElement.GetProperty("candidates")[0]
+                .RootElement.GetProperty("choices")[0]
+                .GetProperty("message")
                 .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
                 .GetString();
 
             textResult = textResult?.Replace("```json", "").Replace("```", "").Trim();
@@ -503,7 +496,8 @@ Transcript:
 
         var requestBody = new
         {
-            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+            model = _model,
+            messages = new[] { new { role = "user", content = prompt } },
         };
 
         var jsonContent = new StringContent(
@@ -511,21 +505,18 @@ Transcript:
             Encoding.UTF8,
             "application/json"
         );
-        var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
 
-        var response = await _httpClient.PostAsync(url, jsonContent);
+        var response = await _httpClient.PostAsync(BaseUrl, jsonContent);
         if (!response.IsSuccessStatusCode)
-            throw new Exception($"Gemini lỗi: {response.StatusCode}");
+            throw new Exception($"DeepSeek lỗi: {response.StatusCode}");
 
         var responseString = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(responseString);
 
         var textResult = doc
-            .RootElement.GetProperty("candidates")[0]
+            .RootElement.GetProperty("choices")[0]
+            .GetProperty("message")
             .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
             .GetString()
             ?.Trim();
 

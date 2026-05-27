@@ -69,7 +69,7 @@ export default function PageHeader({
 
   return (
     <header className="bg-white dark:bg-zinc-950 text-gray-700 dark:text-white sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-800">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-8">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center gap-4 md:gap-6 lg:gap-8">
         <Link href="/" className="flex items-center gap-3 flex-shrink-0">
           <div className="size-15 flex items-center justify-center">
             <img src="/logo.ico" alt="TOEIC Masters Logo" />
@@ -77,12 +77,12 @@ export default function PageHeader({
           <span className="text-lg font-bold hidden sm:block">{logoText}</span>
         </Link>
 
-        <nav className="flex items-center gap-8">
+        <nav className="flex items-center gap-4 md:gap-6">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-2 transition font-medium text-sm hidden md:flex"
+              className="flex items-center gap-2 text-gray-600 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400 transition-colors font-medium text-sm hidden md:flex"
             >
               {link.icon && <link.icon className="w-5 h-5" />}
               <span>{link.label}</span>
@@ -91,7 +91,7 @@ export default function PageHeader({
         </nav>
 
         {user ? (
-          <div className="flex items-center gap-8 flex-shrink-0">
+          <div className="flex items-center gap-4 md:gap-6 flex-shrink-0">
             <button
               onClick={handleUpgradeClick}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-sm"
