@@ -35,6 +35,9 @@ public class VocabularyStatsController : ControllerBase
             if (currentUserId != userId)
                 return Forbid();
 
+            // Free users can only access "all" period
+            period = EnforcePeriodAccess(userId, period);
+
             // Tính ngày bắt đầu dựa trên period
             var now = DateTime.UtcNow;
             DateTime? startDate = period.ToLower() switch
@@ -225,6 +228,34 @@ public class VocabularyStatsController : ControllerBase
         return int.Parse(userIdClaim.Value);
     }
 
+    private bool IsPremiumUser(int userId)
+    {
+        var user = _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.IsPremium, u.PremiumExpiredAt, u.Role })
+            .FirstOrDefault();
+
+        return user?.Role == "Admin" ||
+               (user?.IsPremium == true &&
+                user.PremiumExpiredAt.HasValue &&
+                user.PremiumExpiredAt.Value > DateTime.UtcNow);
+    }
+
+    private string EnforcePeriodAccess(int userId, string period)
+    {
+        if (period == "all") return period;
+
+        var isPremium = IsPremiumUser(userId);
+        if (!isPremium)
+        {
+            _logger.LogInformation($"Free user {userId} attempted to access vocabulary period={period}, forcing to 'all'");
+            return "all";
+        }
+
+        return period;
+    }
+
     // Helper: Get or create streak record
     private async Task<UserVocabStreak> GetOrCreateStreak(int userId)
     {
@@ -289,6 +320,9 @@ public class VocabularyStatsController : ControllerBase
             var currentUserId = GetCurrentUserId();
             if (currentUserId != userId)
                 return Forbid();
+
+            // Free users can only access "all" period
+            period = EnforcePeriodAccess(userId, period);
 
             // Calculate start date based on period
             var now = DateTime.UtcNow;

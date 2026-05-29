@@ -34,6 +34,24 @@ namespace ToeicMaster.API.Controllers
         }
 
         /// <summary>
+        /// For free users, force period to "all" if they request a time-filtered period.
+        /// Only PRO users can access 7d/30d/90d/1y filters.
+        /// </summary>
+        private string EnforcePeriodAccess(int userId, string period)
+        {
+            if (period == "all") return period;
+
+            var isPremium = _grammarService.IsPremiumUser(userId);
+            if (!isPremium)
+            {
+                _logger.LogInformation($"Free user {userId} attempted to access period={period}, forcing to 'all'");
+                return "all";
+            }
+
+            return period;
+        }
+
+        /// <summary>
         /// GET /api/v1/users/{userId}/grammar/stats
         /// Get overall grammar statistics with time period filter
         /// </summary>
@@ -44,6 +62,9 @@ namespace ToeicMaster.API.Controllers
             {
                 if (!ValidateUserId(userId))
                     return Forbid();
+
+                // Free users can only access "all" period
+                period = EnforcePeriodAccess(userId, period);
 
                 var stats = await _grammarService.GetGrammarStatsAsync(userId, period);
                 return Ok(stats);
@@ -126,14 +147,17 @@ namespace ToeicMaster.API.Controllers
         /// Get progress for all groups with topics breakdown
         /// </summary>
         [HttpGet("groups")]
-        public async Task<IActionResult> GetGroupProgress(int userId)
+        public async Task<IActionResult> GetGroupProgress(int userId, [FromQuery] string period = "all")
         {
             try
             {
                 if (!ValidateUserId(userId))
                     return Forbid();
 
-                var groups = await _grammarService.GetGroupProgressAsync(userId);
+                // Free users can only access "all" period
+                period = EnforcePeriodAccess(userId, period);
+
+                var groups = await _grammarService.GetGroupProgressAsync(userId, period);
                 return Ok(groups);
             }
             catch (Exception ex)

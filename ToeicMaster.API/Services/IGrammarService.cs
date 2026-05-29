@@ -86,8 +86,13 @@ public interface IGrammarService
     Task<StreakInfoDto> GetStreakAsync(int userId);
     Task<HeatmapDataDto> GetHeatmapDataAsync(int userId, int weeks = 52);
     Task<TimeDistributionDto> GetTimeDistributionAsync(int userId, string period = "all");
-    Task<List<GroupProgressDto>> GetGroupProgressAsync(int userId);
+    Task<List<GroupProgressDto>> GetGroupProgressAsync(int userId, string period = "all");
     Task<TopicProgressDto?> GetTopicProgressAsync(int userId, int topicId);
     Task RecordStudySessionAsync(int userId, RecordStudySessionRequest request);
     Task UpdateDailyActivityAsync(int userId, DateTime date, Action<UserDailyActivity> updateAction);
+
+    // ==========================================
+    // USER STATUS
+    // ==========================================
+    bool IsPremiumUser(int? userId);
 }

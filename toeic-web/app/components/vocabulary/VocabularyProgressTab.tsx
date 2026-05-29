@@ -15,20 +15,22 @@ import {
   BookMarked,
   ChevronRight,
   Sparkles,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import type { VocabLevelAnalysis } from "@/app/types";
+import { ProFeatureModal } from "../grammar/ProFeatureModal";
 
 interface VocabularyProgressTabProps {
   period?: string;
 }
 
 const PERIODS = [
-  { value: "week", label: "7 ngày" },
-  { value: "month", label: "30 ngày" },
-  { value: "quarter", label: "90 ngày" },
-  { value: "year", label: "1 năm" },
-  { value: "all", label: "Tất cả" },
+  { value: "week", label: "7 ngày", requiresPro: true },
+  { value: "month", label: "30 ngày", requiresPro: true },
+  { value: "quarter", label: "90 ngày", requiresPro: true },
+  { value: "year", label: "1 năm", requiresPro: true },
+  { value: "all", label: "Tất cả", requiresPro: false },
 ];
 
 const LEVEL_COLORS = {
@@ -82,10 +84,12 @@ export function VocabularyProgressTab({
   period: initialPeriod,
 }: VocabularyProgressTabProps) {
   const { user } = useAuth();
+  const isPro = user?.isPremium === true;
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState(
-    initialPeriod || "month",
+    initialPeriod || (isPro ? "month" : "all"),
   );
+  const [showProModal, setShowProModal] = useState(false);
   const [stats, setStats] = useState<{
     totalTopicsLearned: number;
     totalVocabLearned: number;
@@ -105,6 +109,13 @@ export function VocabularyProgressTab({
       loadData();
     }
   }, [user?.id, selectedPeriod]);
+
+  // Force free users to "all" period
+  useEffect(() => {
+    if (!isPro && selectedPeriod !== "all") {
+      setSelectedPeriod("all");
+    }
+  }, [isPro, selectedPeriod]);
 
   const loadData = async () => {
     try {
@@ -147,7 +158,9 @@ export function VocabularyProgressTab({
     return (
       <div className="text-center py-16">
         <Loader className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-3" />
-        <p className="text-gray-500 dark:text-gray-400 font-semibold text-sm">Đang tải dữ liệu tiến trình...</p>
+        <p className="text-gray-500 dark:text-gray-400 font-semibold text-sm">
+          Đang tải dữ liệu tiến trình...
+        </p>
       </div>
     );
   }
@@ -164,21 +177,42 @@ export function VocabularyProgressTab({
 
   return (
     <div className="space-y-6">
+      <ProFeatureModal
+        isOpen={showProModal}
+        onClose={() => setShowProModal(false)}
+      />
+
       {/* Period Filter Switcher - iOS Pill Style */}
       <div className="inline-flex gap-1 p-1 bg-gray-100/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-xl border border-gray-200/50 dark:border-zinc-800/50">
-        {PERIODS.map((period) => (
-          <button
-            key={period.value}
-            onClick={() => setSelectedPeriod(period.value)}
-            className={`py-1.5 px-3.5 text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer ${
-              selectedPeriod === period.value
-                ? "bg-white dark:bg-zinc-850 text-blue-600 dark:text-blue-400 shadow-xs scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-            }`}
-          >
-            {period.label}
-          </button>
-        ))}
+        {PERIODS.map((period) => {
+          const isLocked = period.requiresPro && !isPro;
+          const isActive = selectedPeriod === period.value;
+
+          return (
+            <button
+              key={period.value}
+              onClick={() => {
+                if (isLocked) {
+                  setShowProModal(true);
+                  return;
+                }
+                setSelectedPeriod(period.value);
+              }}
+              className={`group inline-flex items-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer ${
+                isActive
+                  ? "bg-white dark:bg-zinc-850 text-blue-600 dark:text-blue-400 shadow-xs scale-[1.02]"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              }`}
+            >
+              <span>{period.label}</span>
+              {isLocked && (
+                <span className="w-0 opacity-0 group-hover:w-3 group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-200 overflow-hidden inline-flex items-center">
+                  <Lock className="w-3 h-3" />
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Streak Card */}
@@ -270,12 +304,11 @@ function LevelCard({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const colors = LEVEL_COLORS[data.level as keyof typeof LEVEL_COLORS] || LEVEL_COLORS.Basic;
+  const colors =
+    LEVEL_COLORS[data.level as keyof typeof LEVEL_COLORS] || LEVEL_COLORS.Basic;
 
   return (
-    <div
-      className="rounded-2xl border border-gray-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md overflow-hidden transition-all shadow-xs"
-    >
+    <div className="rounded-2xl border border-gray-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md overflow-hidden transition-all shadow-xs">
       {/* Level Header */}
       <button
         onClick={onToggle}
@@ -312,7 +345,11 @@ function LevelCard({
 
         {/* Stats */}
         <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wide">
-          Đã học: <span className="text-gray-900 dark:text-white font-black">{data.learnedVocab}</span> / {data.totalVocab} từ
+          Đã học:{" "}
+          <span className="text-gray-900 dark:text-white font-black">
+            {data.learnedVocab}
+          </span>{" "}
+          / {data.totalVocab} từ
         </p>
       </button>
 
@@ -344,7 +381,8 @@ function TopicRow({
   };
   level: string;
 }) {
-  const colors = LEVEL_COLORS[level as keyof typeof LEVEL_COLORS] || LEVEL_COLORS.Basic;
+  const colors =
+    LEVEL_COLORS[level as keyof typeof LEVEL_COLORS] || LEVEL_COLORS.Basic;
   const levelColors =
     LEVEL_COLORS_BY_NUMBER[
       topic.currentLevel as keyof typeof LEVEL_COLORS_BY_NUMBER
@@ -391,9 +429,13 @@ function TopicRow({
                   Giai đoạn {topic.currentLevel}/5
                 </span>
               </div>
-              
+
               <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500">
-                Đã thuộc: <span className="text-gray-700 dark:text-gray-300 font-extrabold">{topic.learnedVocab}</span>/{topic.totalVocab} từ
+                Đã thuộc:{" "}
+                <span className="text-gray-700 dark:text-gray-300 font-extrabold">
+                  {topic.learnedVocab}
+                </span>
+                /{topic.totalVocab} từ
               </span>
             </div>
           </div>
@@ -437,7 +479,6 @@ function StreakCard({
           <div>
             <div className="text-lg sm:text-xl font-black text-gray-900 dark:text-white flex items-center gap-1.5">
               <span>{streak.current} ngày liên tục</span>
-              <Sparkles size={16} className="text-yellow-500 animate-pulse" />
             </div>
             <div className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-0.5">
               Kỷ lục: {streak.longest} ngày • Hoạt động đều đặn để nhớ lâu hơn
@@ -470,14 +511,14 @@ function StreakCard({
         </div>
 
         {/* Right: CTA Button */}
-        <button 
+        <button
           onClick={() => {
             if (!streak.hasActivityToday) {
               window.location.reload();
             }
           }}
           className={`px-5 py-2.5 rounded-xl font-black transition-all duration-300 text-xs sm:text-sm shadow-xs ${
-            streak.hasActivityToday 
+            streak.hasActivityToday
               ? "bg-green-50/50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border border-green-200/50 dark:border-green-800/30 cursor-default"
               : "bg-blue-600 hover:bg-blue-700 text-white hover:scale-[1.02] active:scale-98 cursor-pointer"
           }`}

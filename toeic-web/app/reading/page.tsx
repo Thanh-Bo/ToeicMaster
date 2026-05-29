@@ -16,6 +16,7 @@ import {
   Search,
   TrendingUp,
   X,
+  Lock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "../components/layout";
@@ -23,6 +24,8 @@ import ReadingHistoryList from "../components/reading/ReadingHistoryList";
 import ReadingStatsView from "../components/reading/ReadingStatsView";
 import { readingService } from "../services/readingService";
 import type { ReadingHistoryItem, ReadingStats, ReadingTopic } from "../types";
+import { useAuth } from "../contexts/AuthContext";
+import { ProFeatureModal } from "../components/grammar/ProFeatureModal";
 
 const partOptions = [
   { value: "all", label: "Tất cả" },
@@ -56,6 +59,9 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 
 export default function ReadingPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isPro = user?.isPremium === true;
+
   const [activeTab, setActiveTab] = useState<"study" | "progress" | "history">("study");
   const [partType, setPartType] = useState("all");
   const [difficulty, setDifficulty] = useState("all");
@@ -66,32 +72,58 @@ export default function ReadingPage() {
   const [stats, setStats] = useState<ReadingStats | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
+  const [selectedPeriod, setSelectedPeriod] = useState(isPro ? "month" : "all");
+  const [showProModal, setShowProModal] = useState(false);
+
   useEffect(() => {
     let mounted = true;
 
-    const loadDashboard = async () => {
+    const loadHistory = async () => {
       try {
-        const [statsData, historyData] = await Promise.all([
-          readingService.getStats(),
-          readingService.getHistory(1, 50),
-        ]);
+        setLoadingHistory(true);
+        const historyData = await readingService.getHistory(1, 50);
         if (!mounted) return;
-        setStats(statsData);
         setHistory(historyData.items);
       } catch {
         if (!mounted) return;
-        setStats(null);
         setHistory([]);
       } finally {
         if (mounted) setLoadingHistory(false);
       }
     };
 
-    loadDashboard();
+    loadHistory();
     return () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadStats = async () => {
+      try {
+        const statsData = await readingService.getStats(selectedPeriod);
+        if (!mounted) return;
+        setStats(statsData);
+      } catch {
+        if (!mounted) return;
+        setStats(null);
+      }
+    };
+
+    loadStats();
+    return () => {
+      mounted = false;
+    };
+  }, [selectedPeriod]);
+
+  // Force free users to "all" period
+  useEffect(() => {
+    if (!isPro && selectedPeriod !== "all") {
+      setSelectedPeriod("all");
+    }
+  }, [isPro, selectedPeriod]);
 
   useEffect(() => {
     let mounted = true;
@@ -202,7 +234,53 @@ export default function ReadingPage() {
         </div>
 
         {activeTab === "progress" ? (
-          <ReadingStatsView stats={stats} />
+          <div className="space-y-6">
+            <ProFeatureModal
+              isOpen={showProModal}
+              onClose={() => setShowProModal(false)}
+            />
+            
+            {/* Period Filter Switcher - iOS Pill Style */}
+            <div className="inline-flex gap-1 p-1 bg-gray-100/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-xl border border-gray-200/50 dark:border-zinc-800/50 mb-2">
+              {[
+                { value: "week", label: "7 ngày", requiresPro: true },
+                { value: "month", label: "30 ngày", requiresPro: true },
+                { value: "quarter", label: "90 ngày", requiresPro: true },
+                { value: "year", label: "1 năm", requiresPro: true },
+                { value: "all", label: "Tất cả", requiresPro: false },
+              ].map((period) => {
+                const isLocked = period.requiresPro && !isPro;
+                const isActive = selectedPeriod === period.value;
+
+                return (
+                  <button
+                    key={period.value}
+                    type="button"
+                    onClick={() => {
+                      if (isLocked) {
+                        setShowProModal(true);
+                        return;
+                      }
+                      setSelectedPeriod(period.value);
+                    }}
+                    className={`group inline-flex items-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer ${
+                      isActive
+                        ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs scale-[1.02]"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    }`}
+                  >
+                    <span>{period.label}</span>
+                    {isLocked && (
+                      <span className="w-0 opacity-0 group-hover:w-3 group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-200 overflow-hidden inline-flex items-center">
+                        <Lock className="w-3 h-3" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <ReadingStatsView stats={stats} />
+          </div>
         ) : activeTab === "history" ? (
           <section>
             <div className="mb-4">

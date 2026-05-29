@@ -17,7 +17,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export function GroupAnalysis() {
+interface GroupAnalysisProps {
+  period?: string;
+}
+
+export function GroupAnalysis({ period = "all" }: GroupAnalysisProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState<any[]>([]);
@@ -31,13 +35,13 @@ export function GroupAnalysis() {
       console.log("No user ID, skipping load");
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, period]);
 
   const loadGroupProgress = async () => {
     try {
       setLoading(true);
-      console.log("Loading group progress for user:", user?.id);
-      const data = await grammarService.getGroupProgress(user!.id);
+      console.log("Loading group progress for user:", user?.id, "period:", period);
+      const data = await grammarService.getGroupProgress(user!.id, period);
       console.log("Group progress data:", data);
       setGroups(data || []);
       // Expand first group by default

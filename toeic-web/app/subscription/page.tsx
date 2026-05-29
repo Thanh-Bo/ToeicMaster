@@ -90,18 +90,18 @@ const proFeatures = [
   "Xem giải thích bài test chi tiết hơn",
   "Mở giải thích từ vựng đầy đủ hơn",
   "Mở giải thích ngữ pháp chi tiết hơn",
-  "Theo dõi tiến độ học rõ hơn",
-  "Hỗ trợ AI khi học bài",
-  "Không có quảng cáo",
+  "Mở giải thích bài đọc chi tiết hơn",
+  "Theo dõi tiến độ chi tiết (7 ngày - 1 năm)",
 ];
 
 const comparisonRows = [
   { label: "Làm bài TOEIC", free: "Có", pro: "Có" },
   { label: "Xem điểm và đáp án", free: "Có", pro: "Có" },
-  { label: "Giải thích bài test", free: "Một phần", pro: "Đầy đủ hơn" },
-  { label: "Giải thích từ vựng", free: "Một phần", pro: "Chi tiết hơn" },
-  { label: "Giải thích ngữ pháp", free: "Một phần", pro: "Chi tiết hơn" },
-  { label: "Theo dõi tiến độ", free: "Cơ bản", pro: "Đầy đủ hơn" },
+  { label: "Giải thích bài test", free: "Có", pro: "Có" },
+  { label: "Giải thích từ vựng", free: "Một phần", pro: "Toàn bộ" },
+  { label: "Giải thích ngữ pháp", free: "Một phần", pro: "Toàn bộ" },
+  { label: "Giải thích bài đọc", free: "Một phần", pro: "Toàn bộ" },
+  { label: "Theo dõi tiến độ", free: "Chỉ xem tổng quan", pro: "Chi tiết (7 ngày - 1 năm)" },
   { label: "Quảng cáo", free: "Có thể hiển thị", pro: "Không có" },
 ];
 

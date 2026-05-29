@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flame, CheckCircle, FileText, Award, Target, Clock, TrendingUp, AlertTriangle, Check, Circle } from "lucide-react";
+import { Flame, CheckCircle, FileText, Award, Target, Clock, TrendingUp, AlertTriangle, Check, Circle, Lock } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { ProFeatureModal } from "../../components/grammar/ProFeatureModal";
 import { statisticsService, DashboardStats, PartAnalysis, ProgressData, StreakData } from "../../services/statisticsService";
 
 interface PartsAnalysisResponse {
@@ -34,7 +36,11 @@ const PERIOD_LABELS: Record<PeriodType, string> = {
 };
 
 export default function ProgressTab() {
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("30days");
+  const { user } = useAuth();
+  const isPro = user?.isPremium === true;
+
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>(isPro ? "30days" : "alltime");
+  const [showProModal, setShowProModal] = useState(false);
   const [dashboard, setDashboard] = useState<DashboardStats | null>(null);
   const [partsData, setPartsData] = useState<PartsAnalysisResponse | null>(null);
   const [progressData, setProgressData] = useState<ProgressResponse | null>(null);
@@ -44,6 +50,13 @@ export default function ProgressTab() {
   useEffect(() => {
     loadAllStats();
   }, [selectedPeriod]);
+
+  // Force free users to "alltime" period
+  useEffect(() => {
+    if (!isPro && selectedPeriod !== "alltime") {
+      setSelectedPeriod("alltime");
+    }
+  }, [isPro, selectedPeriod]);
 
   const loadAllStats = async () => {
     setLoading(true);
@@ -98,22 +111,43 @@ export default function ProgressTab() {
 
   return (
     <div className="space-y-8">
+      <ProFeatureModal
+        isOpen={showProModal}
+        onClose={() => setShowProModal(false)}
+      />
+
       {/* Period Filter */}
       <div className="inline-flex w-full flex-wrap gap-2 p-1.5 bg-gray-100/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-zinc-800/50">
         <span className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 self-center px-3 py-1">Thời gian:</span>
-        {(Object.keys(PERIOD_LABELS) as PeriodType[]).map((period) => (
-          <button
-            key={period}
-            onClick={() => setSelectedPeriod(period)}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-              selectedPeriod === period
-                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
-            }`}
-          >
-            {PERIOD_LABELS[period]}
-          </button>
-        ))}
+        {(Object.keys(PERIOD_LABELS) as PeriodType[]).map((period) => {
+          const isLocked = period !== "alltime" && !isPro;
+          const isActive = selectedPeriod === period;
+
+          return (
+            <button
+              key={period}
+              onClick={() => {
+                if (isLocked) {
+                  setShowProModal(true);
+                  return;
+                }
+                setSelectedPeriod(period);
+              }}
+              className={`group inline-flex items-center px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                isActive
+                  ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/30 dark:hover:bg-zinc-800/60"
+              }`}
+            >
+              <span>{PERIOD_LABELS[period]}</span>
+              {isLocked && (
+                <span className="w-0 opacity-0 group-hover:w-3 group-hover:opacity-100 group-hover:ml-1 transition-all duration-200 overflow-hidden inline-flex items-center">
+                  <Lock className="w-3 h-3" />
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Streak */}

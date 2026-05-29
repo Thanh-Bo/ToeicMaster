@@ -7,6 +7,8 @@ import { grammarService } from "@/app/services/grammarService";
 import { GrammarTopicCard } from "@/app/components/grammar/GrammarTopicCard";
 import { GrammarProgressTab } from "@/app/components/grammar/GrammarProgressTab";
 import { GroupAnalysis } from "@/app/components/grammar/GroupAnalysis";
+import { ProFeatureModal } from "@/app/components/grammar/ProFeatureModal";
+import { useAuth } from "@/app/contexts/AuthContext";
 import type { GrammarTopic } from "@/app/types";
 import {
   Book,
@@ -30,6 +32,7 @@ import {
   FileText,
   ALargeSmall,
   Library,
+  Lock,
 } from "lucide-react";
 import { PageHeader } from "../components";
 
@@ -43,6 +46,9 @@ interface GrammarGroup {
 }
 
 export default function GrammarHub() {
+  const { user } = useAuth();
+  const isPro = user?.isPremium === true;
+
   const [groups, setGroups] = useState<GrammarGroup[]>([]);
   const [groupTopics, setGroupTopics] = useState<
     Record<string, GrammarTopic[]>
@@ -52,11 +58,19 @@ export default function GrammarHub() {
   const [activeTab, setActiveTab] = useState<"practice" | "progress">(
     "practice",
   );
-  const [progressPeriod, setProgressPeriod] = useState("30d");
+  const [progressPeriod, setProgressPeriod] = useState("all");
+  const [showProModal, setShowProModal] = useState(false);
 
   useEffect(() => {
     loadGroupsAndTopics();
   }, []);
+
+  // Force free users to "all" period
+  useEffect(() => {
+    if (!isPro && progressPeriod !== "all") {
+      setProgressPeriod("all");
+    }
+  }, [isPro, progressPeriod]);
 
   const loadGroupsAndTopics = async () => {
     try {
@@ -73,12 +87,15 @@ export default function GrammarHub() {
           data.map(async (group) => {
             expandedSet.add(group.groupGuid);
             try {
-              const topics = await grammarService.getTopicsByGroup(group.groupGuid);
+              const topics = await grammarService.getTopicsByGroup(
+                group.groupGuid,
+              );
               // Add groupGuid to each topic for navigation
-              const topicsWithGroupGuid = topics?.map(topic => ({
-                ...topic,
-                groupGuid: group.groupGuid
-              })) || [];
+              const topicsWithGroupGuid =
+                topics?.map((topic) => ({
+                  ...topic,
+                  groupGuid: group.groupGuid,
+                })) || [];
               topicsMap[group.groupGuid] = topicsWithGroupGuid;
             } catch (error) {
               console.error(
@@ -153,6 +170,11 @@ export default function GrammarHub() {
         ]}
       />
 
+      <ProFeatureModal
+        isOpen={showProModal}
+        onClose={() => setShowProModal(false)}
+      />
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
         <div className="flex justify-start mb-6 sm:mb-8">
@@ -191,31 +213,47 @@ export default function GrammarHub() {
                 Thời gian:
               </span>
               {[
-                { value: "7d", label: "7 ngày" },
-                { value: "30d", label: "30 ngày" },
-                { value: "90d", label: "90 ngày" },
-                { value: "1y", label: "1 năm" },
-                { value: "all", label: "Tất cả" },
-              ].map((period) => (
-                <button
-                  key={period.value}
-                  onClick={() => setProgressPeriod(period.value)}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                    progressPeriod === period.value
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
-                  }`}
-                >
-                  {period.label}
-                </button>
-              ))}
+                { value: "7d", label: "7 ngày", requiresPro: true },
+                { value: "30d", label: "30 ngày", requiresPro: true },
+                { value: "90d", label: "90 ngày", requiresPro: true },
+                { value: "1y", label: "1 năm", requiresPro: true },
+                { value: "all", label: "Tất cả", requiresPro: false },
+              ].map((period) => {
+                const isLocked = period.requiresPro && !isPro;
+                const isActive = progressPeriod === period.value;
+
+                return (
+                  <button
+                    key={period.value}
+                    onClick={() => {
+                      if (isLocked) {
+                        setShowProModal(true);
+                        return;
+                      }
+                      setProgressPeriod(period.value);
+                    }}
+                    className={`group inline-flex items-center px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
+                      isActive
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                    }`}
+                  >
+                    <span>{period.label}</span>
+                    {isLocked && (
+                      <span className="w-0 opacity-0 group-hover:w-3 group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-200 overflow-hidden inline-flex items-center">
+                        <Lock className="w-3 h-3" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Progress Stats */}
             <GrammarProgressTab period={progressPeriod} />
 
             {/* Group Analysis */}
-            <GroupAnalysis />
+            <GroupAnalysis period={progressPeriod} />
           </div>
         ) : (
           /* Practice Tab - Grammar Groups */
@@ -259,15 +297,17 @@ export default function GrammarHub() {
                         className="w-full flex items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-6 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors"
                       >
                         {/* Icon */}
-                        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          group.order === 1 
-                            ? "bg-blue-50 dark:bg-blue-950/30" 
-                            : group.order === 2 
-                            ? "bg-amber-50 dark:bg-amber-950/30" 
-                            : group.order === 3 
-                            ? "bg-purple-50 dark:bg-purple-950/30" 
-                            : "bg-gray-100 dark:bg-zinc-800"
-                        }`}>
+                        <div
+                          className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            group.order === 1
+                              ? "bg-blue-50 dark:bg-blue-950/30"
+                              : group.order === 2
+                              ? "bg-amber-50 dark:bg-amber-950/30"
+                              : group.order === 3
+                              ? "bg-purple-50 dark:bg-purple-950/30"
+                              : "bg-gray-100 dark:bg-zinc-800"
+                          }`}
+                        >
                           {getGroupIcon(group.order)}
                         </div>
 
@@ -277,15 +317,17 @@ export default function GrammarHub() {
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
                               {group.title}
                             </h3>
-                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit ${
-                              group.order === 1 
-                                ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" 
-                                : group.order === 2 
-                                ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400" 
-                                : group.order === 3 
-                                ? "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400" 
-                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                            }`}>
+                            <span
+                              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit ${
+                                group.order === 1
+                                  ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+                                  : group.order === 2
+                                  ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
+                                  : group.order === 3
+                                  ? "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                              }`}
+                            >
                               {group.totalTopics} chủ đề
                             </span>
                           </div>

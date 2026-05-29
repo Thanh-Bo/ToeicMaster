@@ -1355,7 +1355,7 @@ public class GrammarService : IGrammarService
         };
     }
 
-    private bool IsPremiumUser(int? userId)
+    public bool IsPremiumUser(int? userId)
     {
         if (!userId.HasValue)
             return false;
@@ -1691,10 +1691,21 @@ public class GrammarService : IGrammarService
         }
     }
 
-    public async Task<List<GroupProgressDto>> GetGroupProgressAsync(int userId)
+    public async Task<List<GroupProgressDto>> GetGroupProgressAsync(int userId, string period = "all")
     {
         try
         {
+            // Calculate start date based on period
+            var endDate = DateTime.UtcNow;
+            DateTime? startDate = period.ToLower() switch
+            {
+                "7d" or "7days" => endDate.AddDays(-7),
+                "30d" or "30days" => endDate.AddDays(-30),
+                "90d" or "90days" => endDate.AddDays(-90),
+                "1y" or "1year" => endDate.AddYears(-1),
+                _ => null
+            };
+
             var groups = await _context.GrammarGroups.OrderBy(g => g.Order).ToListAsync();
             var result = new List<GroupProgressDto>();
 
@@ -1704,7 +1715,17 @@ public class GrammarService : IGrammarService
                 var topicIds = topics.Select(t => t.Id).ToList();
                 var grammars = await _context.Grammars.Where(g => topicIds.Contains(g.TopicId)).ToListAsync();
                 var grammarIds = grammars.Select(g => g.Id).ToList();
-                var userGrammars = await _context.UserGrammars.Where(ug => ug.UserId == userId && grammarIds.Contains(ug.GrammarId)).ToListAsync();
+
+                var userGrammarsQuery = _context.UserGrammars
+                    .Where(ug => ug.UserId == userId && grammarIds.Contains(ug.GrammarId));
+
+                // Apply period filter to UserGrammars
+                if (startDate.HasValue)
+                {
+                    userGrammarsQuery = userGrammarsQuery.Where(ug => ug.LastReviewedAt >= startDate.Value);
+                }
+
+                var userGrammars = await userGrammarsQuery.ToListAsync();
 
                 var totalLessons = grammars.Count;
                 // Fix: Use Distinct to avoid counting duplicate grammar entries

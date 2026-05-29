@@ -326,8 +326,8 @@ export const grammarService = {
    * Get progress for all groups with topics breakdown
    * GET /api/v1/users/{userId}/grammar/stats/groups
    */
-  getGroupProgress: async (userId: number): Promise<any[]> => {
-    const response = await axiosClient.get(`/users/${userId}/grammar/stats/groups`);
+  getGroupProgress: async (userId: number, period: string = "all"): Promise<any[]> => {
+    const response = await axiosClient.get(`/users/${userId}/grammar/stats/groups`, { params: { period } });
     return response.data || [];
   },
 

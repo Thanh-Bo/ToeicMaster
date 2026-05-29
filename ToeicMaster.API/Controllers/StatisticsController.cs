@@ -19,6 +19,33 @@ public class StatisticsController : ControllerBase
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private bool IsPremiumUser(int userId)
+    {
+        var user = _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.IsPremium, u.PremiumExpiredAt, u.Role })
+            .FirstOrDefault();
+
+        return user?.Role == "Admin" ||
+               (user?.IsPremium == true &&
+                user.PremiumExpiredAt.HasValue &&
+                user.PremiumExpiredAt.Value > DateTime.UtcNow);
+    }
+
+    private string EnforcePeriodAccess(int userId, string period)
+    {
+        if (period == "alltime") return period;
+
+        var isPremium = IsPremiumUser(userId);
+        if (!isPremium)
+        {
+            return "alltime";
+        }
+
+        return period;
+    }
     
     /// <summary>
     /// Helper: Tính startDate dựa vào period
@@ -42,6 +69,7 @@ public class StatisticsController : ControllerBase
     public async Task<IActionResult> GetDashboard([FromQuery] string period = "30days")
     {
         var userId = GetUserId();
+        period = EnforcePeriodAccess(userId, period);
         var startDate = GetStartDate(period);
 
         // Thống kê bài thi
@@ -129,6 +157,7 @@ public class StatisticsController : ControllerBase
     public async Task<IActionResult> GetPartsAnalysis([FromQuery] string period = "30days")
     {
         var userId = GetUserId();
+        period = EnforcePeriodAccess(userId, period);
         var startDate = GetStartDate(period);
 
         // Lấy answers của user trong các bài thi (filtered)
@@ -225,6 +254,7 @@ public class StatisticsController : ControllerBase
     public async Task<IActionResult> GetProgressChart([FromQuery] string period = "30days")
     {
         var userId = GetUserId();
+        period = EnforcePeriodAccess(userId, period);
         var startDate = GetStartDate(period).Date;
 
         // Điểm các bài thi theo ngày

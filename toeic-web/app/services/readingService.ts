@@ -113,8 +113,10 @@ export const readingService = {
     return response.data;
   },
 
-  getStats: async (): Promise<ReadingStats> => {
-    const response = await axiosClient.get("/reading-practice/stats");
+  getStats: async (period: string = "all"): Promise<ReadingStats> => {
+    const response = await axiosClient.get("/reading-practice/stats", {
+      params: { period }
+    });
     return response.data;
   },
 };
