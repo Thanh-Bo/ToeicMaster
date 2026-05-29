@@ -152,12 +152,14 @@ public abstract class ReadingPracticeBaseController : ControllerBase
         return new
         {
             topic.Id,
+            topic.PublicId,
             topic.Title,
             topic.Description,
             topic.PartType,
             topic.Difficulty,
             topic.DisplayOrder,
             topic.IsActive,
+            topic.IsPremiumRequired,
             topic.CreatedAt,
             PassageCount = passageCount,
             QuestionCount = questionCount
@@ -212,6 +214,7 @@ public abstract class ReadingPracticeBaseController : ControllerBase
         return new
         {
             SessionId = session.Id,
+            PublicId = session.PublicId,
             session.Status,
             session.TotalPassages,
             session.TotalQuestions,

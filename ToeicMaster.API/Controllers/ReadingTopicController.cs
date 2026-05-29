@@ -47,16 +47,60 @@ public class ReadingTopicController : ReadingPracticeBaseController
         return Ok(topics.Select(t => new
         {
             t.Id,
+            t.PublicId,
             t.Title,
             t.Description,
             t.PartType,
             t.Difficulty,
             t.DisplayOrder,
+            t.IsPremiumRequired,
             PassageCount = t.Passages.Count,
             QuestionCount = t.Passages.Sum(p => p.Questions.Count)
         }));
     }
 
+    /// <summary>
+    /// GET /api/v1/reading-practice/topics/{topicGuid:guid}
+    /// Public route — dùng UUID cho frontend
+    /// </summary>
+    [HttpGet("{topicGuid:guid}")]
+    public async Task<IActionResult> GetTopicByGuid(Guid topicGuid)
+    {
+        var topic = await _context.ReadingTopics
+            .AsNoTracking()
+            .Include(t => t.Passages.Where(p => p.IsActive))
+                .ThenInclude(p => p.Questions)
+            .FirstOrDefaultAsync(t => t.PublicId == topicGuid && t.IsActive);
+
+        if (topic == null)
+            return NotFound(new { error = "Không tìm thấy topic Reading." });
+
+        return Ok(BuildTopicDetailResponse(topic));
+    }
+
+#if DEBUG
+    /// <summary>
+    /// GET /api/v1/reading-practice/topics/internal/{topicId:int}
+    /// Internal route — dùng int cho Postman test
+    /// </summary>
+    [HttpGet("internal/{topicId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetTopicById(int topicId)
+    {
+        var topic = await _context.ReadingTopics
+            .AsNoTracking()
+            .Include(t => t.Passages.Where(p => p.IsActive))
+                .ThenInclude(p => p.Questions)
+            .FirstOrDefaultAsync(t => t.Id == topicId && t.IsActive);
+
+        if (topic == null)
+            return NotFound(new { error = "Không tìm thấy topic Reading." });
+
+        return Ok(BuildTopicDetailResponse(topic));
+    }
+#endif
+
+    [Obsolete("Use GetTopicByGuid instead. Kept for backward compat.")]
     [HttpGet("{topicId:int}")]
     public async Task<IActionResult> GetTopic(int topicId)
     {
@@ -69,12 +113,18 @@ public class ReadingTopicController : ReadingPracticeBaseController
         if (topic == null)
             return NotFound(new { error = "Không tìm thấy topic Reading." });
 
+        return Ok(BuildTopicDetailResponse(topic));
+    }
+
+    private object BuildTopicDetailResponse(ReadingTopic topic)
+    {
         var passages = topic.Passages
             .OrderBy(p => p.DisplayOrder)
             .ThenBy(p => p.Id)
             .Select(p => new
             {
                 p.Id,
+                p.PublicId,
                 p.Title,
                 p.PartType,
                 p.Difficulty,
@@ -83,18 +133,20 @@ public class ReadingTopicController : ReadingPracticeBaseController
                 ShortDescription = BuildShortDescription(p.TextContent)
             });
 
-        return Ok(new
+        return new
         {
             topic.Id,
+            topic.PublicId,
             topic.Title,
             topic.Description,
             topic.PartType,
             topic.Difficulty,
             topic.DisplayOrder,
+            topic.IsPremiumRequired,
             PassageCount = topic.Passages.Count,
             QuestionCount = topic.Passages.Sum(p => p.Questions.Count),
             Passages = passages
-        });
+        };
     }
 
     [HttpPost]
@@ -242,6 +294,27 @@ public class ReadingTopicController : ReadingPracticeBaseController
             message = topic.IsActive ? "Đã kích hoạt topic." : "Đã vô hiệu hóa topic.",
             topicId,
             isActive = topic.IsActive
+        });
+    }
+
+    [HttpPatch("{topicId:int}/toggle-premium")]
+    public async Task<IActionResult> ToggleTopicPremium(int topicId)
+    {
+        if (!await IsAdminAsync())
+            return Forbid();
+
+        var topic = await _context.ReadingTopics.FindAsync(topicId);
+        if (topic == null)
+            return NotFound(new { error = "Không tìm thấy topic Reading." });
+
+        topic.IsPremiumRequired = !topic.IsPremiumRequired;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = topic.IsPremiumRequired ? "Đã đặt topic thành Premium." : "Đã đặt topic thành Free.",
+            topicId,
+            isPremiumRequired = topic.IsPremiumRequired
         });
     }
 

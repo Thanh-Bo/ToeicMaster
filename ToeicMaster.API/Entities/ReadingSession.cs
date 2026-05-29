@@ -7,6 +7,8 @@ public partial class ReadingSession
 {
     public int Id { get; set; }
 
+    public Guid PublicId { get; set; } = Guid.NewGuid();
+
     public int UserId { get; set; }
 
     public int TotalPassages { get; set; }

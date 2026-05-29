@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ChevronLeft, ChevronRight, Send } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import toast from "react-hot-toast";
 import ReadingPassageView from "@/app/components/reading/ReadingPassageView";
 import ReadingQuestionList from "@/app/components/reading/ReadingQuestionList";
@@ -18,13 +18,14 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 export default function ReadingSessionPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.sessionId as string;
+  const topicGuid = params.topicGuid as string;
+  const sessionGuid = params.sessionGuid as string;
 
   const [session, setSession] = useState<ReadingSession | null>(null);
   const [result, setResult] = useState<ReadingSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
+  const [currentPassageIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
@@ -33,7 +34,7 @@ export default function ReadingSessionPage() {
 
     const loadSession = async () => {
       try {
-        const data = await readingService.getSession(sessionId);
+        const data = await readingService.getSession(sessionGuid);
         if (!mounted) return;
         setSession(data);
         setElapsedSeconds(data.timeSpentSeconds || 0);
@@ -58,7 +59,7 @@ export default function ReadingSessionPage() {
     return () => {
       mounted = false;
     };
-  }, [router, sessionId]);
+  }, [router, sessionGuid]);
 
   useEffect(() => {
     if (!session || session.status === "completed") return;
@@ -170,7 +171,7 @@ export default function ReadingSessionPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => router.push(`/reading/topics/${params.topicId}`)}
+              onClick={() => router.push(`/reading/topics/${topicGuid}`)}
               className="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900 transition cursor-pointer"
               title="Quay lại"
             >
@@ -179,7 +180,7 @@ export default function ReadingSessionPage() {
             <div>
               <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Luyện tập Reading</span>
               <h1 className="text-xl font-extrabold text-gray-950 dark:text-white leading-tight mt-0.5">
-                {"Phiên luyện tập #" + session.sessionId}
+                Phiên luyện tập Reading
               </h1>
             </div>
           </div>
@@ -199,7 +200,7 @@ export default function ReadingSessionPage() {
           </div>
         </div>
 
-        {isCompleted && <div className="mb-6"><ReadingResultView session={session} result={result} topicId={params.topicId as string} /></div>}
+        {isCompleted && <div className="mb-6"><ReadingResultView session={session} result={result} topicId={topicGuid} /></div>}
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
           <ReadingPassageView

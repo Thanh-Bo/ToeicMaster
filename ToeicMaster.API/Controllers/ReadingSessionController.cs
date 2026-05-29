@@ -121,6 +121,55 @@ public class ReadingSessionController : ReadingPracticeBaseController
         return Ok(BuildSessionResponse(session, includeReview: false, canViewExplanation: false));
     }
 
+    /// <summary>
+    /// GET /api/v1/reading-practice/{sessionGuid:guid}
+    /// Public route — dùng UUID cho frontend
+    /// </summary>
+    [HttpGet("{sessionGuid:guid}")]
+    public async Task<IActionResult> GetSessionByGuid(Guid sessionGuid)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user == null)
+            return Unauthorized();
+
+        var session = await _context.ReadingSessions
+            .Include(s => s.ReadingSessionPassages)
+                .ThenInclude(sp => sp.Passage)
+                    .ThenInclude(p => p.Questions)
+                        .ThenInclude(q => q.Answers)
+            .Include(s => s.ReadingSessionAnswers)
+            .FirstOrDefaultAsync(s => s.PublicId == sessionGuid && s.UserId == user.Id);
+
+        if (session == null)
+            return NotFound(new { error = "Không tìm thấy phiên Reading." });
+
+        var includeReview = session.Status == "completed";
+        return Ok(BuildSessionResponse(session, includeReview, CanViewDetailedExplanation(user)));
+    }
+
+#if DEBUG
+    /// <summary>
+    /// GET /api/v1/reading-practice/internal/{sessionId:int}
+    /// Internal route — dùng int cho Postman test
+    /// </summary>
+    [HttpGet("internal/{sessionId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetSessionById(int sessionId)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user == null)
+            return Unauthorized();
+
+        var session = await LoadSessionAsync(sessionId, user.Id);
+        if (session == null)
+            return NotFound(new { error = "Không tìm thấy phiên Reading." });
+
+        var includeReview = session.Status == "completed";
+        return Ok(BuildSessionResponse(session, includeReview, CanViewDetailedExplanation(user)));
+    }
+#endif
+
+    [Obsolete("Use GetSessionByGuid instead. Kept for backward compat.")]
     [HttpGet("{sessionId:int}")]
     public async Task<IActionResult> GetSession(int sessionId)
     {

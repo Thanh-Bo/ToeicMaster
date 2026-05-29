@@ -208,4 +208,30 @@ export const adminService = {
       throw error;
     }
   },
+
+  // ==========================================
+  // READING TOPIC MANAGEMENT
+  // ==========================================
+
+  getReadingTopics: async (partType?: string, difficulty?: string): Promise<any[]> => {
+    const response = await axiosClient.get("/reading-practice/topics", {
+      params: { partType: partType || "all", difficulty: difficulty || "all" },
+    });
+    return response.data || [];
+  },
+
+  toggleReadingTopicActive: async (topicId: number): Promise<any> => {
+    const response = await axiosClient.patch(`/reading-practice/topics/${topicId}/toggle-active`);
+    return response.data;
+  },
+
+  toggleReadingTopicPremium: async (topicId: number): Promise<any> => {
+    const response = await axiosClient.patch(`/reading-practice/topics/${topicId}/toggle-premium`);
+    return response.data;
+  },
+
+  deleteReadingTopic: async (topicId: number): Promise<any> => {
+    const response = await axiosClient.delete(`/reading-practice/topics/${topicId}`);
+    return response.data;
+  },
 };

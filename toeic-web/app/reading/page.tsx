@@ -9,6 +9,7 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
+  Crown,
   FileText,
   History,
   Layers,
@@ -383,7 +384,7 @@ export default function ReadingPage() {
                     <button
                       key={topic.id}
                       type="button"
-                      onClick={() => router.push(`/reading/topics/${topic.id}`)}
+                      onClick={() => router.push(`/reading/topics/${topic.publicId ?? topic.id}`)}
                       className="group flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70"
                     >
                       <div className="flex flex-1 flex-col p-5">
@@ -398,6 +399,9 @@ export default function ReadingPage() {
                           <div className="min-w-0">
                             <h3 className="line-clamp-2 text-lg font-black leading-snug text-gray-950 dark:text-white">
                               {topic.title}
+                              {topic.isPremiumRequired && (
+                                <Crown className="inline-block ml-1.5 h-4 w-4 text-yellow-500" />
+                              )}
                             </h3>
                             <div className="mt-2 flex flex-wrap gap-2">
                               <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-black text-blue-600 dark:text-blue-400">

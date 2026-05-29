@@ -65,7 +65,7 @@ namespace ToeicMaster.API.Controllers
                 _dbContext.Transactions.Add(transaction);
                 await _dbContext.SaveChangesAsync();
 
-                var paymentDescription = $"TOEIC TX{transaction.Id}";
+                var paymentDescription = $"TOEIC {Guid.NewGuid().ToString("N")[..8].ToUpper()}";
                 var frontendUrl = GetFrontendUrl();
                 var payOsData = await _paymentService.CreatePaymentLinkAsync(
                     transaction.Id,

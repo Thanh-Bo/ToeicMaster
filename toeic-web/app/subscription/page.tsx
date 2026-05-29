@@ -410,6 +410,36 @@ export default function PaymentPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Bank Info Card */}
+              <div className="w-full mt-4 bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
+                <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
+                  Thông tin tài khoản nhận
+                </p>
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">Ngân hàng</span>
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
+                      <img src="/images/bidv.png" alt="BIDV" className="h-5 w-auto rounded" />
+                     
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">Chủ tài khoản</span>
+                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">NGUYEN VAN THANH</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">Số tài khoản</span>
+                    <button
+                      onClick={() => copyToClipboard("8898926919", "số tài khoản")}
+                      className="inline-flex items-center gap-1.5 font-mono font-semibold text-zinc-800 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      8898 9269 19
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>

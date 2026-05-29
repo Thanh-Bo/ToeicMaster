@@ -145,8 +145,12 @@ export default function VocabularyTest({
       setExplanation(null);
     } else {
       setExplanation({
-        short: currentQuestion.shortExplanation || "Không có giải thích",
-        long: currentQuestion.longExplanation || "",
+        short: (currentQuestion.shortExplanation && currentQuestion.shortExplanation !== "null")
+          ? currentQuestion.shortExplanation
+          : "Không có giải thích",
+        long: (currentQuestion.longExplanation && currentQuestion.longExplanation !== "null")
+          ? currentQuestion.longExplanation
+          : "",
       });
     }
   };
@@ -387,12 +391,12 @@ export default function VocabularyTest({
                       className="text-xs sm:text-sm text-gray-800 dark:text-gray-300 leading-relaxed font-medium prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400"
                       dangerouslySetInnerHTML={{ __html: explanation.short }}
                     />
-                    {explanation.long && (
+                    {/* {explanation.long && (
                       <div
                         className="text-xs sm:text-sm text-gray-650 dark:text-gray-400 leading-relaxed border-t border-blue-100/50 dark:border-blue-900/20 pt-2 mt-2"
                         dangerouslySetInnerHTML={{ __html: explanation.long }}
                       />
-                    )}
+                    )} */}
                   </div>
                 ) : (
                   <p className="text-xs text-gray-500 dark:text-gray-400 italic pl-4">

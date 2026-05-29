@@ -663,6 +663,7 @@ export interface ReadingPassage {
 
 export interface ReadingLesson {
   id: number;
+  publicId?: string;
   topicId?: number | null;
   title: string | null;
   partType: number;
@@ -673,6 +674,7 @@ export interface ReadingLesson {
 
 export interface ReadingTopic {
   id: number;
+  publicId?: string;
   title: string;
   description?: string | null;
   partType: number;
@@ -680,6 +682,8 @@ export interface ReadingTopic {
   displayOrder: number;
   passageCount: number;
   questionCount: number;
+  isPremiumRequired?: boolean;
+  isActive?: boolean;
 }
 
 export interface ReadingTopicDetail extends ReadingTopic {
@@ -688,6 +692,7 @@ export interface ReadingTopicDetail extends ReadingTopic {
 
 export interface ReadingSession {
   sessionId: number;
+  publicId?: string;
   status: "in_progress" | "completed" | string;
   totalPassages: number;
   totalQuestions: number;

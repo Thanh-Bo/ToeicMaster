@@ -7,6 +7,8 @@ public partial class ReadingPassage
 {
     public int Id { get; set; }
 
+    public Guid PublicId { get; set; } = Guid.NewGuid();
+
     public int? TopicId { get; set; }
 
     public string? Title { get; set; }

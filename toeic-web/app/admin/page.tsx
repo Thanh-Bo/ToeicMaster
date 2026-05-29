@@ -28,8 +28,9 @@ import VocabularyTab from "../components/admin/VocabularyTab";
 import FeedbackTab from "../components/admin/FeedbackTab";
 import TestActionsTab from "../components/admin/TestActionsTab";
 import GrammarAdminTab from "../components/admin/GrammarAdminTab";
+import ReadingAdminTab from "../components/admin/ReadingAdminTab";
 
-type Tab = "dashboard" | "users" | "tests" | "questions" | "vocabulary" | "grammar" | "test-actions" | "feedback";
+type Tab = "dashboard" | "users" | "tests" | "questions" | "vocabulary" | "grammar" | "reading" | "test-actions" | "feedback";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -432,8 +433,9 @@ export default function AdminPage() {
             { key: "tests", label: "Quản lý Đề thi", icon: FileText },
             { key: "questions", label: "Quản lý Câu hỏi", icon: HelpCircle },
             { key: "vocabulary", label: "Quản lý Vocabulary", icon: BookOpen },
-            { key: "feedback", label: "Quản lý Feedback", icon: MessageSquare },
             { key: "grammar", label: "Quản lý Grammar", icon: Library },
+            { key: "reading", label: "Quản lý Reading", icon: FileText },
+            { key: "feedback", label: "Quản lý Feedback", icon: MessageSquare },
           ].map((item) => {
             const IconComponent = item.icon;
             return (
@@ -489,8 +491,9 @@ export default function AdminPage() {
           <option value="tests">Quản lý Đề thi</option>
           <option value="questions">Quản lý Câu hỏi</option>
           <option value="vocabulary">Quản lý Vocabulary</option>
-          <option value="feedback">Quản lý Feedback</option>
           <option value="grammar">Quản lý Grammar</option>
+          <option value="reading">Quản lý Reading</option>
+          <option value="feedback">Quản lý Feedback</option>
         </select>
       </div>
 
@@ -550,6 +553,12 @@ export default function AdminPage() {
                 <>
                   <Library size={24} className="sm:w-7 sm:h-7" />
                   Quản lý Grammar
+                </>
+              )}
+              {activeTab === "reading" && (
+                <>
+                  <BookOpen size={24} className="sm:w-7 sm:h-7" />
+                  Quản lý Reading
                 </>
               )}
               {activeTab === "feedback" && (
@@ -631,6 +640,9 @@ export default function AdminPage() {
 
             {/* Grammar Tab */}
             {activeTab === "grammar" && <GrammarAdminTab />}
+
+            {/* Reading Tab */}
+            {activeTab === "reading" && <ReadingAdminTab />}
 
             {/* Feedback Tab */}
             {activeTab === "feedback" && <FeedbackTab />}

@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, Crown, XCircle } from "lucide-react";
+import Link from "next/link";
 import type { ReadingPassage } from "../../types";
 
 interface Props {
@@ -98,9 +99,28 @@ export default function ReadingQuestionList({
                   </span>
                 </div>
                 {question.explanationLocked && (
-                  <p className="mt-2 font-semibold text-amber-600 dark:text-amber-400">
-                    Chi tiết lời giải chỉ hiển thị với tài khoản Premium.
-                  </p>
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/50 dark:bg-amber-950/10">
+                    <div className="flex items-center gap-2.5 text-sm font-bold text-amber-800 dark:text-amber-300 mb-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                        <Crown className="h-4 w-4" />
+                      </div>
+                      Cần Premium để xem giải thích chi tiết
+                    </div>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-400/70 leading-relaxed pl-10 mb-3">
+                      Bạn vẫn có thể luyện tập câu hỏi này bình thường. Hãy nâng cấp
+                      tài khoản Premium để mở khóa lời giải thích chi tiết, mẹo làm
+                      bài, và bản dịch trọn vẹn.
+                    </p>
+                    <div className="pl-10">
+                      <Link
+                        href="/subscription"
+                        className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-amber-600"
+                      >
+                        <Crown className="h-3.5 w-3.5" />
+                        Nâng cấp ngay
+                      </Link>
+                    </div>
+                  </div>
                 )}
                 {question.shortExplanation && (
                   <div className="mt-3 border-t border-gray-100 pt-2.5 dark:border-zinc-800/40 leading-relaxed">

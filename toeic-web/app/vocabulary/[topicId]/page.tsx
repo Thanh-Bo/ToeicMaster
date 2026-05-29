@@ -700,7 +700,7 @@ export default function TopicStudyPage() {
                 // Level up khi hoàn thành Matching Game (OR logic - chỉ cần 1 trong 2)
                 try {
                   await vocabularyService.levelUp(Number(topicId));
-                  toast.success("🎉 Chúc mừng! Bạn đã hoàn thành Ghép thẻ và được tăng level!");
+                  toast.success("Chúc mừng! Bạn đã hoàn thành Ghép thẻ và được tăng level!");
                 } catch (error) {
                   console.error("Error updating level:", error);
                   toast.success("Hoàn thành Ghép thẻ!");
@@ -708,7 +708,7 @@ export default function TopicStudyPage() {
                 setPhase("TEST");
               }}
               onSkip={() => {
-                if (confirm("⚠️ Bạn có chắc chắn muốn bỏ qua phần luyện tập?")) {
+                if (confirm("Bạn có chắc chắn muốn bỏ qua phần luyện tập?")) {
                   setPhase("TEST");
                 }
               }}
@@ -729,7 +729,7 @@ export default function TopicStudyPage() {
                   toast.success("Hoàn thành Kiểm tra!");
                 } else {
                   // Level up từ Test (chưa làm Matching Game)
-                  toast.success("🎉 Chúc mừng! Bạn đã hoàn thành Kiểm tra và được tăng level!");
+                  toast.success("Chúc mừng! Bạn đã hoàn thành Kiểm tra và được tăng level!");
                 }
                 setPhase("COMPLETED");
               }}

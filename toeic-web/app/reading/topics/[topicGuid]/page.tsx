@@ -36,7 +36,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 export default function ReadingTopicPage() {
   const params = useParams();
   const router = useRouter();
-  const topicId = params.topicId as string;
+  const topicGuid = params.topicGuid as string;
 
   const [topic, setTopic] = useState<ReadingTopicDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +47,7 @@ export default function ReadingTopicPage() {
 
     const loadTopic = async () => {
       try {
-        const data = await readingService.getTopic(topicId);
+        const data = await readingService.getTopic(topicGuid);
         if (!mounted) return;
         setTopic(data);
       } catch (error: unknown) {
@@ -63,13 +63,13 @@ export default function ReadingTopicPage() {
     return () => {
       mounted = false;
     };
-  }, [router, topicId]);
+  }, [router, topicGuid]);
 
   const startLesson = async (passageId: number) => {
     try {
       setStartingId(passageId);
       const session = await readingService.startLesson(passageId);
-      router.push(`/reading/topics/${topicId}/practice/${session.sessionId}`);
+      router.push(`/reading/topics/${topicGuid}/practice/${session.publicId ?? session.sessionId}`);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Không thể bắt đầu bài Reading."));
     } finally {
