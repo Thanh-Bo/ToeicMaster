@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHeader, Footer } from "./components/layout";
+import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { useAuth } from "./contexts/AuthContext";
 import { overallStatsService } from "./services/overallStatsService";
 import {
@@ -228,9 +229,7 @@ export default function HomePage() {
                       Hôm nay nên luyện gì?
                     </h2>
                   </div>
-                  <div className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white">
-                    TOEIC
-                  </div>
+                  
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -458,6 +457,7 @@ export default function HomePage() {
         </section>
       </main>
 
+      <PWAInstallBanner />
       <Footer className="mt-0" />
     </div>
   );
