@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Check, Clock, Star, Flame, BookOpen, Gamepad2, Library, SkipForward } from 'lucide-react';
+import { Check, Clock, Menu, Star, Flame, BookOpen, Gamepad2, Library, SkipForward } from 'lucide-react';
 import { VocabWord } from '@/app/types';
 
 const BATCH_SIZE = 6;
@@ -258,9 +258,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
             className="xs:hidden flex-shrink-0 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all cursor-pointer"
             title="Xem chỉ số"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -270,16 +268,16 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
         
         {/* SIDEBAR - Stats & Controls */}
         <div className={`flex-shrink-0 rounded-2xl p-3 flex flex-col gap-3 overflow-y-auto border border-gray-200/50 dark:border-zinc-850 transition-all duration-300 bg-white/70 dark:bg-zinc-900/50 backdrop-blur-md ${
-          sidebarOpen ? 'w-32 xs:w-36 sm:w-44' : 'w-0 overflow-hidden p-0 border-0'
+          sidebarOpen ? 'w-32 xs:w-36 sm:w-44 flex-shrink-0' : 'hidden'
         }`}>
           
           {/* Time widget */}
-          <div className="bg-purple-50/50 dark:bg-purple-950/20 p-2.5 rounded-xl text-center border border-purple-200/50 dark:border-purple-900/30">
-            <p className="text-[10px] sm:text-xs font-bold text-purple-700 dark:text-purple-400 flex items-center justify-center gap-1">
-              <Clock size={12} className="text-purple-500" />
+          <div className="bg-blue-50/50 dark:bg-blue-950/20 p-2.5 rounded-xl text-center border border-blue-200/50 dark:border-blue-900/30">
+            <p className="text-[10px] sm:text-xs font-bold text-blue-700 dark:text-blue-400 flex items-center justify-center gap-1">
+              <Clock size={12} className="text-blue-500" />
               <span>Thời gian</span>
             </p>
-            <p className="text-base sm:text-lg font-black text-purple-800 dark:text-purple-300 mt-1 select-none tabular-nums">
+            <p className="text-base sm:text-lg font-black text-blue-800 dark:text-blue-300 mt-1 select-none tabular-nums">
               {Math.floor(timeElapsed/60)}:{(timeElapsed % 60).toString().padStart(2, '0')}
             </p>
           </div>
@@ -312,7 +310,7 @@ export default function MatchingGame({ words, onComplete, onSkip }: Props) {
               <Check size={12} className="text-emerald-500" />
               <span>Tiến độ</span>
             </p>
-            <p className="text-sm sm:text-base font-black text-emerald-850 dark:text-emerald-300 mt-1 text-center">
+            <p className="text-sm sm:text-base font-black text-emerald-800 dark:text-emerald-300 mt-1 text-center">
               {matchedCount}/{currentBatchSize}
             </p>
             <div className="w-full bg-emerald-200/60 dark:bg-emerald-800/40 rounded-full h-1.5 mt-2">

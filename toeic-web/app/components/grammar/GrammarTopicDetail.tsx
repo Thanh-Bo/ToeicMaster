@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Grammar, QuestionGrammar } from "@/app/types";
 import { GrammarLessonTab } from "./GrammarLessonTab";
 import { GrammarPracticeTab } from "./GrammarPracticeTab";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 interface GrammarTopicDetailProps {
   grammar: Grammar;
@@ -31,6 +32,8 @@ export function GrammarTopicDetail({
   questionsLoading = false,
   questionsLocked = false,
 }: GrammarTopicDetailProps) {
+  const { user } = useAuth();
+  const isPro = user?.isPremium === true || user?.role?.toLowerCase() === "admin";
   const [activeTab, setActiveTab] = useState<TabType>("lesson");
   const [selectedMode, setSelectedMode] = useState<'easy' | 'medium' | 'hard'>('medium');
 
@@ -92,7 +95,7 @@ export function GrammarTopicDetail({
                 Độ khó: {grammar.difficulty}/5
               </span>
             )}
-            {grammar.isQuestionsPremiumRequired && (
+            {grammar.isQuestionsPremiumRequired && !isPro && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 border border-yellow-300/30 dark:border-yellow-500/20 flex-shrink-0">
                 <Crown className="h-3.5 w-3.5" />
                 Premium

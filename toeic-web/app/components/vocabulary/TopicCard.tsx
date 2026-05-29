@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 import { 
   FileSignature,
@@ -80,6 +81,8 @@ const playSound = (type: 'ready' | 'levelup' | 'unlock') => {
 };
 
 export default function TopicCard({ topic }: Props) {
+  const { user } = useAuth();
+  const isPro = user?.isPremium === true || user?.role?.toLowerCase() === "admin";
  
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -489,7 +492,7 @@ export default function TopicCard({ topic }: Props) {
                   }`}>
                     {topic.level}
                   </span>
-                  {topic.isExplanationPremiumRequired && (
+                  {topic.isExplanationPremiumRequired && !isPro && (
                     <Crown className="h-3.5 w-3.5 text-yellow-500 animate-pulse" />
                   )}
                 </div>

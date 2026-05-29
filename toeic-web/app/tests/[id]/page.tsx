@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { testService } from "@/app/services/testService";
 import { CommentSection } from "@/app/components/comments/CommentSection";
 import Link from "next/link";
-import { ArrowLeft, Clock, CheckSquare, Square, Check } from "lucide-react";
+import { ArrowLeft, Clock, CheckSquare, Square, Check, Headphones, BookOpen } from "lucide-react";
 import { PageHeader } from "@/app/components";
 
 const PARTS = [
@@ -17,6 +17,16 @@ const PARTS = [
   { id: 6, name: "Part 6: Text Completion" },
   { id: 7, name: "Part 7: Reading Comprehension" },
 ];
+
+const PART_METADATA: Record<number, { type: 'listening' | 'reading', icon: any, label: string }> = {
+  1: { type: 'listening', icon: Headphones, label: "Listening" },
+  2: { type: 'listening', icon: Headphones, label: "Listening" },
+  3: { type: 'listening', icon: Headphones, label: "Listening" },
+  4: { type: 'listening', icon: Headphones, label: "Listening" },
+  5: { type: 'reading', icon: BookOpen, label: "Reading" },
+  6: { type: 'reading', icon: BookOpen, label: "Reading" },
+  7: { type: 'reading', icon: BookOpen, label: "Reading" },
+};
 
 const DURATIONS = [
   { label: "Mặc định (120 phút)", value: 120 },
@@ -86,61 +96,68 @@ export default function TestOverviewPage() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
       <PageHeader />
-      <div className="max-w-3xl mx-auto space-y-6 px-4 py-10">
+      <div className="max-w-3xl mx-auto space-y-4 px-4 py-4 sm:py-6">
         {/* Header Card */}
-        <div className="bg-white/70 dark:bg-zinc-950/40 backdrop-blur-md border border-gray-200/50 dark:border-zinc-800/40 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.02)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.15)]">
           {/* Top bar */}
-          <div className="px-6 py-6 sm:px-8 sm:pt-8 sm:pb-6 border-b border-gray-200/50 dark:border-zinc-800/40">
+          <div className="px-5 py-4 sm:px-6 sm:pt-5 sm:pb-4 border-b border-gray-100 dark:border-zinc-800/50">
             <Link
               href="/practice"
-              className="inline-flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition mb-5"
+              className="inline-flex items-center gap-1.5 text-xs text-zinc-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 font-bold uppercase tracking-wider transition mb-2.5"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               Quay lại danh sách đề
             </Link>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
               {testInfo?.title}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
-              200 câu hỏi · 7 Parts
-            </p>
+            <div className="flex flex-wrap gap-2 mt-2.5">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-900/30">
+                200 câu hỏi
+              </span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30">
+                7 Parts
+              </span>
+            </div>
           </div>
 
-          <div className="p-6 sm:p-8 space-y-6 sm:space-y-8">
+          <div className="p-5 sm:p-6 space-y-5 sm:space-y-6">
             {/* Chọn Parts */}
             <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              <div className="flex justify-between items-center mb-2.5">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
                   Chọn phần luyện tập
                 </h3>
                 <button
                   onClick={handleToggleAll}
-                  className="inline-flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition"
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition"
                 >
                   {toggleAll ? (
                     <>
-                      <Square className="w-4 h-4" /> Bỏ chọn tất cả
+                      <Square className="w-3.5 h-3.5" /> Bỏ chọn tất cả
                     </>
                   ) : (
                     <>
-                      <CheckSquare className="w-4 h-4" /> Chọn tất cả
+                      <CheckSquare className="w-3.5 h-3.5" /> Chọn tất cả
                     </>
                   )}
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {PARTS.map((part) => {
                   const checked = selectedParts.includes(part.id);
+                  const meta = PART_METADATA[part.id];
+                  const IconComponent = meta.icon;
                   return (
                     <label
                       key={part.id}
-                      className={`flex items-center gap-3 p-3 sm:p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                      className={`group flex items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-xl border cursor-pointer transition-all duration-200 active:scale-[0.99] ${
                         checked
-                          ? "border-blue-500/40 dark:border-blue-400/40 bg-blue-50/50 dark:bg-blue-950/20"
-                          : "border-gray-200/60 dark:border-zinc-800/60 text-gray-600 dark:text-gray-400 hover:border-blue-500/20 dark:hover:border-blue-400/20 hover:bg-gray-50/50 dark:hover:bg-zinc-900/40"
+                          ? "border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 text-blue-900 dark:text-blue-100"
+                          : "border-gray-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 text-gray-700 dark:text-gray-400 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50/50 dark:hover:bg-zinc-900/70"
                       }`}
                     >
                       <input
@@ -149,28 +166,28 @@ export default function TestOverviewPage() {
                         onChange={() => togglePart(part.id)}
                         className="hidden"
                       />
-                      <span
-                        className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all ${
-                          checked
-                            ? "bg-blue-600 dark:bg-blue-500 shadow-sm shadow-blue-500/20 text-white"
-                            : "border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-                        }`}
-                      >
-                        {checked && (
-                          <Check
-                            className="w-3.5 h-3.5 stroke-[3] text-white"
-                          />
-                        )}
-                      </span>
-                      <span
-                        className={`text-sm font-semibold transition-colors ${
-                          checked
-                            ? "text-blue-700 dark:text-blue-300"
-                            : "text-gray-600 dark:text-gray-400"
-                        }`}
-                      >
-                        {part.name}
-                      </span>
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className={`w-4.5 h-4.5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                            checked
+                              ? "bg-blue-600 text-white"
+                              : "border-2 border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 group-hover:border-gray-400"
+                          }`}
+                        >
+                          {checked && (
+                            <Check
+                              className="w-3 h-3 stroke-[3] text-white"
+                            />
+                          )}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-xs sm:text-sm font-bold tracking-tight">{part.name}</span>
+                          <span className="text-[9px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5 uppercase tracking-wider">
+                            <IconComponent className="w-3 h-3 flex-shrink-0" />
+                            {meta.label}
+                          </span>
+                        </div>
+                      </div>
                     </label>
                   );
                 })}
@@ -179,33 +196,37 @@ export default function TestOverviewPage() {
 
             {/* Chọn Thời gian */}
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Clock className="w-4.5 h-4.5 text-gray-400 dark:text-gray-500" />
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2.5 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-500" />
                 Giới hạn thời gian
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {DURATIONS.map((d) => (
-                  <button
-                    key={d.value}
-                    onClick={() => setDuration(d.value)}
-                    className={`p-3 rounded-xl border text-xs sm:text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] ${
-                      duration === d.value
-                        ? "bg-blue-600 dark:bg-blue-500 text-white border-transparent shadow-md shadow-blue-500/10"
-                        : "border-gray-250/50 dark:border-zinc-800/50 bg-gray-100/50 dark:bg-zinc-800/40 text-gray-600 dark:text-gray-400 hover:border-blue-500/30 dark:hover:border-blue-400/30 hover:bg-white dark:hover:bg-zinc-850"
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {DURATIONS.map((d) => {
+                  const active = duration === d.value;
+                  return (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => setDuration(d.value)}
+                      className={`py-2 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-200 active:scale-[0.97] ${
+                        active
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                          : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50/50 dark:hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Start Button */}
             <button
               onClick={handleStart}
-              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-3.5 sm:py-4 rounded-xl text-base shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-3 rounded-xl text-sm transition-all duration-200 shadow-md shadow-blue-600/10 hover:shadow-lg hover:shadow-blue-600/20 active:scale-[0.99] tracking-wider uppercase"
             >
-              BẮT ĐẦU LÀM BÀI
+              Bắt đầu làm bài
             </button>
           </div>
         </div>

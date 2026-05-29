@@ -399,7 +399,7 @@ export default function ReadingPage() {
                           <div className="min-w-0">
                             <h3 className="line-clamp-2 text-lg font-black leading-snug text-gray-950 dark:text-white">
                               {topic.title}
-                              {topic.isPremiumRequired && (
+                              {topic.isPremiumRequired && !isPro && (
                                 <Crown className="inline-block ml-1.5 h-4 w-4 text-yellow-500" />
                               )}
                             </h3>

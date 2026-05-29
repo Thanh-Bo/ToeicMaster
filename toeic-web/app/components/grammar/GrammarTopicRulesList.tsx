@@ -7,6 +7,7 @@ import { RandomPracticeTab } from "./RandomPracticeTab";
 import { ChevronLeft, BookOpen, Crown, Dices, CheckCircle } from "lucide-react";
 import { GrammarStatus } from "@/app/types";
 import Link from "next/link";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 interface GrammarTopicRulesListProps {
   topicTitle: string;
@@ -33,6 +34,8 @@ export function GrammarTopicRulesList({
   questionsLocked = false,
   selectedGrammarId,
 }: GrammarTopicRulesListProps) {
+  const { user } = useAuth();
+  const isPro = user?.isPremium === true || user?.role?.toLowerCase() === "admin";
   const [selectedRuleId, setSelectedRuleId] = useState<number | null>(selectedGrammarId || rules[0]?.id || null);
   const [activeTab, setActiveTab] = useState<'rules' | 'random-practice'>('rules');
 
@@ -111,7 +114,7 @@ export function GrammarTopicRulesList({
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {rule.isQuestionsPremiumRequired && (
+                        {rule.isQuestionsPremiumRequired && !isPro && (
                           <Crown
                             className="h-3.5 w-3.5 shrink-0 text-yellow-500"
                             aria-label="Explanation Premium"

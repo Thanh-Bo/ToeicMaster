@@ -310,7 +310,7 @@ export default function TopicStudyPage() {
                   <div
                     className={`w-8.5 h-8.5 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all shadow-xs ${
                       phase === step.phase
-                        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md shadow-blue-500/20 scale-110"
+                        ? "bg-gradient-to-br from-blue-500 to-blue-700 text-white border-blue-500 shadow-md shadow-blue-500/20 scale-110"
                         : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105"
                     }`}
                   >
@@ -330,7 +330,7 @@ export default function TopicStudyPage() {
                   <div
                     className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
                       phase === step.phase || (phase === "PRACTICE_GAME" && idx === 0) || (phase === "TEST" && idx < 1)
-                        ? "bg-gradient-to-r from-blue-500 to-indigo-600"
+                        ? "bg-gradient-to-r from-blue-500 to-blue-700"
                         : "bg-gray-100 dark:bg-zinc-800"
                     }`}
                   ></div>
@@ -347,7 +347,7 @@ export default function TopicStudyPage() {
           <div className="flex flex-col items-center">
             {/* Progress Badge */}
             <div className="mb-4 flex flex-col items-center gap-3.5 w-full">
-              <div className="inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 rounded-full shadow-md shadow-blue-500/10">
+              <div className="inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1.5 rounded-full shadow-md shadow-blue-500/10">
                 <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase">Từ {currentWordIndex + 1} / {words.length}</span>
                 <div className="h-1.5 w-20 bg-white/20 rounded-full overflow-hidden">
                   <div
@@ -439,7 +439,7 @@ export default function TopicStudyPage() {
                           window.speechSynthesis.speak(utterance);
                         }
                       }}
-                      className="w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-105 shadow-md border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 active:scale-95 cursor-pointer"
+                      className="w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-105 shadow-md border-2 border-white/20 bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 active:scale-95 cursor-pointer"
                     >
                       <Volume2 size={24} className="text-white" />
                     </button>

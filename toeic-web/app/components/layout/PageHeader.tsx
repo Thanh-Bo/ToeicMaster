@@ -101,7 +101,6 @@ export default function PageHeader({
               className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-sm"
             >
               <Crown size={16} />
-              Nâng cấp PRO
             </button>
 
             <ThemeToggle />
@@ -227,7 +226,11 @@ export default function PageHeader({
                   className="flex items-center gap-3"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <img src="/logo.ico" alt="TOEIC Masters Logo" className="w-8 h-8" />
+                  <img
+                    src="/logo.ico"
+                    alt="TOEIC Masters Logo"
+                    className="w-8 h-8"
+                  />
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
                     {logoText}
                   </span>

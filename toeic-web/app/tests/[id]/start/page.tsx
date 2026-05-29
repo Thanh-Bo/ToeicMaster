@@ -9,7 +9,7 @@ import { TestDetail } from "@/app/types"; // Đảm bảo bạn có type này
 import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
 import AnswerOption from "@/app/components/tests/AnswerOption";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
-import { ListChecks, PlayCircle, Trash } from "lucide-react";
+import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { testService } from "@/app/services/testService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
 
@@ -34,6 +34,7 @@ export default function ExamPage() {
     null,
   );
   const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
@@ -288,37 +289,49 @@ export default function ExamPage() {
       {/* HEADER Sticky */}
       <header className="bg-white dark:bg-zinc-950 shadow-sm border-b border-gray-200 dark:border-zinc-700 p-3 sticky top-0 z-50">
         <div className="w-full flex justify-between items-center px-4">
-          <button
-            onClick={() => {
-              if (Object.keys(userAnswers).length > 0) {
-                const confirmExit = window.confirm(
-                  "Bạn chưa nộp bài. Dữ liệu sẽ được lưu. Bạn có chắc chắn muốn thoát?",
-                );
-                if (confirmExit) router.push("/practice");
-              } else if (Object.keys(userAnswers).length <= 0 ) {
-                const confirmExit = window.confirm(
-                  "Bạn chưa nộp bài . Bạn có chắc chắn muốn thoát?",
-                );
-                if (confirmExit) router.push("/practice");
-              }
-            }}
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium flex items-center gap-2 transition"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-3.5">
+            <button
+              onClick={() => {
+                if (Object.keys(userAnswers).length > 0) {
+                  const confirmExit = window.confirm(
+                    "Bạn chưa nộp bài. Dữ liệu sẽ được lưu. Bạn có chắc chắn muốn thoát?",
+                  );
+                  if (confirmExit) router.push("/practice");
+                } else if (Object.keys(userAnswers).length <= 0 ) {
+                  const confirmExit = window.confirm(
+                    "Bạn chưa nộp bài . Bạn có chắc chắn muốn thoát?",
+                  );
+                  if (confirmExit) router.push("/practice");
+                }
+              }}
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium flex items-center gap-1.5 transition"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              ></path>
-            </svg>
-            <span className="hidden md:inline">Thoát</span>
-          </button>
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden md:inline">Thoát</span>
+            </button>
+
+            {/* Vertical Divider */}
+            <div className="h-4 w-[1px] bg-gray-200 dark:bg-zinc-800 hidden lg:block"></div>
+
+            {/* Desktop Sidebar Toggle Button */}
+            <button
+              onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+              className="hidden lg:flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium transition"
+              title={isSidebarVisible ? "Ẩn sidebar" : "Hiện sidebar"}
+            >
+              {isSidebarVisible ? (
+                <>
+                  <EyeOff className="w-4.5 h-4.5" />
+                  <span className="hidden xl:inline">Ẩn sidebar</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4.5 h-4.5" />
+                  <span className="hidden xl:inline">Hiện sidebar</span>
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Center: Title + Timer (mobile) */}
           <div className="flex flex-col items-center gap-1 md:gap-3 md:flex-row">
@@ -339,18 +352,17 @@ export default function ExamPage() {
           </div>
 
           {/* Right: Progress + Submit */}
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="hidden md:flex items-center gap-2 text-sm text-gray-400">
-              <span className="font-bold text-gray-900 dark:text-white">
-                {answeredCount}
-              </span>
-              <span>/</span>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-100/30 dark:border-blue-900/30">
+              <span>Tiến độ:</span>
+              <span className="font-bold text-blue-700 dark:text-blue-300">{answeredCount}</span>
+              <span className="text-blue-300 dark:text-blue-800">/</span>
               <span>{totalQuestions}</span>
             </div>
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-gray-900 dark:bg-white hover:opacity-90 text-white dark:text-gray-900 px-3 py-1.5 md:px-4 rounded-lg text-xs md:text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-3 py-1.5 md:px-4 rounded-lg text-xs md:text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap shadow-sm shadow-blue-500/10"
             >
               {submitting ? "Đang nộp..." : "Nộp bài"}
             </button>
@@ -359,9 +371,9 @@ export default function ExamPage() {
 
         {/* Progress Bar */}
         <div className="w-full px-4 mt-2">
-          <div className="h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+          <div className="h-1 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gray-900 dark:bg-white transition-all duration-300"
+              className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
               style={{
                 width: `${
                   totalQuestions > 0
@@ -384,7 +396,7 @@ export default function ExamPage() {
       {/* --- MAIN CONTENT --- */}
       <div className="w-full p-4 md:p-6 flex flex-col lg:flex-row gap-8">
         {/* CỘT TRÁI: NỘI DUNG ĐỀ THI */}
-        <div className="w-full lg:w-5/6">
+        <div className={`w-full transition-all duration-300 ${isSidebarVisible ? "lg:w-5/6" : "w-full"}`}>
           {testData.parts.map((part) => {
             const partNum = getPartNumber(part.name);
 
@@ -731,7 +743,7 @@ export default function ExamPage() {
         </div>
 
         {/* CỘT PHẢI: SIDEBAR (Desktop) */}
-        <div className="hidden lg:block lg:w-1/6">
+        <div className={`hidden lg:block transition-all duration-300 ${isSidebarVisible ? "lg:w-1/6" : "lg:hidden"}`}>
           {testData && (
             <ExamRightSidebar
               parts={testData.parts}
