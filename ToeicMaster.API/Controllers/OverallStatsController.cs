@@ -18,7 +18,7 @@ public class OverallStatsController : ControllerBase
     }
 
     /// <summary>
-    /// Get overall platform statistics including tests, grammar topics/questions, and vocabulary topics/words
+    /// Get overall platform statistics including tests, grammar, vocabulary, and reading
     /// </summary>
     [HttpGet("stats")]
     public async Task<IActionResult> GetOverallStats()
@@ -31,7 +31,9 @@ public class OverallStatsController : ControllerBase
                 GrammarTopicsCount = await _context.GrammarTopics.CountAsync(),
                 GrammarQuestionsCount = await _context.QuestionGrammars.CountAsync(),
                 VocabTopicsCount = await _context.Topics.CountAsync(),
-                VocabCount = await _context.Vocabularies.CountAsync()
+                VocabCount = await _context.Vocabularies.CountAsync(),
+                ReadingTopicCount = await _context.ReadingTopics.CountAsync(t => t.IsActive),
+                ReadingPassageCount = await _context.ReadingPassages.CountAsync(p => p.IsActive)
             };
 
             return Ok(response);
@@ -50,4 +52,6 @@ public class OverallStatsResponse
     public int GrammarQuestionsCount { get; set; }
     public int VocabTopicsCount { get; set; }
     public int VocabCount { get; set; }
+    public int ReadingTopicCount { get; set; }
+    public int ReadingPassageCount { get; set; }
 }

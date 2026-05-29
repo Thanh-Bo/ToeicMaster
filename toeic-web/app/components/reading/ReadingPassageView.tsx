@@ -222,17 +222,22 @@ export default function ReadingPassageView({ passage, currentIndex, total }: Pro
                       </div>
                     )}
                     <div
-                      className="text-[15px] leading-[1.7] text-gray-700 dark:text-zinc-300"
+                      className="document-paragraph text-[15px] leading-[1.7] text-gray-700 dark:text-zinc-300"
                       dangerouslySetInnerHTML={{ __html: doc }}
                     />
                   </div>
                 ))}
               </div>
             ) : (
-              <div
-                className="text-[15px] leading-[1.7] text-gray-700 dark:text-zinc-300"
-                dangerouslySetInnerHTML={{ __html: passage.textContentTranslation || "" }}
-              />
+              <div className="space-y-5">
+                {extractParagraphs(passage.textContentTranslation || "").map((p, i) => (
+                  <div
+                    key={i}
+                    className="text-[15px] leading-[1.7] text-gray-700 dark:text-zinc-300"
+                    dangerouslySetInnerHTML={{ __html: p }}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}

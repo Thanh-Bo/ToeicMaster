@@ -28,15 +28,6 @@ const difficultyStyles: Record<string, string> = {
   hard: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
 
-const accents = [
-  "border-t-blue-500",
-  "border-t-emerald-500",
-  "border-t-amber-500",
-  "border-t-cyan-500",
-  "border-t-rose-500",
-  "border-t-violet-500",
-];
-
 const getErrorMessage = (error: unknown, fallback: string) => {
   const apiError = error as { response?: { data?: { error?: string } } };
   return apiError.response?.data?.error || fallback;
@@ -91,12 +82,11 @@ export default function ReadingTopicPage() {
     const difficultyLabel = difficultyKey
       ? difficultyLabels[difficultyKey] || difficultyKey
       : "Chưa phân loại";
-    const accent = accents[index % accents.length];
 
     return (
       <article
         key={lesson.id}
-        className={`flex min-h-[300px] flex-col overflow-hidden rounded-2xl border border-gray-200 border-t-4 ${accent} bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70`}
+        className={`flex min-h-[300px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70`}
       >
         <div className="flex flex-1 flex-col p-5">
           <div className="mb-5 flex items-start gap-4">

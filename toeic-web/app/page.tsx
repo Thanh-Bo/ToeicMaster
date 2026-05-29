@@ -31,6 +31,8 @@ export default function HomePage() {
   >(null);
   const [vocabTopicsCount, setVocabTopicsCount] = useState<number | null>(null);
   const [vocabCount, setVocabCount] = useState<number | null>(null);
+  const [readingTopicCount, setReadingTopicCount] = useState<number | null>(null);
+  const [readingPassageCount, setReadingPassageCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -41,12 +43,16 @@ export default function HomePage() {
         setGrammarQuestionsCount(stats.grammarQuestionsCount);
         setVocabTopicsCount(stats.vocabTopicsCount);
         setVocabCount(stats.vocabCount);
+        setReadingTopicCount(stats.readingTopicCount);
+        setReadingPassageCount(stats.readingPassageCount);
       } catch {
         setTestCount(null);
         setGrammarTopicsCount(null);
         setGrammarQuestionsCount(null);
         setVocabTopicsCount(null);
         setVocabCount(null);
+        setReadingTopicCount(null);
+        setReadingPassageCount(null);
       }
     };
 
@@ -91,7 +97,10 @@ export default function HomePage() {
       title: "Luyện đọc",
       description: "Làm quen đoạn văn, câu hỏi và cách xử lý thông tin.",
       href: "/reading",
-      stat: "Part 6 & Part 7",
+      stat:
+        readingPassageCount != null
+          ? `${readingPassageCount}+ bài đọc`
+          : "Đang cập nhật",
       color:
         "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40",
     },
@@ -144,6 +153,14 @@ export default function HomePage() {
     {
       label: "Nhóm từ vựng",
       value: vocabTopicsCount !== null ? `${vocabTopicsCount}+` : "...",
+    },
+    {
+      label: "Chủ đề bài đọc",
+      value: readingTopicCount != null ? `${readingTopicCount}+` : "...",
+    },
+    {
+      label: "Bài đọc",
+      value: readingPassageCount != null ? `${readingPassageCount}+` : "...",
     },
   ];
 
@@ -292,6 +309,35 @@ export default function HomePage() {
             })}
           </div>
         </section>
+         <section className="border-y border-slate-200 bg-white dark:border-zinc-900 dark:bg-zinc-950">
+          <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
+            <div className="mb-8 max-w-2xl">
+              <p className="text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                Số liệu học tập trên TOEIC Masters
+              </p>
+              <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+                Nội dung đang có trên hệ thống
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              {stats.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40"
+                >
+                  <p className="text-2xl font-extrabold text-slate-950 dark:text-white">
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
 
         <section className="border-y border-slate-200 bg-white dark:border-zinc-900 dark:bg-zinc-950">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
@@ -315,7 +361,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
               {workflow.map((item, index) => {
                 const Icon = item.icon;
                 return (
@@ -382,36 +428,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-200 bg-white dark:border-zinc-900 dark:bg-zinc-950">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
-            <div className="mb-8 max-w-2xl">
-              <p className="text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">
-                Số liệu học tập trên TOEIC Masters
-              </p>
-              <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-                Nội dung đang có trên hệ thống
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {stats.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40"
-                >
-                  <p className="text-2xl font-extrabold text-slate-950 dark:text-white">
-                    {item.value}
-                  </p>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-4xl px-5 py-16 text-center sm:px-6 lg:px-8">
+       
+        <section className="border-t border-slate-200 bg-white dark:border-zinc-900 dark:bg-zinc-950 px-5 py-16 text-center sm:px-6 lg:px-8">
           <p className="text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">
             Bắt đầu học
           </p>
@@ -440,15 +458,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <Footer
-        links={[
-          { label: "Trang chủ", href: "/" },
-          { label: "Luyện đề", href: "/practice" },
-          { label: "Luyện đọc", href: "/reading" },
-          { label: "Từ vựng", href: "/vocabulary" },
-          { label: "Ngữ pháp", href: "/grammar" },
-        ]}
-      />
+      <Footer className="mt-0" />
     </div>
   );
 }

@@ -6,6 +6,8 @@ export interface OverallStats {
   grammarQuestionsCount: number;
   vocabTopicsCount: number;
   vocabCount: number;
+  readingTopicCount: number;
+  readingPassageCount: number;
 }
 
 export const overallStatsService = {
