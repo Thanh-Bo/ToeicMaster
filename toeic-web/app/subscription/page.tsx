@@ -81,8 +81,8 @@ const subscriptionTiers: SubscriptionTier[] = [
 const freeFeatures = [
   "Làm bài test TOEIC",
   "Xem điểm và đáp án",
-  "Học ngữ pháp cơ bản",
-  "Luyện từ vựng và luyện đọc",
+  "Luyện ngữ pháp, từ vựng và đọc hiểu",
+  "Xem tiến độ học tập tổng quan",
   "Làm bài không giới hạn",
 ];
 
@@ -497,7 +497,7 @@ export default function PaymentPage() {
             TOEIC Masters PRO
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white tracking-tight font-sans">
-            Mở thêm giải thích chi tiết khi luyện TOEIC
+            Học TOEIC kỹ hơn với TOEIC Masters PRO
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
             Tài khoản thường vẫn có thể luyện tập. <strong className="text-amber-600 dark:text-amber-400 font-semibold">PRO</strong> phù hợp khi bạn muốn xem giải thích đầy đủ hơn, học kỹ từng câu và theo dõi quá trình học rõ hơn.
@@ -708,13 +708,41 @@ export default function PaymentPage() {
             <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Mở toàn bộ giải thích chi tiết</div>
           </div>
         </section>
- 
-        {/* Footer features listing info */}
-        <div className="flex flex-wrap justify-center gap-6 text-xs text-zinc-500 dark:text-zinc-500 pt-4 border-t border-zinc-200 dark:border-zinc-900">
-          <span className="inline-flex items-center gap-1.5"><BookOpen className="h-4 w-4" /> Giải thích bài test</span>
-          <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4" /> Từ vựng chi tiết</span>
-          <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-4 w-4" /> Ngữ pháp Premium</span>
-        </div>
+
+        {/* FAQ Section */}
+        <section className="pt-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-extrabold text-zinc-900 dark:text-white">Câu hỏi thường gặp</h2>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Giải đáp nhanh những thắc mắc trước khi nâng cấp</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 p-5">
+              <h3 className="font-bold text-zinc-900 dark:text-white text-sm mb-2">Thanh toán xong bao lâu kích hoạt?</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Ngay lập tức. Sau khi PayOS xác nhận giao dịch thành công, tài khoản PRO của bạn sẽ được kích hoạt tự động trong vài giây.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 p-5">
+              <h3 className="font-bold text-zinc-900 dark:text-white text-sm mb-2">Có hủy được không?</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Gói PRO mua một lần, không tự động gia hạn. Bạn chỉ trả tiền đúng 1 lần cho thời gian đã chọn, không bị trừ tiền hàng tháng.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 p-5">
+              <h3 className="font-bold text-zinc-900 dark:text-white text-sm mb-2">PRO khác gì Free?</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                PRO mở khóa toàn bộ giải thích chi tiết cho bài test, từ vựng, ngữ pháp và bài đọc. Bạn cũng xem được tiến độ học theo thời gian (7 ngày đến 1 năm).
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 p-5">
+              <h3 className="font-bold text-zinc-900 dark:text-white text-sm mb-2">Thanh toán qua PayOS có an toàn không?</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Có. PayOS là cổng thanh toán được cấp phép bởi Ngân hàng Nhà nước Việt Nam, hỗ trợ tất cả ngân hàng nội địa. Giao dịch được mã hóa và bảo mật.
+              </p>
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
   );
