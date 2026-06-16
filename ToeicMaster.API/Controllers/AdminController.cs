@@ -1,7 +1,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using OfficeOpenXml;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
@@ -18,10 +18,10 @@ namespace ToeicMaster.API.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _efContext;
-        private readonly IMemoryCache _cache;
+        private readonly IDistributedCache _cache;
         private readonly BlobService _blobService;
 
-        public AdminController(AppDbContext efContext, IMemoryCache cache, BlobService blobService)
+        public AdminController(AppDbContext efContext, IDistributedCache cache, BlobService blobService)
         {
             _efContext = efContext;
             _cache = cache;
@@ -29,10 +29,10 @@ namespace ToeicMaster.API.Controllers
         }
 
         // Helper method để xóa cache khi có thay đổi dữ liệu
-        private void InvalidateTestCache(int testId)
+        private async Task InvalidateTestCacheAsync(int testId)
         {
             string cacheKey = $"test_full_{testId}";
-            _cache.Remove(cacheKey);
+            await _cache.RemoveAsync(cacheKey);
         }
 
         // Helper method để tạo đường dẫn folder phân cấp theo năm
@@ -182,7 +182,7 @@ namespace ToeicMaster.API.Controllers
                 }
 
                 // Xóa cache để frontend nhận dữ liệu mới
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(new { message = $"Đã nhập thành công {countSuccess} câu hỏi Part 5!" });
             }
@@ -310,7 +310,7 @@ namespace ToeicMaster.API.Controllers
             }
 
             // Xóa cache để frontend nhận dữ liệu mới
-            InvalidateTestCache(testId);
+            await InvalidateTestCacheAsync(testId);
 
             return Ok("Import Part 6 thành công!");
         }
@@ -462,7 +462,7 @@ namespace ToeicMaster.API.Controllers
                 }
 
                 await _efContext.SaveChangesAsync();
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(new
                 {
@@ -650,7 +650,7 @@ namespace ToeicMaster.API.Controllers
                 }
 
                 await _efContext.SaveChangesAsync();
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(
                     new
@@ -806,7 +806,7 @@ namespace ToeicMaster.API.Controllers
                 }
 
                 await _efContext.SaveChangesAsync();
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(
                     new

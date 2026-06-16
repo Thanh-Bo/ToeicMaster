@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using ToeicMaster.API.Controllers;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
@@ -18,12 +18,12 @@ namespace ToeicMaster.API.Controllers
     public class TestManagementController : ControllerBase
     {
         private readonly AppDbContext _efContext;
-        private readonly IMemoryCache _cache;
+        private readonly IDistributedCache _cache;
         private readonly BlobService _blobService;
 
         public TestManagementController(
             AppDbContext efContext,
-            IMemoryCache cache,
+            IDistributedCache cache,
             BlobService blobService
         )
         {
@@ -33,10 +33,10 @@ namespace ToeicMaster.API.Controllers
         }
 
         // Helper method để xóa cache khi có thay đổi dữ liệu
-        private void InvalidateTestCache(int testId)
+        private async Task InvalidateTestCacheAsync(int testId)
         {
             string cacheKey = $"test_full_{testId}";
-            _cache.Remove(cacheKey);
+            await _cache.RemoveAsync(cacheKey);
         }
 
         // =============================================
@@ -47,9 +47,9 @@ namespace ToeicMaster.API.Controllers
         /// Xóa cache thủ công cho 1 Test
         /// </summary>
         [HttpDelete("clear-cache/{testId}")]
-        public IActionResult ClearTestCache(int testId)
+        public async Task<IActionResult> ClearTestCache(int testId)
         {
-            InvalidateTestCache(testId);
+            await InvalidateTestCacheAsync(testId);
             return Ok(new { message = $"Đã xóa cache cho Test ID: {testId}" });
         }
 
@@ -189,7 +189,7 @@ namespace ToeicMaster.API.Controllers
                 test.IsActive = request.IsActive.Value;
 
             await _efContext.SaveChangesAsync();
-            InvalidateTestCache(testId);
+            await InvalidateTestCacheAsync(testId);
 
             return Ok(new { message = "Cập nhật đề thi thành công!", data = test });
         }
@@ -298,7 +298,7 @@ namespace ToeicMaster.API.Controllers
                 _efContext.Tests.Remove(test);
 
                 await _efContext.SaveChangesAsync();
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(
                     new
@@ -434,7 +434,7 @@ namespace ToeicMaster.API.Controllers
                 _efContext.Parts.Remove(part);
 
                 await _efContext.SaveChangesAsync();
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(
                     new { message = $"Đã xóa thành công Part {partNumber} của Test ID {testId}" }
@@ -539,7 +539,7 @@ namespace ToeicMaster.API.Controllers
                 _efContext.Parts.RemoveRange(parts);
 
                 await _efContext.SaveChangesAsync();
-                InvalidateTestCache(testId);
+                await InvalidateTestCacheAsync(testId);
 
                 return Ok(new { message = $"Đã xóa thành công toàn bộ Part của Test ID {testId}" });
             }
@@ -575,7 +575,7 @@ namespace ToeicMaster.API.Controllers
                 part.Name = request.Name;
 
             await _efContext.SaveChangesAsync();
-            InvalidateTestCache(testId);
+            await InvalidateTestCacheAsync(testId);
 
             return Ok(new { message = "Cập nhật Part thành công!", data = part });
         }

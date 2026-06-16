@@ -1,9 +1,10 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models;
@@ -19,14 +20,14 @@ namespace ToeicMaster.API.Controllers
         private readonly ToeicScoreService _scoreService;
         private readonly DapperContext _dapperContext;
         private readonly AppDbContext _efContext;
-        private readonly IMemoryCache _cache;
+        private readonly IDistributedCache _cache;
         private readonly AiExplanationService _aiService;
         private readonly IPremiumService _premiumService;
 
         public TestsController(
             DapperContext dapperContext,
             AppDbContext efContext,
-            IMemoryCache cache,
+            IDistributedCache cache,
             AiExplanationService aiService,
             IPremiumService premiumService,
             ToeicScoreService scoreService
@@ -160,8 +161,12 @@ namespace ToeicMaster.API.Controllers
             string cacheKey =
                 $"test_full_{testId}" + (partNumbers.Any() ? $"_p{string.Join(",", partNumbers)}" : "");
 
-            if (_cache.TryGetValue(cacheKey, out TestDetailDto? cachedData))
+            var cachedBytes = await _cache.GetAsync(cacheKey);
+            if (cachedBytes != null)
+            {
+                var cachedData = JsonSerializer.Deserialize<TestDetailDto>(cachedBytes);
                 return Ok(new { success = true, data = cachedData });
+            }
 
             // 3. Sửa câu lệnh SQL để thêm điều kiện lọc p.PartNumber
             var sql =
@@ -245,7 +250,11 @@ namespace ToeicMaster.API.Controllers
                         .ToList(),
                 };
 
-                _cache.Set(cacheKey, testDetail, TimeSpan.FromMinutes(30));
+                var serializedData = JsonSerializer.SerializeToUtf8Bytes(testDetail);
+                await _cache.SetAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+                });
                 return Ok(new { success = true, data = testDetail });
             }
         }

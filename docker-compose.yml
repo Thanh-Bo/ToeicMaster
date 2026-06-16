@@ -1,4 +1,12 @@
 services:
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   # SQL Server Database
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -25,9 +33,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Initial Catalog=ToeicMasterDb;User Id=sa;Password=Thanhsolo113@;TrustServerCertificate=True;
+      - Redis__ConnectionString=redis:6379
     depends_on:
       sqlserver:
         condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - ./ToeicMaster.API:/app
 
@@ -48,3 +59,4 @@ services:
 
 volumes:
   sqlserver_data:
+  redis_data:
