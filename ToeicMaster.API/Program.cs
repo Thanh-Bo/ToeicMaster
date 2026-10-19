@@ -43,12 +43,21 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddMemoryCache();
 
-// Redis distributed cache for high-performance caching of static educational data
-builder.Services.AddStackExchangeRedisCache(options =>
+// Redis distributed cache for high-performance caching of static educational data.
+// Falls back to an in-process cache when no Redis connection string is configured (local dev without Redis).
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
 {
-    options.Configuration = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
-    options.InstanceName = "ToeicMaster_";
-});
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "ToeicMaster_";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
 
 builder.Services.AddScoped<ToeicScoreService>();
 builder.Services.AddHttpClient<IPaymentService, PaymentService>();

@@ -7,23 +7,7 @@ services:
     volumes:
       - redis_data:/data
 
-  # SQL Server Database
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      SA_PASSWORD: "Thanhsolo113@"
-      ACCEPT_EULA: "Y"
-    ports:
-      - "1433:1433"
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Thanhsolo113@ -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - sqlserver_data:/var/opt/mssql/data
-
-  # .NET API
+  # .NET API (uses Azure SQL database, Redis for caching)
   api:
     build:
       context: ./ToeicMaster.API
@@ -32,11 +16,8 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Initial Catalog=ToeicMasterDb;User Id=sa;Password=Thanhsolo113@;TrustServerCertificate=True;
       - Redis__ConnectionString=redis:6379
     depends_on:
-      sqlserver:
-        condition: service_healthy
       redis:
         condition: service_started
     volumes:
@@ -58,5 +39,4 @@ services:
       - ./toeic-web:/app
 
 volumes:
-  sqlserver_data:
   redis_data:

@@ -1,0 +1,78 @@
+sequenceDiagram
+    autonumber
+    participant U as User / Next.js
+    participant API as PaymentController
+    participant DB as SQL Server
+    participant PS as PaymentService
+    participant PO as payOS API
+    participant WH as Webhook (AllowAnonymous)
+
+    rect rgb(235, 245, 255)
+    Note over U,PO: Phase 1 - Initiate
+    U->>API: POST /api/v1/payment/initiate with JWT and planId
+    API->>API: userId from ClaimTypes.NameIdentifier
+    API->>API: _planService.GetPlan(planId) -> premium_1m / 3m / 12m
+    API->>DB: INSERT Transaction Status=PENDING, Gateway=PayOS, DurationMonths
+    Note over DB: Transaction.Id becomes the payOS orderCode
+    API->>API: description = TOEIC + 8 hex chars (no diacritics)
+    API->>API: returnUrl and cancelUrl from FrontendUrl + transactionId
+    end
+
+    rect rgb(245, 240, 255)
+    Note over API,PO: Phase 2 - Create payment link
+    API->>PS: CreatePaymentLinkAsync(orderCode, amount, desc, returnUrl, cancelUrl)
+    PS->>PS: HMACSHA256 over amount, cancelUrl, description, orderCode, returnUrl
+    PS->>PO: POST /v2/payment-requests with x-client-id and x-api-key
+    PO-->>PS: code 00, data with checkoutUrl, qrCode, paymentLinkId, bin, accountNumber
+    PS-->>API: PayOsPaymentLinkData
+    API->>DB: UPDATE Transaction.Content = payOS description
+    API-->>U: transactionId, checkoutUrl, qrCode, qrUrl, bankInfo, paymentLinkId
+    end
+
+    rect rgb(240, 255, 245)
+    Note over U,API: Phase 3 - UI polling
+    U->>U: render QR and deep link, poll every 5s
+    U->>API: GET /api/v1/payment/status/transactionId
+    API-->>U: status PENDING, isPaid false
+    end
+
+    rect rgb(255, 250, 235)
+    Note over PO,DB: Phase 4 - Async webhook validation
+    PO->>WH: POST /api/v1/payment/webhook with data and signature
+    WH->>PS: IsValidWebhook(webhook)
+    PS->>PS: rebuild signature from data, sorted, FixedTimeEquals
+    alt signature invalid
+        WH-->>PO: 401 Invalid payOS signature
+    else setup ping from dashboard
+        WH-->>PO: 200 acknowledged and ignored
+    else transaction not found or non PayOS gateway
+        WH-->>PO: 200 acknowledged to stop retries
+    else payment not successful
+        WH-->>PO: 200 ignored, code not 00
+    else amount mismatch
+        WH-->>PO: 400 Amount mismatch, not marked paid
+    else already COMPLETED
+        WH-->>PO: 200 already processed, idempotent
+    else all guards pass
+        WH->>DB: Transaction.Status = COMPLETED
+        WH->>DB: User.IsPremium = true, PremiumExpiredAt = base.AddMonths(n)
+        Note over DB: ExtendPremium stacks from existing expiry if still active
+        WH-->>PO: 200 Payment confirmed successfully
+    end
+    end
+
+    rect rgb(255, 240, 245)
+    Note over U,API: Phase 5 - Confirm in UI
+    U->>API: GET /api/v1/payment/status/transactionId
+    API-->>U: status COMPLETED, isPaid true
+    U->>U: refreshUser, success screen, redirect home after 2.5s
+    end
+
+    rect rgb(240, 240, 245)
+    Note over U,DB: Phase 6 - Premium enforcement
+    U->>API: POST /api/v1/auth/login
+    API->>DB: IsPremiumActive -> Role Admin OR IsPremium AND PremiumExpiredAt > UtcNow
+    API-->>U: JWT with IsPremium claim
+    U->>API: GET Tests / QuestionGrammar / QuestionVocab / Vocabulary
+    API->>DB: IsPremiumUserAsync(userId) live check
+    end
