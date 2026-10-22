@@ -27,6 +27,12 @@ build/
 .env.local
 .env.*.local
 appsettings.Development.json
+appsettings.*.Local.json
+
+# Local build / tool artifacts (may contain copied secrets)
+.build/
+.build-check/
+.claude/
 
 # OS
 .DS_Store
