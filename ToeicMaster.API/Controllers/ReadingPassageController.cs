@@ -216,6 +216,7 @@ public class ReadingPassageController : ReadingPracticeBaseController
         var passages = await query
             .Include(p => p.Questions)
                 .ThenInclude(q => q.Answers)
+            .AsSplitQuery()
             .ToListAsync();
 
         return Ok(passages.Select(BuildAdminPassageResponse));
@@ -231,6 +232,7 @@ public class ReadingPassageController : ReadingPracticeBaseController
             .AsNoTracking()
             .Include(p => p.Questions)
                 .ThenInclude(q => q.Answers)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (passage == null)

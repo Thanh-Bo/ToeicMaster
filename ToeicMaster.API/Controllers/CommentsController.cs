@@ -67,6 +67,7 @@ public class CommentsController : ControllerBase
             .CountAsync(c => c.TestId == testId && c.ParentCommentId == null && !c.IsDeleted);
 
         var comments = await orderedQuery
+            .AsSplitQuery()
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

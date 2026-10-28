@@ -138,6 +138,7 @@ public class ReadingSessionController : ReadingPracticeBaseController
                     .ThenInclude(p => p.Questions)
                         .ThenInclude(q => q.Answers)
             .Include(s => s.ReadingSessionAnswers)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.PublicId == sessionGuid && s.UserId == user.Id);
 
         if (session == null)
@@ -214,6 +215,7 @@ public class ReadingSessionController : ReadingPracticeBaseController
                 .ThenInclude(sp => sp.Passage)
                     .ThenInclude(p => p.Questions)
             .Include(s => s.ReadingSessionAnswers)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);
 
         if (session == null)

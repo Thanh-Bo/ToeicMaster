@@ -25,10 +25,9 @@ public class ReadingTopicController : ReadingPracticeBaseController
         if (difficultyFilter == null && !IsAllFilter(difficulty))
             return BadRequest(new { error = "Difficulty chỉ nhận all, easy, medium hoặc hard." });
 
+        // Counts are projected in SQL - no need to load passages/questions here.
         var query = _context.ReadingTopics
             .AsNoTracking()
-            .Include(t => t.Passages.Where(p => p.IsActive))
-                .ThenInclude(p => p.Questions)
             .Where(t => t.IsActive && (t.PartType == 6 || t.PartType == 7));
 
         if (partFilter.HasValue)
@@ -42,21 +41,25 @@ public class ReadingTopicController : ReadingPracticeBaseController
             .ThenBy(t => t.Difficulty)
             .ThenBy(t => t.DisplayOrder)
             .ThenBy(t => t.Id)
+            .Select(t => new
+            {
+                t.Id,
+                t.PublicId,
+                t.Title,
+                t.Description,
+                t.PartType,
+                t.Difficulty,
+                t.DisplayOrder,
+                t.IsPremiumRequired,
+                PassageCount = t.Passages.Count(p => p.IsActive),
+                QuestionCount = t.Passages
+                    .Where(p => p.IsActive)
+                    .SelectMany(p => p.Questions)
+                    .Count()
+            })
             .ToListAsync();
 
-        return Ok(topics.Select(t => new
-        {
-            t.Id,
-            t.PublicId,
-            t.Title,
-            t.Description,
-            t.PartType,
-            t.Difficulty,
-            t.DisplayOrder,
-            t.IsPremiumRequired,
-            PassageCount = t.Passages.Count,
-            QuestionCount = t.Passages.Sum(p => p.Questions.Count)
-        }));
+        return Ok(topics);
     }
 
     /// <summary>
@@ -70,6 +73,7 @@ public class ReadingTopicController : ReadingPracticeBaseController
             .AsNoTracking()
             .Include(t => t.Passages.Where(p => p.IsActive))
                 .ThenInclude(p => p.Questions)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.PublicId == topicGuid && t.IsActive);
 
         if (topic == null)
@@ -91,6 +95,7 @@ public class ReadingTopicController : ReadingPracticeBaseController
             .AsNoTracking()
             .Include(t => t.Passages.Where(p => p.IsActive))
                 .ThenInclude(p => p.Questions)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == topicId && t.IsActive);
 
         if (topic == null)
@@ -108,6 +113,7 @@ public class ReadingTopicController : ReadingPracticeBaseController
             .AsNoTracking()
             .Include(t => t.Passages.Where(p => p.IsActive))
                 .ThenInclude(p => p.Questions)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == topicId && t.IsActive);
 
         if (topic == null)

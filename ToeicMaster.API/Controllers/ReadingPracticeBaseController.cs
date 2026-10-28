@@ -56,6 +56,7 @@ public abstract class ReadingPracticeBaseController : ControllerBase
                     .ThenInclude(p => p.Questions)
                         .ThenInclude(q => q.Answers)
             .Include(s => s.ReadingSessionAnswers)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);
     }
 

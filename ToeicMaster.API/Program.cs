@@ -158,7 +158,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseResponseCompression();
-app.UseHttpsRedirection();
+
+// Local dev runs HTTP-only (launchSettings "http" profile), so there is no
+// HTTPS port to redirect to - skip the middleware to avoid the startup warning.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowNextJs");
 

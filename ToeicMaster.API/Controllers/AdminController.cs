@@ -75,6 +75,7 @@ namespace ToeicMaster.API.Controllers
                 var test = await _efContext
                     .Tests.Include(t => t.Parts)
                         .ThenInclude(p => p.QuestionGroups)
+                    .AsSplitQuery()
                     .FirstOrDefaultAsync(t => t.Id == testId);
 
                 if (test == null)
