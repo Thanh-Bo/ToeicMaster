@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHeader, Footer } from "./components/layout";
-import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { useAuth } from "./contexts/AuthContext";
 import { overallStatsService } from "./services/overallStatsService";
 import { motion, Variants } from "framer-motion";
@@ -207,15 +206,6 @@ export default function HomePage() {
       label: "Bài đọc",
       value: readingPassageCount != null ? `${readingPassageCount}+` : "...",
     },
-  ];
-
-  const statColors = [
-    "text-blue-600 dark:text-blue-450",
-    "text-violet-600 dark:text-violet-450",
-    "text-indigo-600 dark:text-indigo-450",
-    "text-pink-600 dark:text-pink-450",
-    "text-amber-600 dark:text-amber-455",
-    "text-emerald-600 dark:text-emerald-450",
   ];
 
   return (
@@ -490,14 +480,14 @@ export default function HomePage() {
               viewport={{ once: true, amount: 0.1 }}
               className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
             >
-              {stats.map((item, index) => (
+              {stats.map((item) => (
                 <motion.div
                   variants={fadeInUp}
                   whileHover={{ y: -4, scale: 1.02 }}
                   key={item.label}
                   className="rounded-xl border border-slate-200/40 bg-white/60 p-5 dark:border-zinc-800/40 dark:bg-zinc-950/30 backdrop-blur-sm shadow-sm"
                 >
-                  <p className={`text-3xl font-black tracking-tight ${statColors[index] || "text-slate-950 dark:text-white"}`}>
+                  <p className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300">
                     {item.value}
                   </p>
                   <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">
@@ -686,7 +676,6 @@ export default function HomePage() {
         </section>
       </main>
 
-      <PWAInstallBanner />
       <Footer className="mt-0" />
     </div>
   );

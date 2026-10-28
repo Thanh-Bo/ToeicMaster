@@ -1,6 +1,7 @@
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ToeicMaster.API.Data;
 
 namespace ToeicMaster.API.Controllers;
@@ -10,31 +11,46 @@ namespace ToeicMaster.API.Controllers;
 [AllowAnonymous]
 public class OverallStatsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private const string CacheKey = "overall_stats_v1";
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
 
-    public OverallStatsController(AppDbContext context)
+    private readonly DapperContext _dapperContext;
+    private readonly IMemoryCache _cache;
+
+    public OverallStatsController(DapperContext dapperContext, IMemoryCache cache)
     {
-        _context = context;
+        _dapperContext = dapperContext;
+        _cache = cache;
     }
 
     /// <summary>
-    /// Get overall platform statistics including tests, grammar, vocabulary, and reading
+    /// Get overall platform statistics including tests, grammar, vocabulary, and reading.
+    /// All counters are read in a single round trip and cached for 10 minutes.
     /// </summary>
     [HttpGet("stats")]
     public async Task<IActionResult> GetOverallStats()
     {
         try
         {
-            var response = new OverallStatsResponse
+            if (_cache.TryGetValue(CacheKey, out OverallStatsResponse? cached) && cached is not null)
             {
-                TestCount = await _context.Tests.CountAsync(),
-                GrammarTopicsCount = await _context.GrammarTopics.CountAsync(),
-                GrammarQuestionsCount = await _context.QuestionGrammars.CountAsync(),
-                VocabTopicsCount = await _context.Topics.CountAsync(),
-                VocabCount = await _context.Vocabularies.CountAsync(),
-                ReadingTopicCount = await _context.ReadingTopics.CountAsync(t => t.IsActive),
-                ReadingPassageCount = await _context.ReadingPassages.CountAsync(p => p.IsActive)
-            };
+                return Ok(cached);
+            }
+
+            const string sql = @"
+                SELECT
+                    (SELECT COUNT(*) FROM Tests)                               AS TestCount,
+                    (SELECT COUNT(*) FROM GrammarTopics)                       AS GrammarTopicsCount,
+                    (SELECT COUNT(*) FROM QuestionGrammar)                     AS GrammarQuestionsCount,
+                    (SELECT COUNT(*) FROM Topics)                              AS VocabTopicsCount,
+                    (SELECT COUNT(*) FROM Vocabularies)                        AS VocabCount,
+                    (SELECT COUNT(*) FROM ReadingTopics   WHERE IsActive = 1)  AS ReadingTopicCount,
+                    (SELECT COUNT(*) FROM ReadingPassages WHERE IsActive = 1)  AS ReadingPassageCount;";
+
+            using var connection = _dapperContext.CreateConnection();
+            var response = await connection.QuerySingleAsync<OverallStatsResponse>(sql);
+
+            _cache.Set(CacheKey, response, CacheDuration);
 
             return Ok(response);
         }

@@ -36,7 +36,6 @@ interface AuthContextType {
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
-  loginWithGoogle: (credential: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,26 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
   }, [user, loading, pathname, router]);
-  const loginWithGoogle = async (credential: string) => {
-    try {
-      // 1. Gọi API Backend (authService đã viết)
-      const data = await authService.loginGoogle(credential);
-
-      const { token, user: userData } = data; // Hoặc response.data tùy implement
-
-      // LƯU COOKIE THAY VÌ LOCALSTORAGE
-      Cookies.set("token", token, { expires: 7 });
-      // Google thường không trả refreshToken theo flow này, nếu có thì lưu
-      Cookies.set("user", JSON.stringify(userData), { expires: 7 });
-      setUser(data.user);
-
-      // 4. Redirect
-      router.push("/");
-    } catch (error) {
-      console.error("Google Login Error in Context:", error);
-      throw error; // Ném lỗi ra để component hiển thị
-    }
-  };
 
   const handleLogout = () => {
     Cookies.remove("token");
@@ -175,7 +154,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshUser,
         updateUser,
-        loginWithGoogle,
       }}
     >
       {children}

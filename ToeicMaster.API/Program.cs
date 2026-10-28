@@ -43,6 +43,12 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddMemoryCache();
 
+// Compress responses (large JSON payloads such as a full test with ~800 answer rows)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
+
 // Redis distributed cache for high-performance caching of static educational data.
 // Falls back to an in-process cache when no Redis connection string is configured (local dev without Redis).
 var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
@@ -150,6 +156,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseResponseCompression();
 app.UseHttpsRedirection();
 
 app.UseCors("AllowNextJs");

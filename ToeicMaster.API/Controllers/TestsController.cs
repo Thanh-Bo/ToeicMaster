@@ -105,6 +105,25 @@ namespace ToeicMaster.API.Controllers
             return int.TryParse(userIdStr, out var userId) ? userId : null;
         }
 
+        /// <summary>
+        /// Parses "1,2,5" into a distinct, ordered list of valid part numbers (1-7).
+        /// Empty/invalid input returns an empty list, meaning "all parts".
+        /// </summary>
+        private static List<int> ParsePartNumbers(string? parts)
+        {
+            if (string.IsNullOrWhiteSpace(parts))
+                return new List<int>();
+
+            return parts
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(p => int.TryParse(p, out var n) ? n : (int?)null)
+                .Where(n => n.HasValue && n.Value >= 1 && n.Value <= 7)
+                .Select(n => n!.Value)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList();
+        }
+
         private async Task<bool> IsPremiumUserAsync(int? userId)
         {
             return await _premiumService.IsPremiumUserAsync(userId);
@@ -114,7 +133,7 @@ namespace ToeicMaster.API.Controllers
         [HttpGet("{testGuid:guid}/full")]
         public async Task<IActionResult> GetTestFull(Guid testGuid, [FromQuery] string? parts = null)
         {
-            var test = await _efContext.Tests.FirstOrDefaultAsync(t => t.TestGuid == testGuid);
+            var test = await _efContext.Tests.AsNoTracking().FirstOrDefaultAsync(t => t.TestGuid == testGuid);
             if (test == null)
                 return NotFound(new { message = "Không tìm thấy đề thi." });
 
@@ -127,7 +146,7 @@ namespace ToeicMaster.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetTestFullById(int id, [FromQuery] string? parts = null)
         {
-            var test = await _efContext.Tests.FirstOrDefaultAsync(t => t.Id == id);
+            var test = await _efContext.Tests.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
             if (test == null)
                 return NotFound(new { message = "Không tìm thấy đề thi." });
 
@@ -203,6 +222,7 @@ namespace ToeicMaster.API.Controllers
                 var firstRow = flatData.First();
                 int resolvedTestId = (int)firstRow.TestId;
                 var testGuidValue = await _efContext.Tests
+                    .AsNoTracking()
                     .Where(t => t.Id == resolvedTestId)
                     .Select(t => t.TestGuid)
                     .FirstOrDefaultAsync();
@@ -268,15 +288,36 @@ namespace ToeicMaster.API.Controllers
                 return Unauthorized();
             var userId = int.Parse(userIdStr);
 
+            // Which parts did the user actually choose? (e.g. "5" or "1,2,3")
+            var selectedParts = ParsePartNumbers(request.Parts);
+
+            // All parts that exist in this test - used to distinguish full vs partial attempts
+            var testPartNumbers = await _efContext.Parts
+                .AsNoTracking()
+                .Where(p => p.TestId == request.TestId && p.PartNumber != null)
+                .Select(p => p.PartNumber!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            var isFullTest = selectedParts.Count == 0 ||
+                             new HashSet<int>(testPartNumbers).SetEquals(selectedParts);
+
             // Lấy thông tin câu hỏi kèm theo Part để biết câu đó là Listening hay Reading
-            var questionsInfo = await _efContext
+            var questionsQuery = _efContext
                 .Questions.Include(q => q.Group)
                     .ThenInclude(g => g.Part)
-                .Where(q => q.Group.Part.TestId == request.TestId)
-                .ToDictionaryAsync(
-                    q => q.Id,
-                    q => new { q.CorrectOption, q.Group.Part.PartNumber }
-                );
+                .Where(q => q.Group.Part.TestId == request.TestId);
+
+            if (selectedParts.Count > 0)
+            {
+                questionsQuery = questionsQuery.Where(q =>
+                    selectedParts.Contains(q.Group.Part.PartNumber ?? 0));
+            }
+
+            var questionsInfo = await questionsQuery.ToDictionaryAsync(
+                q => q.Id,
+                q => new { q.CorrectOption, q.Group.Part.PartNumber }
+            );
 
             int listeningCorrect = 0;
             int readingCorrect = 0;
@@ -291,6 +332,7 @@ namespace ToeicMaster.API.Controllers
                 CompletedAt = DateTime.UtcNow,
                 TimeTaken = request.Duration,
                 Status = "COMPLETED",
+                Parts = isFullTest ? null : string.Join(",", selectedParts.OrderBy(p => p)),
             };
 
             _efContext.TestAttempts.Add(attempt);
@@ -392,19 +434,35 @@ namespace ToeicMaster.API.Controllers
             var canViewExplanation = !attempt.Test.IsExplanationPremiumRequired ||
                                      await IsPremiumUserAsync(attempt.UserId);
 
-            // Lấy tất cả câu hỏi của bài thi
-            var allQuestions = await _efContext
-                .Questions.Include(q => q.Answers)
+            // Only the parts actually chosen for this attempt
+            var selectedParts = ParsePartNumbers(attempt.Parts);
+            var isFullTest = selectedParts.Count == 0;
+
+            // Lấy các câu hỏi của bài thi (chỉ các Part đã chọn)
+            var questionsQuery = _efContext
+                .Questions
+                .AsNoTracking()
+                .Include(q => q.Answers)
                 .Include(q => q.Group)
                     .ThenInclude(g => g.Part)
-                .Where(q => q.Group.Part.TestId == attempt.TestId)
+                .Where(q => q.Group.Part.TestId == attempt.TestId);
+
+            if (!isFullTest)
+            {
+                questionsQuery = questionsQuery.Where(q =>
+                    selectedParts.Contains(q.Group.Part.PartNumber ?? 0));
+            }
+
+            var allQuestions = await questionsQuery
                 .OrderBy(q => q.Group.Part.PartNumber)
                 .ThenBy(q => q.QuestionNo)
                 .ToListAsync();
 
             // Lấy các câu trả lời của user
             var userAnswers = await _efContext
-                .UserAnswers.Where(ua => ua.AttemptId == attempt.Id)
+                .UserAnswers
+                .AsNoTracking()
+                .Where(ua => ua.AttemptId == attempt.Id)
                 .ToDictionaryAsync(ua => ua.QuestionId, ua => ua);
 
             return new TestResultDetailDto
@@ -419,6 +477,7 @@ namespace ToeicMaster.API.Controllers
                 ListeningScore = attempt.ListeningScore ?? 0,
                 ReadingScore = attempt.ReadingScore ?? 0,
                 TotalQuestions = allQuestions.Count,
+                IsFullTest = isFullTest,
                 CompletedAt = attempt.CompletedAt,
                 Questions = allQuestions
                     .Select(q =>
@@ -615,13 +674,11 @@ namespace ToeicMaster.API.Controllers
                 return Unauthorized();
             var userId = int.Parse(userIdStr);
 
-            var attempts = (await _efContext
+            var attempts = await _efContext
                 .TestAttempts
-                .Include(a => a.Test)
-                .Include(a => a.UserAnswers)
+                .AsNoTracking()
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.CompletedAt)
-                .ToListAsync())
                 .Select(a => new HistoryItemDto
                 {
                     AttemptId = a.Id,
@@ -637,7 +694,7 @@ namespace ToeicMaster.API.Controllers
                     CompletedAt = a.CompletedAt,
                     Status = a.Status ?? "COMPLETED",
                 })
-                .ToList();
+                .ToListAsync();
 
             return Ok(new { success = true, data = attempts });
         }

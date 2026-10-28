@@ -141,6 +141,7 @@ export interface ResultDetail {
   totalQuestions: number;
   listeningScore?: number; // Điểm Listening (5-495)
   readingScore?: number; // Điểm Reading (5-495)
+  isFullTest?: boolean; // false = user chỉ chọn một số Part, điểm quy đổi 990 không có ý nghĩa
   completedAt: string;
   questions: ResultQuestion[];
 }

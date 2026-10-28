@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../contexts/AuthContext";
 import { Globe, TrendingUp, GraduationCap, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
-  const { register, loginWithGoogle } = useAuth();
+  const { register } = useAuth();
   const router = useRouter();
 
   const [fullName, setFullName] = useState("");
@@ -72,18 +71,6 @@ export default function RegisterPage() {
       router.push("/login?registered=true");
     } catch (err: any) {
       setError(err.response?.data?.message || "Đăng ký thất bại");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    try {
-      setLoading(true);
-      await loginWithGoogle(credentialResponse.credential);
-    } catch (err: any) {
-      console.error("Google Login Error:", err);
-      setError("Đăng nhập Google thất bại. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -454,32 +441,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Social Login */}
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-zinc-200 dark:border-zinc-800"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-white dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500">
-                    hoặc
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 flex justify-center">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError("Đăng nhập Google thất bại")}
-                  useOneTap
-                  theme="outline"
-                  size="large"
-                  text="signin_with"
-                  shape="rectangular"
-                  width="350"
-                />
-              </div>
-            </div>
           </div>
 
           {/* Footer cho mobile */}

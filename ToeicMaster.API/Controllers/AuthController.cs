@@ -9,7 +9,6 @@ using ToeicMaster.API.Data;
 using ToeicMaster.API.Entities;
 using ToeicMaster.API.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
-using Google.Apis.Auth;
 using ToeicMaster.API.Services;
 
 namespace ToeicMaster.API.Controllers
@@ -23,19 +22,22 @@ namespace ToeicMaster.API.Controllers
         private readonly IEmailService _emailService;
         private readonly BlobService _blobService;
         private readonly IPremiumService _premiumService;
+        private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             AppDbContext context,
             IConfiguration configuration,
             IEmailService emailService,
             BlobService blobService,
-            IPremiumService premiumService)
+            IPremiumService premiumService,
+            ILogger<AuthController> logger)
         {
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
             _blobService = blobService;
             _premiumService = premiumService;
+            _logger = logger;
         }
 
         // 1. REGISTER
@@ -59,69 +61,14 @@ namespace ToeicMaster.API.Controllers
                 FullName = request.FullName,
                 CreatedAt = DateTime.UtcNow,
                 Balance = 0,
-                IsPremium = false
+                IsPremium = false,
+                IsActive = true
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Đăng ký thành công!" });
-        }
-
-        [HttpPost("google-login")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
-        {
-            try
-            {
-                // 1. Xác thực Token với Google (Quan trọng!)
-                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken);
-
-                // payload chứa thông tin user: payload.Email, payload.Name, payload.Picture...
-
-                // 2. Kiểm tra xem Email này đã có trong DB chưa
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
-
-                if (user == null)
-                {
-                    // 3. Nếu chưa có -> Tự động Đăng ký (Register)
-                    user = new User
-                    {
-                        Email = payload.Email,
-                        FullName = payload.Name,
-                        AvatarUrl = payload.Picture,
-                        Role = "User", // Mặc định là User thường
-                        PasswordHash = "", // Không cần pass vì login bằng GG
-
-                    };
-                    _context.Users.Add(user);
-                    await _context.SaveChangesAsync();
-                }
-                else
-                {
-                    // Update avatar from Google if user already exists
-                    user.AvatarUrl = payload.Picture;
-                    await _context.SaveChangesAsync();
-                }
-
-                // 4. Tạo JWT Token của riêng hệ thống bạn (Access Token)
-                // Hàm này bạn tự viết hoặc dùng logic JWT hiện tại của bạn
-                var accessToken = GenerateAccessToken(user);
-
-                return Ok(new
-                {
-                    token = accessToken,
-                    user = new { user.Email, user.FullName, user.AvatarUrl },
-
-                });
-            }
-            catch (InvalidJwtException)
-            {
-                return BadRequest("Token Google không hợp lệ.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi server: " + ex.Message);
-            }
         }
 
         // 2. LOGIN
@@ -131,8 +78,28 @@ namespace ToeicMaster.API.Controllers
             // Check if email exist in database
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
+            if (user == null)
+            {
+                var conn = _context.Database.GetDbConnection();
+                _logger.LogWarning(
+                    "LOGIN DEBUG: no user found for email '{Email}' (server: {Server}, database: {Database})",
+                    request.Email,
+                    conn.DataSource,
+                    conn.Database);
+                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
+            }
+
+            var passwordMatches = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+            var loginConn = _context.Database.GetDbConnection();
+            _logger.LogWarning(
+                "LOGIN DEBUG: user {UserId} found (server: {Server}, database: {Database}), passwordMatches={PasswordMatches}",
+                user.Id,
+                loginConn.DataSource,
+                loginConn.Database,
+                passwordMatches);
+
             // Verify Password
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (!passwordMatches)
             {
                 return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
             }
@@ -154,7 +121,7 @@ namespace ToeicMaster.API.Controllers
                 {
                     Id = user.Id,
                     Email = user.Email,
-                    FullName = user.FullName,
+                    FullName = user.FullName ?? string.Empty,
                     Balance = user.Balance ?? 0,
                     IsPremium = _premiumService.IsPremiumActive(user),
                     PremiumExpiredAt = user.PremiumExpiredAt

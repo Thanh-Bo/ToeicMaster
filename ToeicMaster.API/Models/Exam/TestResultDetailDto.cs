@@ -13,6 +13,12 @@ namespace ToeicMaster.API.Models.Exam
         public int ListeningScore { get; set; } // Điểm Listening (5-495)
         public int ReadingScore { get; set; } // Điểm Reading (5-495)
         public int TotalQuestions { get; set; }
+
+        /// <summary>
+        /// True when the attempt covers the whole test. When false, the scaled
+        /// TOEIC scores are not meaningful and the UI should show raw counts.
+        /// </summary>
+        public bool IsFullTest { get; set; }
         public DateTime CompletedAt { get; set; }
         public List<ResultQuestionDto> Questions { get; set; } = new();
     }

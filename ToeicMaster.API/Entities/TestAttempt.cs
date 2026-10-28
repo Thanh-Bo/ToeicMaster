@@ -25,6 +25,12 @@ public partial class TestAttempt
 
     public string? Status { get; set; }
 
+    /// <summary>
+    /// Selected parts for this attempt, e.g. "5" or "1,2,5".
+    /// NULL/empty means the whole test (all parts).
+    /// </summary>
+    public string? Parts { get; set; }
+
     public virtual Test Test { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

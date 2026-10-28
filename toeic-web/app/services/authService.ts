@@ -6,13 +6,6 @@ export const authService = {
     return axiosClient.post("/auth/login", data);
   },
 
-  loginGoogle: async (idToken: string) => {
-    const response = await axiosClient.post(`auth/google-login`, {
-      idToken: idToken 
-    });
-    return response.data;
-  },
-
   // Hàm Register
   register: (data: { email: string; password: string; fullName: string }) => {
     return axiosClient.post("/auth/register", data);

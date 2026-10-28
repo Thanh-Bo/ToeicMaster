@@ -3,6 +3,13 @@ namespace ToeicMaster.API.Models.Exam
     public class SubmitTestRequest
     {
         public int TestId { get; set; }
+
+        /// <summary>
+        /// Parts the user chose, e.g. "5" or "1,2,5".
+        /// Null/empty means the full test.
+        /// </summary>
+        public string? Parts { get; set; }
+
         public List<UserAnswerDto> Answers { get; set; } = new();
         public int Duration { get; set; }
     }

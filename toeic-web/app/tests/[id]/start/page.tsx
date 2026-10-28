@@ -9,7 +9,7 @@ import { TestDetail } from "@/app/types"; // Đảm bảo bạn có type này
 import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
 import AnswerOption from "@/app/components/tests/AnswerOption";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
-import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft, Send } from "lucide-react";
 import { testService } from "@/app/services/testService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
 
@@ -225,6 +225,8 @@ export default function ExamPage() {
 
       const payload = {
         testId: testData!.id, // integer ID from loaded test data
+        // Which parts the user chose (e.g. "5"); null/undefined = full test
+        parts: partsParam,
         answers: Object.entries(userAnswers).map(([qId, opt]) => ({
           questionId: Number(qId),
           selectedOption: opt,
@@ -305,9 +307,10 @@ export default function ExamPage() {
                 }
               }}
               className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium flex items-center gap-1.5 transition"
+              title="Thoát"
+              aria-label="Thoát"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="hidden md:inline">Thoát</span>
             </button>
 
             {/* Vertical Divider */}
@@ -320,15 +323,9 @@ export default function ExamPage() {
               title={isSidebarVisible ? "Ẩn sidebar" : "Hiện sidebar"}
             >
               {isSidebarVisible ? (
-                <>
-                  <EyeOff className="w-4.5 h-4.5" />
-                  <span className="hidden xl:inline">Ẩn sidebar</span>
-                </>
+                <EyeOff className="w-4.5 h-4.5" />
               ) : (
-                <>
-                  <Eye className="w-4.5 h-4.5" />
-                  <span className="hidden xl:inline">Hiện sidebar</span>
-                </>
+                <Eye className="w-4.5 h-4.5" />
               )}
             </button>
           </div>
@@ -351,20 +348,16 @@ export default function ExamPage() {
             </div>
           </div>
 
-          {/* Right: Progress + Submit */}
+          {/* Right: Submit */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-100/30 dark:border-blue-900/30">
-              <span>Tiến độ:</span>
-              <span className="font-bold text-blue-700 dark:text-blue-300">{answeredCount}</span>
-              <span className="text-blue-300 dark:text-blue-800">/</span>
-              <span>{totalQuestions}</span>
-            </div>
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-3 py-1.5 md:px-4 rounded-lg text-xs md:text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap shadow-sm shadow-blue-500/10"
+              title={submitting ? "Đang nộp..." : "Nộp bài"}
+              aria-label={submitting ? "Đang nộp..." : "Nộp bài"}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-3 py-1.5 md:px-4 rounded-lg text-xs md:text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap shadow-sm shadow-blue-500/10 flex items-center justify-center"
             >
-              {submitting ? "Đang nộp..." : "Nộp bài"}
+              <Send className="w-4 h-4" />
             </button>
           </div>
         </div>

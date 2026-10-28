@@ -9,6 +9,7 @@ interface Props {
   questions: any[]; // Kết quả làm bài (chứa isCorrect, userSelected...)
   totalScore: number;
   totalQuestions: number;
+  isFullTest?: boolean;
   onScrollToQuestion: (id: number) => void;
   currentQuestionId?: number | null;
 }
@@ -19,6 +20,7 @@ export default function ResultRightSidebar({
   questions,
   totalScore,
   totalQuestions,
+  isFullTest = true,
   onScrollToQuestion,
   currentQuestionId,
 }: Props) {
@@ -63,11 +65,13 @@ export default function ResultRightSidebar({
         {/* --- KẾT QUẢ TỔNG QUAN --- */}
         <div className="text-center mb-6">
           <p className="text-zinc-500 dark:text-zinc-500 text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1">
-            Tổng điểm
+            {isFullTest ? "Tổng điểm" : "Câu đúng"}
           </p>
           <div className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white mb-1 font-mono tracking-tight">
-            {totalScore}
-            <span className="text-base sm:text-lg text-zinc-400 dark:text-zinc-500 font-normal">/990</span>
+            {isFullTest ? totalScore : correctCount}
+            <span className="text-base sm:text-lg text-zinc-400 dark:text-zinc-500 font-normal">
+              /{isFullTest ? 990 : totalQuestions}
+            </span>
           </div>
           <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold mb-4">
             ({correctCount}/{totalQuestions} câu đúng)

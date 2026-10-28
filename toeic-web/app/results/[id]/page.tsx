@@ -651,14 +651,14 @@ export default function ResultPage() {
           <div className="bg-blue-50/40 dark:bg-blue-950/10 border border-blue-200 dark:border-blue-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-                Tổng điểm
+                {result.isFullTest === false ? "Câu đúng" : "Tổng điểm"}
               </span>
               <Trophy size={16} className="text-blue-500" />
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 font-mono">
-              {result.totalScore}
+              {result.isFullTest === false ? correctCount : result.totalScore}
               <span className="text-sm sm:text-lg text-blue-400 dark:text-blue-500 font-normal">
-                /990
+                /{result.isFullTest === false ? totalQuestions : 990}
               </span>
             </p>
           </div>
@@ -674,8 +674,10 @@ export default function ResultPage() {
                   <Headphones size={14} className="text-sky-500" /> Nghe:
                 </span>
                 <span className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white font-mono">
-                  {result.listeningScore || 0}
-                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal">/495</span>
+                  {result.isFullTest === false ? listeningCorrect : result.listeningScore || 0}
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal">
+                    /{result.isFullTest === false ? listeningQuestions.length : 495}
+                  </span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -683,8 +685,10 @@ export default function ResultPage() {
                   <BookOpen size={14} className="text-emerald-500" /> Đọc:
                 </span>
                 <span className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white font-mono">
-                  {result.readingScore || 0}
-                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal">/495</span>
+                  {result.isFullTest === false ? readingCorrect : result.readingScore || 0}
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal">
+                    /{result.isFullTest === false ? readingQuestions.length : 495}
+                  </span>
                 </span>
               </div>
             </div>
@@ -1461,6 +1465,7 @@ export default function ResultPage() {
               questions={result.questions || []}
               totalScore={result.totalScore}
               totalQuestions={totalQuestions}
+              isFullTest={result.isFullTest !== false}
               onScrollToQuestion={handleScrollToQuestion}
               currentQuestionId={currentQuestionId}
             />
