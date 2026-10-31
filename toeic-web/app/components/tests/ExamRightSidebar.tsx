@@ -1,8 +1,7 @@
 "use client";
 
-import { Send, Trash2, Pause, Play, MessageCircle } from "lucide-react";
-import { useState } from "react";
-import { FeedbackModal } from "../feedback";
+import { Send, Trash2, Pause, Play, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   parts: any[];
@@ -33,7 +32,8 @@ export default function ExamRightSidebar({
   durationParam,
   isTimerPaused = false,
 }: Props) {
-  const [showFeedback, setShowFeedback] = useState(false);
+  const [showLowTimeAlert, setShowLowTimeAlert] = useState(true);
+  const lowTimeTimerRef = useRef<number | null>(null);
   const isUnlimited = durationParam === "0";
   // Format giây thành HH:MM:SS hoặc MM:SS
   const formatTime = (seconds: number) => {
@@ -46,6 +46,28 @@ export default function ExamRightSidebar({
   };
 
   const isLowTime = !isUnlimited && timeLeft <= 300;
+
+  // Show the warning again when time goes back above the threshold (new exam / reset)
+  useEffect(() => {
+    if (!isLowTime) setShowLowTimeAlert(true);
+  }, [isLowTime]);
+
+  // Clean up the re-show timer on unmount
+  useEffect(() => {
+    return () => {
+      if (lowTimeTimerRef.current) window.clearTimeout(lowTimeTimerRef.current);
+    };
+  }, []);
+
+  // Dismiss is temporary: the banner comes back after 60s while time is still low
+  const handleDismissLowTime = () => {
+    setShowLowTimeAlert(false);
+    if (lowTimeTimerRef.current) window.clearTimeout(lowTimeTimerRef.current);
+    lowTimeTimerRef.current = window.setTimeout(
+      () => setShowLowTimeAlert(true),
+      60_000,
+    );
+  };
 
   return (
     <div className="sticky top-20 dark:text-zinc-200 text-zinc-700 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-200/50 dark:border-zinc-800/45 overflow-y-auto max-h-[calc(100vh-5.5rem)] custom-scrollbar">
@@ -67,15 +89,24 @@ export default function ExamRightSidebar({
             {formatTime(timeLeft)}
           </div>
 
-          {isLowTime && (
-            <div className="bg-red-100 dark:bg-red-950/40 border border-red-200/40 dark:border-red-900/50 text-red-700 dark:text-red-400 text-xs p-2.5 rounded-xl mt-3 font-semibold">
-              ⚠️ Sắp hết giờ! Hãy nộp bài ngay.
+          {isLowTime && showLowTimeAlert && (
+            <div className="relative bg-red-100 dark:bg-red-950/40 border border-red-200/40 dark:border-red-900/50 text-red-700 dark:text-red-400 text-xs p-2.5 pr-8 rounded-xl mt-3 font-semibold">
+              Sắp hết giờ! Hãy nộp bài ngay.
+              <button
+                type="button"
+                onClick={handleDismissLowTime}
+                title="Ẩn cảnh báo (sẽ hiện lại sau 60 giây)"
+                aria-label="Ẩn cảnh báo"
+                className="absolute right-1.5 top-1.5 rounded p-1 text-red-600 hover:bg-red-200/60 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
         </div>
 
-        {/* 2. ACTIONS - 4 buttons in one row */}
-        <div className="grid grid-cols-4 gap-2 mb-3 sm:mb-4">
+        {/* 2. ACTIONS - 3 buttons in one row */}
+        <div className="grid grid-cols-3 gap-2 mb-3 sm:mb-4">
           <button
             onClick={onSubmit}
             disabled={isSubmitting}
@@ -122,20 +153,7 @@ export default function ExamRightSidebar({
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
-
-          <button
-            onClick={() => setShowFeedback(true)}
-            className="w-full py-2.5 rounded-xl font-bold transition-all duration-200 text-xs sm:text-sm uppercase flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]
-            bg-gray-100/50 dark:bg-zinc-800/40 border border-gray-200/40 dark:border-zinc-800/45 text-zinc-750 dark:text-zinc-300 hover:bg-gray-105 dark:hover:bg-zinc-800/85"
-            title="Gửi ý kiến"
-            aria-label="Gửi ý kiến"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </button>
         </div>
-        {showFeedback && (
-          <FeedbackModal onClose={() => setShowFeedback(false)} />
-        )}
 
         <hr className="border-gray-100 dark:border-zinc-800 my-3 sm:my-4" />
 
