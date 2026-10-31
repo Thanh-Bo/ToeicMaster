@@ -679,24 +679,109 @@ namespace ToeicMaster.API.Controllers
                 .AsNoTracking()
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.CompletedAt)
-                .Select(a => new HistoryItemDto
+                .Select(a => new
                 {
-                    AttemptId = a.Id,
-                    AttemptGuid = a.AttemptGuid,
-                    TestId = a.TestId,
+                    a.Id,
+                    a.AttemptGuid,
+                    a.TestId,
                     TestTitle = a.Test.Title,
-                    TotalScore = a.TotalScore,
-                    TotalQuestions = a.Test.TotalQuestions ?? 200,
+                    TestTotalQuestions = a.Test.TotalQuestions,
+                    a.TotalScore,
                     CorrectAnswers = a.UserAnswers.Count(ua => ua.IsCorrect),
-                    ListeningScore = a.ListeningScore,
-                    ReadingScore = a.ReadingScore,
-                    StartedAt = a.StartedAt,
-                    CompletedAt = a.CompletedAt,
-                    Status = a.Status ?? "COMPLETED",
+                    a.ListeningScore,
+                    a.ReadingScore,
+                    a.StartedAt,
+                    a.CompletedAt,
+                    a.Status,
+                    a.Parts,
                 })
                 .ToListAsync();
 
-            return Ok(new { success = true, data = attempts });
+            // Question count per (test, part) so a Part-5-only attempt shows x/30 instead of x/200
+            var testIds = attempts.Select(a => a.TestId).Distinct().ToList();
+            var partCounts = await _efContext.Questions
+                .AsNoTracking()
+                .Where(q => q.Group.Part.PartNumber != null && testIds.Contains(q.Group.Part.TestId))
+                .GroupBy(q => new { q.Group.Part.TestId, q.Group.Part.PartNumber })
+                .Select(g => new { g.Key.TestId, g.Key.PartNumber, Count = g.Count() })
+                .ToListAsync();
+
+            var countsByTest = partCounts
+                .GroupBy(x => x.TestId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Where(x => x.PartNumber.HasValue)
+                          .ToDictionary(x => x.PartNumber!.Value, x => x.Count)
+                );
+
+            int ResolveTotalQuestions(int testId, string? parts, int? testTotalQuestions)
+            {
+                if (countsByTest.TryGetValue(testId, out var byPart) && byPart.Count > 0)
+                {
+                    var selectedParts = ParsePartNumbers(parts);
+                    return selectedParts.Count == 0
+                        ? byPart.Values.Sum()
+                        : selectedParts.Where(p => byPart.ContainsKey(p)).Sum(p => byPart[p]);
+                }
+
+                return testTotalQuestions ?? 200;
+            }
+
+            var history = attempts.Select(a => new HistoryItemDto
+            {
+                AttemptId = a.Id,
+                AttemptGuid = a.AttemptGuid,
+                TestId = a.TestId,
+                TestTitle = a.TestTitle,
+                TotalScore = a.TotalScore,
+                TotalQuestions = ResolveTotalQuestions(a.TestId, a.Parts, a.TestTotalQuestions),
+                CorrectAnswers = a.CorrectAnswers,
+                ListeningScore = a.ListeningScore,
+                ReadingScore = a.ReadingScore,
+                StartedAt = a.StartedAt,
+                CompletedAt = a.CompletedAt,
+                Status = a.Status ?? "COMPLETED",
+            }).ToList();
+
+            return Ok(new { success = true, data = history });
+        }
+
+        // 5b. DELETE ONE HISTORY ITEM - Xóa một bài làm khỏi lịch sử
+        [HttpDelete("history/{attemptGuid:guid}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteHistoryItem(Guid attemptGuid)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null || !int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var attempt = await _efContext.TestAttempts
+                .FirstOrDefaultAsync(a => a.AttemptGuid == attemptGuid && a.UserId == userId);
+
+            if (attempt == null)
+                return NotFound(new { message = "Không tìm thấy bài làm." });
+
+            var answers = await _efContext.UserAnswers
+                .Where(ua => ua.AttemptId == attempt.Id)
+                .ToListAsync();
+
+            if (answers.Count > 0)
+            {
+                var answerIds = answers.Select(ua => ua.Id).ToList();
+
+                // ReviewFeedbacks references UserAnswers with NO ACTION - delete them first
+                var feedbacks = await _efContext.ReviewFeedbacks
+                    .Where(rf => answerIds.Contains(rf.UserAnswerId))
+                    .ToListAsync();
+                _efContext.ReviewFeedbacks.RemoveRange(feedbacks);
+
+                _efContext.UserAnswers.RemoveRange(answers);
+            }
+
+            _efContext.TestAttempts.Remove(attempt);
+            await _efContext.SaveChangesAsync();
+
+            return Ok(new { success = true });
         }
 
         [HttpGet("questions/groups")]

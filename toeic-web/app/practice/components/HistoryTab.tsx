@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Target, TrendingUp, FileText, Search, Eye, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, Target, TrendingUp, FileText, Search, Eye, Clock, ChevronLeft, ChevronRight, Trash2, Loader2 } from "lucide-react";
 import { TestHistoryItem } from "@/app/types";
 import { testService } from "@/app/services/testService";
 
@@ -17,6 +17,7 @@ export default function HistoryTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [animateProgress, setAnimateProgress] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -44,6 +45,21 @@ export default function HistoryTab() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
+
+  const handleDelete = async (item: TestHistoryItem) => {
+    const ok = window.confirm(`Xóa bài làm "${item.testTitle}" khỏi lịch sử?`);
+    if (!ok) return;
+
+    setDeletingId(item.attemptGuid);
+    try {
+      await testService.deleteHistory(item.attemptGuid);
+      setHistory((prev) => prev.filter((h) => h.attemptGuid !== item.attemptGuid));
+    } catch {
+      alert("Không thể xóa bài làm. Vui lòng thử lại.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -289,13 +305,30 @@ export default function HistoryTab() {
                             </div>
                           </div>
                           
-                          <Link
-                            href={`/results/${item.attemptGuid}`}
-                            className="inline-flex items-center justify-center gap-1 px-4 py-2 bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white rounded-xl font-bold text-xs transition-all duration-300"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            Chi tiết
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/results/${item.attemptGuid}`}
+                              title="Xem chi tiết"
+                              aria-label="Xem chi tiết"
+                              className="inline-flex items-center justify-center p-2.5 bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white rounded-xl transition-all duration-300 active:scale-[0.98]"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(item)}
+                              disabled={deletingId === item.attemptGuid}
+                              title="Xóa bài làm"
+                              aria-label="Xóa bài làm"
+                              className="inline-flex items-center justify-center p-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-400/40 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {deletingId === item.attemptGuid ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
@@ -342,14 +375,31 @@ export default function HistoryTab() {
                           </div>
                         </div>
 
-                        {/* Right - Action */}
-                        <Link
-                          href={`/results/${item.attemptGuid}`}
-                          className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white rounded-xl font-bold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                        >
-                          <Eye className="w-4 h-4" />
-                          Xem chi tiết
-                        </Link>
+                        {/* Right - Actions */}
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/results/${item.attemptGuid}`}
+                            title="Xem chi tiết"
+                            aria-label="Xem chi tiết"
+                            className="inline-flex items-center justify-center p-2.5 bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item)}
+                            disabled={deletingId === item.attemptGuid}
+                            title="Xóa bài làm"
+                            aria-label="Xóa bài làm"
+                            className="inline-flex items-center justify-center p-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-400/40 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {deletingId === item.attemptGuid ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );

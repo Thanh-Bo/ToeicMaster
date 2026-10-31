@@ -9,6 +9,17 @@ public class AiExplanationService
     private readonly string _model;
     private const string BaseUrl = "https://api.deepseek.com/v1/chat/completions";
 
+    /// <summary>
+    /// Rule shared by every translation prompt: never translate, remove or renumber
+    /// TOEIC blank markers such as "------- (135)".
+    /// </summary>
+    private const string BlankMarkerRule = @"
+**GIỮ NGUYÊN Ô TRỐNG (BẮT BUỘC):**
+- Nếu bản gốc có chuỗi dạng ""------- (135)"" (các dấu gạch ngang + số câu trong ngoặc), PHẢI giữ nguyên y hệt trong bản dịch: cùng số dấu gạch ngang, cùng khoảng trắng, cùng (số), đúng vị trí.
+- TUYỆT ĐỐI KHÔNG dịch, xóa, gộp, đổi số hay di chuyển các ô trống.
+- Ví dụ: ""Crystal Technologies recently ------- (135) an innovative training program"" → ""Crystal Technologies gần đây ------- (135) một chương trình đào tạo đổi mới"".
+";
+
     public AiExplanationService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
@@ -138,6 +149,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part 5 (Incomplete Sentences - 
 1. **Dịch nghĩa (chỉ trong Short):**
    - Dịch câu hoàn chỉnh
    - Dịch các đáp án A, B, C, D sang tiếng Việt (ngắn gọn)
+   - Giữ nguyên ô trống dạng ""------- (135)"" khi dịch câu hỏi (không dịch/xóa/gộp/đổi số)
 
 2. **Loại câu hỏi:**
    - Từ loại, Thì động từ, Giới từ, Liên từ, Đại từ, Collocations
@@ -173,8 +185,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part 6 (Text Completion - Hoàn
 1. **Dịch nghĩa (chỉ trong Short):**
    - Dịch câu hoàn chỉnh
    - Dịch các đáp án A, B, C, D sang tiếng Việt (ngắn gọn)
-
-
+   - Giữ nguyên ô trống dạng ""------- (135)"" khi dịch câu hỏi (không dịch/xóa/gộp/đổi số)
 
 2. **Giải thích:**
    - Câu trước/sau gợi ý    
@@ -212,6 +223,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part 7 (Reading Comprehension -
 1. **Dịch nghĩa (chỉ trong Short):**
    - Dịch câu hỏi sang tiếng Việt
    - Dịch 4 đáp án A, B, C, D sang tiếng Việt (ngắn gọn, tự nhiên)
+   - Giữ nguyên ô trống dạng ""------- (135)"" khi dịch câu hỏi (không dịch/xóa/gộp/đổi số)
 
 2. **Loại câu hỏi:**
    - Main purpose, Detail, Inference, Vocabulary in context, NOT/TRUE
@@ -441,7 +453,7 @@ Transcript:
 
 4. **Xử lý thông tin địa chỉ / ngày tháng (đầu thư):**
    - Mỗi dòng riêng biệt → một thẻ <p> riêng
-
+{BlankMarkerRule}
 5. **Định dạng output:**
    - KHÔNG dùng Markdown (không dùng **, *, ##)
    - KHÔNG thêm <br> trừ khi bản gốc đã có <br>
@@ -470,7 +482,7 @@ Transcript:
 5. Nếu vì lý do nào đó không thể giữ <table>, TẤN CÔNG BẰNG CẬU TRÚC: 
    <table><tr><td>Cột1</td><td>Cột2</td></tr></table>
    (vẫn phải dùng HTML table, không dùng ký hiệu pipe |)
-
+{BlankMarkerRule}
 ✓ YÊU CẦU ĐẦU RA:
 - Giữ nguyên tất cả thẻ HTML (<table>, <tr>, <th>, <td>, <b>, <br>, v.v.).
 - Chỉ dịch nội dung bên trong các thẻ, KHÔNG sửa cấu trúc.

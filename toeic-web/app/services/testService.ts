@@ -58,4 +58,9 @@ export const testService = {
     const response = await axiosClient.get("/tests/history");
     return response.data;
   },
+
+  // 6. Xóa một bài làm khỏi lịch sử
+  deleteHistory: (attemptGuid: string) => {
+    return axiosClient.delete(`/tests/history/${attemptGuid}`);
+  },
 };
