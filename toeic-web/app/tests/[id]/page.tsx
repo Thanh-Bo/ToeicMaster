@@ -45,6 +45,8 @@ export default function TestOverviewPage() {
     1, 2, 3, 4, 5, 6, 7,
   ]);
   const [duration, setDuration] = useState<number>(120);
+  const [customMode, setCustomMode] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState("45");
   const [loading, setLoading] = useState(true);
   const [toggleAll, setToggleAll] = useState(false);
 
@@ -82,9 +84,20 @@ export default function TestOverviewPage() {
       alert("Vui lòng chọn ít nhất một Part để luyện tập!");
       return;
     }
+
+    let finalDuration = duration;
+    if (customMode) {
+      const minutes = Number(customMinutes);
+      if (!Number.isFinite(minutes) || minutes < 1 || minutes > 600) {
+        alert("Thời gian tùy chỉnh phải từ 1 đến 600 phút.");
+        return;
+      }
+      finalDuration = Math.floor(minutes);
+    }
+
     const partsParam = selectedParts.sort().join(",");
     router.push(
-      `/tests/${testId}/start?parts=${partsParam}&duration=${duration}`,
+      `/tests/${testId}/start?parts=${partsParam}&duration=${finalDuration}`,
     );
   };
 
@@ -200,14 +213,17 @@ export default function TestOverviewPage() {
                 <Clock className="w-4 h-4 text-blue-500" />
                 Giới hạn thời gian
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 {DURATIONS.map((d) => {
-                  const active = duration === d.value;
+                  const active = !customMode && duration === d.value;
                   return (
                     <button
                       key={d.value}
                       type="button"
-                      onClick={() => setDuration(d.value)}
+                      onClick={() => {
+                        setCustomMode(false);
+                        setDuration(d.value);
+                      }}
                       className={`py-2 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-200 active:scale-[0.97] ${
                         active
                           ? "bg-blue-600 text-white border-blue-600 shadow-sm"
@@ -218,7 +234,60 @@ export default function TestOverviewPage() {
                     </button>
                   );
                 })}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomMode(true);
+                    const n = Number(customMinutes);
+                    if (Number.isFinite(n) && n >= 1 && n <= 600) {
+                      setDuration(Math.floor(n));
+                    }
+                  }}
+                  className={`py-2 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-200 active:scale-[0.97] ${
+                    customMode
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50/50 dark:hover:bg-zinc-900/60"
+                  }`}
+                >
+                  Tùy chỉnh
+                </button>
               </div>
+
+              {customMode && (
+                <div className="mt-2.5 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={600}
+                    inputMode="numeric"
+                    value={customMinutes}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCustomMinutes(v);
+                      const n = Number(v);
+                      if (Number.isFinite(n) && n >= 1 && n <= 600) {
+                        setDuration(Math.floor(n));
+                      }
+                    }}
+                    onBlur={() => {
+                      const n = Number(customMinutes);
+                      if (!Number.isFinite(n) || n < 1) {
+                        setCustomMinutes("45");
+                        setDuration(45);
+                      } else if (n > 600) {
+                        setCustomMinutes("600");
+                        setDuration(600);
+                      }
+                    }}
+                    placeholder="Nhập số phút"
+                    className="w-36 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm font-bold text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+                  />
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    phút (1 – 600)
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Start Button */}

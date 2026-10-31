@@ -247,7 +247,7 @@ export default function ResultQuestionItem({
 
       {/* --- KHU VỰC HIỂN THỊ GIẢI THÍCH --- */}
       {q.isExplanationOpen && !isExplanationLocked && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 ml-8 xs:ml-10 sm:ml-12 mt-2 xs:mt-3 sm:mt-4 p-2.5 xs:p-3 sm:p-5 rounded-lg xs:rounded-xl sm:rounded-xl animate-fadeIn relative">
+        <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 ml-8 xs:ml-10 sm:ml-12 mt-2 xs:mt-3 sm:mt-4 p-2.5 xs:p-3 sm:p-5 rounded-lg xs:rounded-xl sm:rounded-xl animate-fadeIn relative">
           {/* GIẢI THÍCH NGẮN */}
           {q.shortExplanation && (
             <div className="mb-2 xs:mb-3 sm:mb-4">
@@ -257,7 +257,7 @@ export default function ResultQuestionItem({
                 </h4>
               </div>
               <p
-                className="text-zinc-900 dark:text-zinc-200 text-xs xs:text-sm sm:text-base leading-relaxed"
+                className="text-zinc-900 dark:text-zinc-100 text-xs xs:text-sm sm:text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: q.shortExplanation }}
               ></p>
             </div>
@@ -265,7 +265,7 @@ export default function ResultQuestionItem({
 
           {/* Nút Xem Chi Tiết & GIẢI THÍCH CHI TIẾT */}
           {q.fullExplanation && (
-            <div className="border-t border-blue-200 dark:border-blue-800 pt-1.5 xs:pt-2 sm:pt-3">
+            <div className="border-t border-gray-200 dark:border-zinc-700 pt-1.5 xs:pt-2 sm:pt-3">
               <button
                 onClick={() => onToggleDetail(q.questionId)}
                 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1.5 xs:mb-2 sm:mb-2 flex items-center gap-1 hover:text-blue-800 dark:hover:text-blue-300"
@@ -282,7 +282,7 @@ export default function ResultQuestionItem({
               </button>
 
               {q.isDetailOpen && (
-                <div className="text-xs xs:text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
+                <div className="text-xs xs:text-sm sm:text-base text-gray-700 dark:text-zinc-100 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_p]:text-gray-700 dark:[&_p]:text-zinc-100 [&_li]:text-gray-700 dark:[&_li]:text-zinc-100 [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400">
                   <div
                     dangerouslySetInnerHTML={{
                       __html: q.fullExplanation,

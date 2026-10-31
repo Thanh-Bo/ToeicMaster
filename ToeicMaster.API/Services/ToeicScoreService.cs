@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ToeicMaster.API.Services
 {
-    public class ToeicScoreService
+    public class 
+    
+    ToeicScoreService
     {
         private readonly AppDbContext _efContext;
 

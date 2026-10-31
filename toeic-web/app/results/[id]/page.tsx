@@ -1218,13 +1218,13 @@ export default function ResultPage() {
 
                               {/* Phần giải thích */}
                               {q.isExplanationOpen && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 md:p-4 space-y-2 md:space-y-3">
+                                <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg p-3 md:p-4 space-y-2 md:space-y-3">
                                   {q.shortExplanation && (
                                     <div>
                                       <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1">
                                         <Languages size={12} className="md:w-3.5 md:h-3.5" /> Dịch câu hỏi
                                       </h4>
-                                      <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
+                                      <div className="text-xs md:text-sm text-gray-700 dark:text-zinc-100 leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_p]:text-gray-700 dark:[&_p]:text-zinc-100 [&_li]:text-gray-700 dark:[&_li]:text-zinc-100 [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
                                         <div
                                           dangerouslySetInnerHTML={{
                                             __html: q.shortExplanation,
@@ -1235,7 +1235,7 @@ export default function ResultPage() {
                                   )}
 
                                   {q.fullExplanation && (
-                                    <div className="border-t border-blue-200 dark:border-blue-800 pt-2 md:pt-3">
+                                    <div className="border-t border-gray-200 dark:border-zinc-700 pt-2 md:pt-3">
                                       <button
                                         onClick={() =>
                                           handleToggleDetail(q.questionId)
@@ -1254,7 +1254,7 @@ export default function ResultPage() {
                                       </button>
 
                                       {q.isDetailOpen && (
-                                        <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert  [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
+                                        <div className="text-xs md:text-sm text-gray-700 dark:text-zinc-100 leading-relaxed prose prose-sm max-w-none dark:prose-invert  [&_p]:text-gray-700 dark:[&_p]:text-zinc-100 [&_li]:text-gray-700 dark:[&_li]:text-zinc-100 [&_span.highlight-correct]:text-green-600 dark:[&_span.highlight-correct]:text-green-400 ">
                                           <div
                                             dangerouslySetInnerHTML={{
                                               __html: q.fullExplanation,

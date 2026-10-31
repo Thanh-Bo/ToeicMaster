@@ -7,6 +7,7 @@ import { FeedbackModal } from "../feedback";
 interface Props {
   parts: any[];
   userAnswers: Record<number, string>;
+  flaggedQuestions?: Set<number>;
   onScrollToQuestion: (id: number) => void;
   onSubmit: () => void;
   onClearAll: () => void;
@@ -21,6 +22,7 @@ interface Props {
 export default function ExamRightSidebar({
   parts,
   userAnswers,
+  flaggedQuestions = new Set<number>(),
   onScrollToQuestion,
   onSubmit,
   onClearAll,
@@ -137,13 +139,20 @@ export default function ExamRightSidebar({
 
         <hr className="border-gray-100 dark:border-zinc-800 my-3 sm:my-4" />
 
-        {/* 3. CHÚ THÍCH */}
-        <div className="mb-3 sm:mb-4 text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium">
-          <span className="font-bold text-orange-500 dark:text-orange-400">
-            Chú ý:{" "}
+        {/* 3. CHÚ THÍCH MÀU */}
+        <div className="mb-3 sm:mb-4 flex flex-nowrap items-center justify-between gap-1 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400">
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="w-2.5 h-2.5 rounded shrink-0 bg-blue-600 dark:bg-blue-500" />
+            Đã làm
           </span>
-          <span className="hidden sm:inline">Click vào số câu hỏi để nhảy đến | Nhấn phím A/B/C/D để chọn nhanh</span>
-          <span className="sm:inline">Click số để nhảy | Phím A/B/C/D chọn</span>
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="w-2.5 h-2.5 rounded shrink-0 bg-emerald-600 dark:bg-emerald-500" />
+            Làm sau
+          </span>
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="w-2.5 h-2.5 rounded shrink-0 bg-white border border-gray-300 dark:bg-zinc-800 dark:border-zinc-700" />
+            Chưa làm
+          </span>
         </div>
 
         {/* 4. DANH SÁCH CÂU HỎI (PALETTE) */}
@@ -158,6 +167,7 @@ export default function ExamRightSidebar({
                   .flatMap((g: any) => g.questions)
                   .map((q: any) => {
                     const isAnswered = !!userAnswers[q.id];
+                    const isFlagged = flaggedQuestions.has(q.id);
                     const isCurrent = currentQuestionId === q.id;
 
                     return (
@@ -171,9 +181,11 @@ export default function ExamRightSidebar({
                           : ""
                       }
                       ${
-                        isAnswered
+                        isFlagged
+                          ? "bg-emerald-600 dark:bg-emerald-500 text-white border-transparent shadow-sm shadow-emerald-500/10 font-bold"
+                          : isAnswered
                           ? "bg-blue-600 dark:bg-blue-500 text-white border-transparent shadow-sm shadow-blue-500/10 font-bold"
-                          : "bg-gray-100/60 dark:bg-zinc-800/40 text-zinc-700 dark:text-zinc-400 border-gray-200/60 dark:border-zinc-800/50 hover:bg-gray-200/80 dark:hover:bg-zinc-800/80"
+                          : "bg-white dark:bg-zinc-800/40 text-zinc-700 dark:text-zinc-400 border-gray-200/60 dark:border-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800/80"
                       }`}
                       >
                         {q.questionNo}

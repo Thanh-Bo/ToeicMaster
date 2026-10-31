@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 
 import { TestDetail } from "@/app/types"; // Đảm bảo bạn có type này
 import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
+import FlagQuestionButton from "@/app/components/tests/FlagQuestionButton";
 import AnswerOption from "@/app/components/tests/AnswerOption";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
 import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft, Send } from "lucide-react";
@@ -35,10 +36,14 @@ export default function ExamPage() {
   );
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(
+    new Set(),
+  );
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
   const STORAGE_KEY = `exam_progress_${testGuid}`;
+  const FLAGS_KEY = `exam_flags_${testGuid}`;
 
   // --- TÍNH TOÁN ---
   const totalQuestions =
@@ -75,6 +80,17 @@ export default function ExamPage() {
   const handleClearAllAnswers = () => {
     setUserAnswers({});
     localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const handleToggleFlag = (questionId: number) => {
+    const next = new Set(flaggedQuestions);
+    if (next.has(questionId)) {
+      next.delete(questionId);
+    } else {
+      next.add(questionId);
+    }
+    setFlaggedQuestions(next);
+    localStorage.setItem(FLAGS_KEY, JSON.stringify([...next]));
   };
 
   const handleScrollToQuestion = (id: number) => {
@@ -120,6 +136,16 @@ export default function ExamPage() {
               setUserAnswers(JSON.parse(savedAnswers));
             } catch (e) {
               console.error("Lỗi parse localStorage:", e);
+            }
+          }
+
+          // Load questions marked for later
+          const savedFlags = localStorage.getItem(FLAGS_KEY);
+          if (savedFlags) {
+            try {
+              setFlaggedQuestions(new Set(JSON.parse(savedFlags)));
+            } catch (e) {
+              console.error("Lỗi parse flags localStorage:", e);
             }
           }
 
@@ -461,6 +487,10 @@ export default function ExamPage() {
                                   <p className="text-gray-700 dark:text-gray-400 text-xs md:text-sm">
                                     Chọn đáp án đúng:
                                   </p>
+                                  <FlagQuestionButton
+                                    flagged={flaggedQuestions.has(q.id)}
+                                    onToggle={() => handleToggleFlag(q.id)}
+                                  />
                                 </div>
                                 <div className="grid grid-cols-2 md:flex md:flex-col gap-2 md:gap-3 md:ml-11">
                                   {["A", "B", "C", "D"].map((label) => (
@@ -533,6 +563,10 @@ export default function ExamPage() {
                                   <span className="text-gray-600 dark:text-gray-400 italic text-xs md:text-sm">
                                     Nghe và chọn đáp án
                                   </span>
+                                  <FlagQuestionButton
+                                    flagged={flaggedQuestions.has(q.id)}
+                                    onToggle={() => handleToggleFlag(q.id)}
+                                  />
                                 </div>
                                 <div className="grid grid-cols-3 md:flex md:flex-col gap-2 md:gap-3 md:ml-12">
                                   {["A", "B", "C"].map((label) => (
@@ -651,6 +685,10 @@ export default function ExamPage() {
                                       }}
                                     />
                                   </div>
+                                  <FlagQuestionButton
+                                    flagged={flaggedQuestions.has(q.id)}
+                                    onToggle={() => handleToggleFlag(q.id)}
+                                  />
                                 </div>
                                 <div className="space-y-2 ml-9 md:ml-11">
                                   {q.answers.map((ans) => (
@@ -710,6 +748,10 @@ export default function ExamPage() {
                                   }}
                                 />
                               </div>
+                              <FlagQuestionButton
+                                flagged={flaggedQuestions.has(q.id)}
+                                onToggle={() => handleToggleFlag(q.id)}
+                              />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 ml-9 md:ml-11">
                               {q.answers.map((ans) => (
@@ -741,6 +783,7 @@ export default function ExamPage() {
             <ExamRightSidebar
               parts={testData.parts}
               userAnswers={userAnswers}
+              flaggedQuestions={flaggedQuestions}
               onScrollToQuestion={handleScrollToQuestion}
               onSubmit={handleSubmit}
               onClearAll={handleClearAllAnswers}
