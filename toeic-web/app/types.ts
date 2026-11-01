@@ -136,12 +136,14 @@ export interface ResultDetail {
   timeTaken?: number;
   attemptId: number;
   testId: number;
+  testGuid?: string;
   testTitle: string;
   totalScore: number;
   totalQuestions: number;
   listeningScore?: number; // Điểm Listening (5-495)
   readingScore?: number; // Điểm Reading (5-495)
   isFullTest?: boolean; // false = user chỉ chọn một số Part, điểm quy đổi 990 không có ý nghĩa
+  flags?: number[]; // ID các câu đã đánh dấu "làm sau" trong lượt làm bài này
   completedAt: string;
   questions: ResultQuestion[];
 }

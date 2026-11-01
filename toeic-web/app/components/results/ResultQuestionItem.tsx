@@ -12,8 +12,10 @@ import {
   Languages,
   AlertCircle,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 import { AnswerOptionResult } from "./AnswerOptionResult";
+import { useResultActions } from "./ResultActionsContext";
 
 const BASE_URL = "http://localhost:5298"; // Hoặc import từ file config
 
@@ -46,6 +48,11 @@ export default function ResultQuestionItem({
   const partNum = q.partNumber || 5;
   const isExplanationLocked = q.explanationLocked && !q.shortExplanation && !q.fullExplanation;
   const options = partNum === 2 ? ["A", "B", "C"] : ["A", "B", "C", "D"];
+  const {
+    canRegenerateExplanation,
+    regeneratingIds,
+    onRegenerateExplanation,
+  } = useResultActions();
 
   const getAnswerContent = (label: string) => {
     if (q.answers && Array.isArray(q.answers)) {
@@ -221,6 +228,22 @@ export default function ResultQuestionItem({
             </>
           )}
         </button>
+
+        {canRegenerateExplanation && q.isExplanationOpen && (
+          <button
+            onClick={() => onRegenerateExplanation(q.questionId)}
+            disabled={regeneratingIds.has(q.questionId)}
+            title="Tạo lại giải thích (chỉ admin)"
+            aria-label="Tạo lại giải thích"
+            className="inline-flex items-center justify-center p-2 xs:p-2.5 rounded-md xs:rounded-lg border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {regeneratingIds.has(q.questionId) ? (
+              <Loader2 className="h-3 xs:h-4 w-3 xs:w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 xs:h-4 w-3 xs:w-4" />
+            )}
+          </button>
+        )}
       </div>
 
       {isExplanationLocked && (

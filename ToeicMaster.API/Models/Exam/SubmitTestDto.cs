@@ -10,6 +10,11 @@ namespace ToeicMaster.API.Models.Exam
         /// </summary>
         public string? Parts { get; set; }
 
+        /// <summary>
+        /// Question IDs the user flagged for later review during this attempt.
+        /// </summary>
+        public List<int>? Flags { get; set; }
+
         public List<UserAnswerDto> Answers { get; set; } = new();
         public int Duration { get; set; }
     }

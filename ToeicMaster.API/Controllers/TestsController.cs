@@ -124,6 +124,25 @@ namespace ToeicMaster.API.Controllers
                 .ToList();
         }
 
+        /// <summary>
+        /// Parses "131,136,146" into a distinct, ordered list of question IDs.
+        /// Empty/invalid input returns an empty list.
+        /// </summary>
+        private static List<int> ParseQuestionIds(string? flags)
+        {
+            if (string.IsNullOrWhiteSpace(flags))
+                return new List<int>();
+
+            return flags
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(f => int.TryParse(f, out var n) ? n : (int?)null)
+                .Where(n => n.HasValue && n.Value > 0)
+                .Select(n => n!.Value)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList();
+        }
+
         private async Task<bool> IsPremiumUserAsync(int? userId)
         {
             return await _premiumService.IsPremiumUserAsync(userId);
@@ -333,6 +352,10 @@ namespace ToeicMaster.API.Controllers
                 TimeTaken = request.Duration,
                 Status = "COMPLETED",
                 Parts = isFullTest ? null : string.Join(",", selectedParts.OrderBy(p => p)),
+                // Question IDs the user flagged for later review (null when none)
+                Flags = request.Flags is { Count: > 0 }
+                    ? string.Join(",", request.Flags.Where(id => id > 0).Distinct().OrderBy(id => id))
+                    : null,
             };
 
             _efContext.TestAttempts.Add(attempt);
@@ -470,6 +493,7 @@ namespace ToeicMaster.API.Controllers
                 AttemptId = attempt.Id,
                 TimeTaken = attempt.TimeTaken,
                 TestId = attempt.TestId,
+                TestGuid = attempt.Test.TestGuid,
                 TestTitle = attempt.Test.Title,
                 IsExplanationPremiumRequired = attempt.Test.IsExplanationPremiumRequired,
                 CanViewExplanation = canViewExplanation,
@@ -478,6 +502,7 @@ namespace ToeicMaster.API.Controllers
                 ReadingScore = attempt.ReadingScore ?? 0,
                 TotalQuestions = allQuestions.Count,
                 IsFullTest = isFullTest,
+                Flags = ParseQuestionIds(attempt.Flags),
                 CompletedAt = attempt.CompletedAt,
                 Questions = allQuestions
                     .Select(q =>
@@ -618,6 +643,39 @@ namespace ToeicMaster.API.Controllers
                 );
 
                 // 4. Lưu vào Database (Để người sau vào xem không phải chờ nữa)
+                question.ShortExplanation = shortExp;
+                question.FullExplanation = fullExp;
+                await _efContext.SaveChangesAsync();
+
+                return Ok(new { shortExplanation = shortExp, fullExplanation = fullExp });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi khi gọi AI: " + ex.Message);
+            }
+        }
+
+        // Admin: tạo lại giải thích cho 1 câu (bỏ qua cache)
+        [HttpPost("admin/explain-question/{questionId:int}/regenerate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegenerateExplanation(int questionId)
+        {
+            var question = await _efContext
+                .Questions.Include(q => q.Answers)
+                .Include(q => q.Group)
+                    .ThenInclude(g => g.Part)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+
+            if (question == null)
+                return NotFound("Không tìm thấy câu hỏi");
+
+            try
+            {
+                var (shortExp, fullExp) = await _aiService.GenerateExplanationAsync(
+                    question,
+                    question.Answers.ToList()
+                );
+
                 question.ShortExplanation = shortExp;
                 question.FullExplanation = fullExp;
                 await _efContext.SaveChangesAsync();

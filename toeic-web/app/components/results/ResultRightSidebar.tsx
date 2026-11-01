@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Clock, Zap, ArrowUp } from "lucide-react";
+import { Clock, ArrowUp, Flag } from "lucide-react";
 
 interface Props {
   parts: any[]; // Cấu trúc đề thi (để lấy tên Part và danh sách ID câu hỏi)
@@ -10,6 +10,7 @@ interface Props {
   totalScore: number;
   totalQuestions: number;
   isFullTest?: boolean;
+  flaggedQuestions?: Set<number>; // Các câu đã đánh dấu "làm sau" trong lượt làm bài này
   onScrollToQuestion: (id: number) => void;
   currentQuestionId?: number | null;
 }
@@ -21,6 +22,7 @@ export default function ResultRightSidebar({
   totalScore,
   totalQuestions,
   isFullTest = true,
+  flaggedQuestions,
   onScrollToQuestion,
   currentQuestionId,
 }: Props) {
@@ -39,16 +41,6 @@ export default function ResultRightSidebar({
     const s = seconds % 60;
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
-
-  // Calculate speed feedback (seconds per question)
-  const timePerQuestion = totalQuestions > 0 ? timeTaken / totalQuestions : 0;
-  const getSpeedFeedback = (timePerQ: number) => {
-    if (timePerQ < 2.5) return { text: "Rất nhanh!", icon: <Zap size={14} className="fill-current" />, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" };
-    if (timePerQ < 4) return { text: "Bình thường", icon: <Clock size={14} />, color: "text-blue-600 dark:text-blue-400 bg-blue-500/10" };
-    return { text: "Cần cải thiện", icon: <Clock size={14} />, color: "text-amber-600 dark:text-amber-400 bg-amber-500/10" };
-  };
-
-  const speedFeedback = getSpeedFeedback(timePerQuestion);
 
   // 3. Tạo Map để tra cứu kết quả nhanh hơn (O(1)) khi render theo Part
   const questionResultsMap = useMemo(() => {
@@ -117,18 +109,9 @@ export default function ResultRightSidebar({
               <Clock size={14} className="text-zinc-400 dark:text-zinc-500" /> 
               <span>Thời gian làm bài</span>
             </p>
-            <div className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white font-mono mb-1.5">
+            <div className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white font-mono">
               {formatTime(timeTaken)}
             </div>
-            
-            {/* Speed feedback badge */}
-            <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${speedFeedback.color} mt-1`}>
-              {speedFeedback.icon}
-              <span>{speedFeedback.text}</span>
-            </div>
-            <p className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 mt-2 font-medium">
-              Trung bình: <span className="font-bold text-zinc-700 dark:text-zinc-300">{timePerQuestion.toFixed(1)}s</span> / câu
-            </p>
           </div>
 
           {/* Stats row */}
@@ -170,6 +153,10 @@ export default function ResultRightSidebar({
             <span className="w-2.5 h-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md"></span>
             <span>Bỏ qua</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <Flag size={11} className="text-amber-500 fill-amber-500" />
+            <span>Đánh dấu</span>
+          </div>
         </div>
 
         {/* --- DANH SÁCH CÂU HỎI THEO PART --- */}
@@ -205,16 +192,29 @@ export default function ResultRightSidebar({
                     }
 
                     const isCurrent = currentQuestionId === rawQ.questionId;
+                    const isFlagged = flaggedQuestions?.has(rawQ.questionId) ?? false;
 
                     return (
                       <button
                         key={rawQ.questionId}
                         onClick={() => onScrollToQuestion(rawQ.questionId)}
-                        className={`h-8 w-8 text-xs font-black rounded-lg flex items-center justify-center border transition-all duration-200 
+                        title={
+                          isFlagged
+                            ? `Câu ${rawQ.questionNo} (đã đánh dấu làm sau)`
+                            : `Câu ${rawQ.questionNo}`
+                        }
+                        className={`relative h-8 w-8 text-xs font-black rounded-lg flex items-center justify-center border transition-all duration-200 
                           ${isCurrent ? "ring-4 ring-blue-500/20 border-blue-500 text-blue-600 dark:text-blue-400" : ""} 
                           ${colorClass}`}
                       >
                         {rawQ.questionNo}
+                        {isFlagged && (
+                          <Flag
+                            size={9}
+                            aria-hidden="true"
+                            className="absolute -top-1 -right-1 text-amber-500 fill-amber-500 drop-shadow-sm"
+                          />
+                        )}
                       </button>
                     );
                   })}

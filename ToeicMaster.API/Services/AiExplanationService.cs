@@ -166,7 +166,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part 5 (Incomplete Sentences - 
 - Mỗi ý tối đa 2 dòng
 
 **JSON Output (2 trường):**
-- ""Short"": Định dạng HTML với <br>. Dòng 1 = ""Câu hỏi: "" + dịch câu hỏi. Dòng 2-5 = 4 đáp án với format: A. [English] : [Vietnamese]<br>B. [English] : [Vietnamese]... TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>[dòng đầy đủ]</span>. Dòng 6 = - Đáp án [X] vì... (có gạch đầu dòng). Tổng 6 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
+- ""Short"": Định dạng HTML với <br>. Dòng 1 = ""Câu hỏi: "" + dịch câu hỏi. Dòng 2-5 = 4 đáp án CHỈ HIỂN THỊ TIẾNG VIỆT, format: A. [tiếng Việt]<br>B. [tiếng Việt]<br>C. [tiếng Việt]<br>D. [tiếng Việt] - TUYỆT ĐỐI KHÔNG lặp lại nội dung tiếng Anh, không dùng dạng ""English (Vietnamese)"" hay ""English : Vietnamese"". TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>[dòng đầy đủ]</span>. Dòng 6 = - Đáp án [X] vì... (có gạch đầu dòng). Tổng 6 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
 - ""Full"": Giải thích chi tiết với HTML (<br>). KHÔNG dịch lại. KHÔNG dùng <b> in đậm. Chỉ có 3 mục, mỗi mục MAX 1 dòng: - Loại câu hỏi: (từ loại, thì, giới từ...)<br>- Giải thích: (Quy tắc + Tại sao đúng, gộp vào 1 dòng)<br>- Cảnh báo bẫy: (CHỌN 1 bẫy quan trọng nhất)
 
 ---
@@ -204,7 +204,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part 6 (Text Completion - Hoàn
 - Mỗi ý tối đa 2 dòng
 
 **JSON Output (2 trường):**
-- ""Short"": Định dạng HTML với <br>. Dòng 1-4 = 4 đáp án, TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>...</span> để tô màu xanh lá. Dòng 5 = - Đáp án [X] vì... (có gạch đầu dòng va không cần thêm phần dịch) . Tổng 5 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
+- ""Short"": Định dạng HTML với <br>. Dòng 1-4 = 4 đáp án CHỈ HIỂN THỊ TIẾNG VIỆT, format: A. [tiếng Việt]<br>B. [tiếng Việt]<br>C. [tiếng Việt]<br>D. [tiếng Việt] - TUYỆT ĐỐI KHÔNG lặp lại nội dung tiếng Anh, không dùng dạng ""English (Vietnamese)"" hay ""English : Vietnamese"". TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>...</span> để tô màu xanh lá. Dòng 5 = - Đáp án [X] vì... (có gạch đầu dòng va không cần thêm phần dịch) . Tổng 5 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
 - ""Full"": Giải thích chi tiết với HTML (<br>). KHÔNG dịch lại. KHÔNG dùng <b> in đậm. Cấu trúc: - Giải thích : (câu trước/sau)<br>- Bẫy: (1 bẫy quan trọng)
 
 --- 
@@ -240,7 +240,7 @@ Bạn là giáo viên TOEIC. Hướng dẫn làm Part 7 (Reading Comprehension -
 - Mỗi ý tối đa 2 dòng
 
 **JSON Output (2 trường):**
-- ""Short"": Định dạng HTML với <br>. Dòng 1 = ""Câu hỏi: "" + dịch câu hỏi. Dòng 2-5 = 4 đáp án, TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>...</span> để tô màu xanh lá. Dòng 6 = - Đáp án [X] vì... (có gạch đầu dòng). Tổng 6 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
+- ""Short"": Định dạng HTML với <br>. Dòng 1 = ""Câu hỏi: "" + dịch câu hỏi. Dòng 2-5 = 4 đáp án CHỈ HIỂN THỊ TIẾNG VIỆT, format: A. [tiếng Việt]<br>B. [tiếng Việt]<br>C. [tiếng Việt]<br>D. [tiếng Việt] - TUYỆT ĐỐI KHÔNG lặp lại nội dung tiếng Anh, không dùng dạng ""English (Vietnamese)"" hay ""English : Vietnamese"". TRONG ĐÓ đáp án đúng được BAO BỌC bằng thẻ <span class='highlight-correct'>...</span> để tô màu xanh lá. Dòng 6 = - Đáp án [X] vì... (có gạch đầu dòng). Tổng 6 dòng. KHÔNG dùng <b> ở bất kỳ đâu.
 - ""Full"": Giải thích chi tiết với HTML (<br>). KHÔNG dịch lại. KHÔNG dùng <b> in đậm. Chỉ có 3 mục, mỗi mục MAX 1 dòng: - Loại: (Main purpose/Detail/Inference/...)<br>- Giải thích: (Vị trí + Paraphrase, gộp vào 1 dòng)<br>- Cảnh báo bẫy: (CHỌN 1 bẫy quan trọng nhất)
 
 ---

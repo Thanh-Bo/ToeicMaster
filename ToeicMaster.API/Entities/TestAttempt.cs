@@ -31,6 +31,13 @@ public partial class TestAttempt
     /// </summary>
     public string? Parts { get; set; }
 
+    /// <summary>
+    /// Question IDs the user flagged for review during this attempt,
+    /// stored as a comma-separated list, e.g. "131,136,146".
+    /// NULL/empty means no question was flagged.
+    /// </summary>
+    public string? Flags { get; set; }
+
     public virtual Test Test { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

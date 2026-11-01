@@ -63,4 +63,15 @@ export const testService = {
   deleteHistory: (attemptGuid: string) => {
     return axiosClient.delete(`/tests/history/${attemptGuid}`);
   },
+
+  // 7. Admin: tạo lại giải thích cho một câu hỏi
+  regenerateExplanation: async (questionId: number) => {
+    const response = await axiosClient.post(
+      `/tests/admin/explain-question/${questionId}/regenerate`,
+    );
+    return response.data as {
+      shortExplanation: string | null;
+      fullExplanation: string | null;
+    };
+  },
 };

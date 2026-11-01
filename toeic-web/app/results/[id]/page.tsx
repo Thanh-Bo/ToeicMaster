@@ -20,11 +20,14 @@ import {
   ChevronDown,
   Trophy,
   Award,
+  RefreshCw,
 } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
+import { useAuth } from "../../contexts/AuthContext";
 import { ResultDetail } from "../../types";
 import ResultRightSidebar from "@/app/components/results/ResultRightSidebar";
+import { ResultActionsProvider } from "@/app/components/results/ResultActionsContext";
 import { CommentSection } from "@/app/components/comments/CommentSection";
 import ResultQuestionItem from "@/app/components/results/ResultQuestionItem";
 import BookmarkNoteModal from "@/app/components/boomarks/BookmarkNoteModal";
@@ -51,12 +54,18 @@ export default function ResultPage() {
   const router = useRouter();
   const attemptId = params.id as string; // Keep as string for UUID
 
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
   const [result, setResult] = useState<ResultDetail | null>(null);
   const [partGroups, setPartGroups] = useState<PartGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingExplainIds, setLoadingExplainIds] = useState<Set<number>>(
     new Set(),
   );
+  const [regeneratingExplanationIds, setRegeneratingExplanationIds] = useState<
+    Set<number>
+  >(new Set());
   const [currentQuestionId, setCurrentQuestionId] = useState<number | null>(
     null,
   );
@@ -296,21 +305,11 @@ export default function ResultPage() {
       [group.groupId]: true,
     }));
     try {
-      // 1. Giữ nguyên HTML (bao gồm <table>) để AI nhìn thấy cấu trúc bảng
-      //    Chỉ thay thế blank answers trong text nodes, không strip toàn bộ HTML
-      let htmlContent = group.groupContent;
+      // Giữ nguyên HTML và GIỮ NGUYÊN các ô trống "------- (135)".
+      // Không thay bằng đáp án đúng nữa để người học đối chiếu được số câu hỏi.
+      const htmlContent = group.groupContent;
 
-      // 2. Thay thế mỗi blank "------- (N)" bằng đáp án đúng của câu hỏi N
-      group.questions.forEach((q: any) => {
-        const correctAnswer =
-          q.answers?.find((a: any) => a.label === q.correctOption)?.content ??
-          q.correctOption;
-        // Tìm pattern ------- (questionNo) và thay bằng đáp án
-        const regex = new RegExp(`-{3,}\\s*\\(${q.questionNo}\\)`, "g");
-        htmlContent = htmlContent.replace(regex, correctAnswer);
-      });
-
-      // 3. Gọi API dịch và lưu vào DB (gửi HTML thay vì plain text)
+      // Gọi API dịch và lưu vào DB (gửi HTML thay vì plain text)
       const result = await testService.translatePassage(
         htmlContent,
         group.groupId,
@@ -449,6 +448,45 @@ export default function ResultPage() {
     }
   };
 
+  // --- Admin: tạo lại giải thích cho một câu ---
+  const handleRegenerateExplanation = async (qId: number) => {
+    const ok = window.confirm(
+      "Tạo lại giải thích cho câu này? Giải thích hiện tại sẽ bị thay thế.",
+    );
+    if (!ok) return;
+
+    setRegeneratingExplanationIds((prev) => new Set(prev).add(qId));
+    try {
+      const data = await testService.regenerateExplanation(qId);
+      setPartGroups((prev) =>
+        prev.map((part) => ({
+          ...part,
+          groups: part.groups.map((group) => ({
+            ...group,
+            questions: group.questions.map((qq: any) =>
+              qq.questionId === qId
+                ? {
+                    ...qq,
+                    shortExplanation: data.shortExplanation,
+                    fullExplanation: data.fullExplanation,
+                    isExplanationOpen: true,
+                  }
+                : qq,
+            ),
+          })),
+        })),
+      );
+    } catch {
+      alert("Không thể tạo lại giải thích. Vui lòng thử lại.");
+    } finally {
+      setRegeneratingExplanationIds((prev) => {
+        const next = new Set(prev);
+        next.delete(qId);
+        return next;
+      });
+    }
+  };
+
   // --- LOGIC MỚI: Xử lý Bật/Tắt Chi tiết (Premium) ---
   const handleToggleDetail = (qId: number) => {
     setPartGroups((prev) =>
@@ -556,6 +594,8 @@ export default function ResultPage() {
 
   const actualTimeTaken = calculateTimeTaken();
   const totalQuestions = result.questions?.length || 0;
+  // Các câu đã đánh dấu "làm sau" trong lượt làm bài này (lưu trong DB)
+  const flaggedQuestionIds = new Set<number>(result.flags || []);
   const correctCount =
     result.questions?.filter((q: any) => q.isCorrect).length || 0;
   const incorrectCount =
@@ -578,12 +618,22 @@ export default function ResultPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 pb-24 lg:pb-10 font-sans">
+    <ResultActionsProvider
+      value={{
+        canRegenerateExplanation: isAdmin,
+        regeneratingIds: regeneratingExplanationIds,
+        onRegenerateExplanation: handleRegenerateExplanation,
+      }}
+    >
+      <div className="min-h-screen bg-white dark:bg-zinc-950 pb-24 lg:pb-10 font-sans">
       <header className="bg-white dark:bg-zinc-950 shadow-sm border-b border-gray-200 dark:border-zinc-700 sticky top-0 z-50">
         <div className="max-full px-4  flex justify-between items-center">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            title="Về trang chủ"
+            aria-label="Về trang chủ"
+            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -598,8 +648,7 @@ export default function ResultPage() {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            <span className="hidden sm:inline">Trang chủ</span>
-          </Link>
+          </button>
 
           <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate max-w-50 md:max-w-md">
             <BarChart3 className="inline mr-2" size={24} />
@@ -1214,6 +1263,28 @@ export default function ResultPage() {
                                     </>
                                   )}
                                 </button>
+
+                                {isAdmin && q.isExplanationOpen && (
+                                  <button
+                                    onClick={() =>
+                                      handleRegenerateExplanation(q.questionId)
+                                    }
+                                    disabled={regeneratingExplanationIds.has(
+                                      q.questionId,
+                                    )}
+                                    title="Tạo lại giải thích (chỉ admin)"
+                                    aria-label="Tạo lại giải thích"
+                                    className="inline-flex items-center justify-center p-2.5 rounded-lg border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {regeneratingExplanationIds.has(
+                                      q.questionId,
+                                    ) ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <RefreshCw className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                )}
                               </div>
 
                               {/* Phần giải thích */}
@@ -1358,6 +1429,43 @@ export default function ResultPage() {
                                         Việt
                                       </span>
                                       <div className="flex items-center gap-2">
+                                        {isAdmin && (
+                                          <button
+                                            onClick={() => {
+                                              const ok = window.confirm(
+                                                "Dịch lại đoạn văn này? Bản dịch hiện tại sẽ bị thay thế.",
+                                              );
+                                              if (ok)
+                                                handleTranslatePassage(
+                                                  group,
+                                                  part.partNumber,
+                                                  true,
+                                                );
+                                            }}
+                                            disabled={
+                                              !!loadingTranslateIds[
+                                                group.groupId
+                                              ]
+                                            }
+                                            title="Dịch lại (chỉ admin)"
+                                            aria-label="Dịch lại"
+                                            className="flex items-center gap-1.5 md:gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-2.5 md:px-3 py-1 md:py-1.5 transition-colors disabled:opacity-50"
+                                          >
+                                            {!!loadingTranslateIds[
+                                              group.groupId
+                                            ] ? (
+                                              <Loader2
+                                                size={12}
+                                                className="md:w-3 md:h-3 animate-spin"
+                                              />
+                                            ) : (
+                                              <RefreshCw
+                                                size={12}
+                                                className="md:w-3 md:h-3"
+                                              />
+                                            )}
+                                          </button>
+                                        )}
                                         <button
                                           onClick={() =>
                                             togglePassageTranslation(
@@ -1466,6 +1574,7 @@ export default function ResultPage() {
               totalScore={result.totalScore}
               totalQuestions={totalQuestions}
               isFullTest={result.isFullTest !== false}
+              flaggedQuestions={flaggedQuestionIds}
               onScrollToQuestion={handleScrollToQuestion}
               currentQuestionId={currentQuestionId}
             />
@@ -1570,6 +1679,7 @@ export default function ResultPage() {
         onSave={handleSaveBookmark}
         defaultNote={smartDefaultNote}
       />
-    </div>
+      </div>
+    </ResultActionsProvider>
   );
 }

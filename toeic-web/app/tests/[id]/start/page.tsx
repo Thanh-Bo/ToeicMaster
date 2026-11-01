@@ -10,7 +10,7 @@ import ExamRightSidebar from "@/app/components/tests/ExamRightSidebar";
 import FlagQuestionButton from "@/app/components/tests/FlagQuestionButton";
 import AnswerOption from "@/app/components/tests/AnswerOption";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
-import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft, Send } from "lucide-react";
+import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft, Send, X } from "lucide-react";
 import { testService } from "@/app/services/testService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
 
@@ -39,11 +39,48 @@ export default function ExamPage() {
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(
     new Set(),
   );
+  const [showTimeWarning, setShowTimeWarning] = useState(true);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
+  const timeWarningTimerRef = useRef<number | null>(null);
   const STORAGE_KEY = `exam_progress_${testGuid}`;
   const FLAGS_KEY = `exam_flags_${testGuid}`;
+
+  const isLowTime =
+    durationParam !== "0" && timeLeft <= 300 && timeLeft > 0;
+
+  // Hiện lại cảnh báo khi thời gian không còn ở mức thấp (đề mới / reset)
+  useEffect(() => {
+    if (!isLowTime) {
+      setShowTimeWarning(true);
+      if (timeWarningTimerRef.current) {
+        window.clearTimeout(timeWarningTimerRef.current);
+        timeWarningTimerRef.current = null;
+      }
+    }
+  }, [isLowTime]);
+
+  // Dọn timer khi unmount
+  useEffect(() => {
+    return () => {
+      if (timeWarningTimerRef.current) {
+        window.clearTimeout(timeWarningTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Ẩn tạm thời: cảnh báo hiện lại sau 60 giây nếu vẫn còn ít thời gian
+  const handleDismissTimeWarning = () => {
+    setShowTimeWarning(false);
+    if (timeWarningTimerRef.current) {
+      window.clearTimeout(timeWarningTimerRef.current);
+    }
+    timeWarningTimerRef.current = window.setTimeout(
+      () => setShowTimeWarning(true),
+      60_000,
+    );
+  };
 
   // --- TÍNH TOÁN ---
   const totalQuestions =
@@ -257,12 +294,15 @@ export default function ExamPage() {
           questionId: Number(qId),
           selectedOption: opt,
         })),
+        // Câu đã đánh dấu "làm sau" -> lưu vào DB theo từng lượt làm bài
+        flags: [...flaggedQuestions],
         duration: timeSpent, // Gửi thời gian thực tế đã làm
       };
       const res = await testService.submit(payload);
       if (res.data && res.data.attemptGuid) {
         // Clear localStorage after successful submission
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(FLAGS_KEY);
         router.push(`/results/${res.data.attemptGuid}`);
       } else {
         router.push("/results"); // Fallback
@@ -406,9 +446,18 @@ export default function ExamPage() {
       </header>
 
       {/* Warning when time is low */}
-      {durationParam !== "0" && timeLeft <= 300 && timeLeft > 0 && (
-        <div className="bg-red-500 dark:bg-red-600 text-white text-center py-2 text-sm font-medium animate-pulse sticky top-17.5 z-40">
+      {isLowTime && showTimeWarning && (
+        <div className="bg-red-500 dark:bg-red-600 text-white text-center py-2 px-10 text-sm font-medium animate-pulse sticky top-17.5 z-40">
           Còn dưới {Math.ceil(timeLeft / 60)} phút! Hãy kiểm tra và nộp bài.
+          <button
+            type="button"
+            onClick={handleDismissTimeWarning}
+            title="Ẩn cảnh báo (sẽ hiện lại sau 60 giây)"
+            aria-label="Ẩn cảnh báo"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-red-600/50 dark:hover:bg-red-700/60 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 

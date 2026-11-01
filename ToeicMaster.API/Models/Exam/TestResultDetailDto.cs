@@ -6,6 +6,7 @@ namespace ToeicMaster.API.Models.Exam
         public int TimeTaken { get; set; }
         public int AttemptId { get; set; }
         public int TestId { get; set; }
+        public Guid TestGuid { get; set; }
         public string TestTitle { get; set; }
         public bool IsExplanationPremiumRequired { get; set; }
         public bool CanViewExplanation { get; set; }
@@ -19,6 +20,12 @@ namespace ToeicMaster.API.Models.Exam
         /// TOEIC scores are not meaningful and the UI should show raw counts.
         /// </summary>
         public bool IsFullTest { get; set; }
+
+        /// <summary>
+        /// Question IDs the user flagged for later review during this attempt.
+        /// </summary>
+        public List<int> Flags { get; set; } = new();
+
         public DateTime CompletedAt { get; set; }
         public List<ResultQuestionDto> Questions { get; set; } = new();
     }

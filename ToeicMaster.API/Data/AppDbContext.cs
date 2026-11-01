@@ -248,6 +248,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.Parts).HasMaxLength(50);
+            entity.Property(e => e.Flags).HasMaxLength(1000);
 
             entity.HasOne(d => d.Test).WithMany(p => p.TestAttempts)
                 .HasForeignKey(d => d.TestId)
