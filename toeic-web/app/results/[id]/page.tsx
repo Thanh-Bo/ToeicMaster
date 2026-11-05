@@ -33,6 +33,7 @@ import ResultQuestionItem from "@/app/components/results/ResultQuestionItem";
 import BookmarkNoteModal from "@/app/components/boomarks/BookmarkNoteModal";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
 import { AnswerOptionResult } from "@/app/components/results/AnswerOptionResult";
+import toast from "react-hot-toast";
 
 const BASE_URL = "http://localhost:5298";
 
@@ -74,6 +75,8 @@ export default function ResultPage() {
     new Set(),
   );
   const [bookmarkLoading, setBookmarkLoading] = useState<number | null>(null);
+  // true khi gọi /bookmarks/check-batch thất bại (401, mất mạng...) -> khác với "0 bookmark thật"
+  const [bookmarkStatusError, setBookmarkStatusError] = useState(false);
 
   const [bookmarkModalOpen, setBookmarkModalOpen] = useState(false);
   const [pendingBookmarkId, setPendingBookmarkId] = useState<number | null>(
@@ -207,8 +210,10 @@ export default function ResultPage() {
     try {
       const result = await bookmarkService.checkBatch(questionIds);
       setBookmarkedQuestions(new Set(result.bookmarkedIds));
+      setBookmarkStatusError(false);
     } catch (error) {
       console.error("Failed to load bookmark status:", error);
+      setBookmarkStatusError(true);
     }
   }, []);
 
@@ -252,12 +257,16 @@ export default function ResultPage() {
         next.delete(questionId);
         return next;
       });
+      toast.success("Đã bỏ đánh dấu câu hỏi");
     } catch (error: any) {
       console.error(error);
       if (error?.response?.status === 403) {
         window.location.href = "/subscription";
         return;
       }
+      toast.error(
+        `Không bỏ được đánh dấu (${error?.response?.status ?? "lỗi mạng"})`,
+      );
     } finally {
       setBookmarkLoading(null);
     }
@@ -274,9 +283,16 @@ export default function ResultPage() {
     try {
       await bookmarkService.add(pendingBookmarkId, note);
       setBookmarkedQuestions((prev) => new Set(prev).add(pendingBookmarkId));
-    } catch (error) {
+      toast.success("Đã lưu vào danh sách đánh dấu");
+    } catch (error: any) {
       console.error("Failed to add bookmark:", error);
-      alert("Lỗi khi lưu bookmark");
+      if (error?.response?.status === 403) {
+        window.location.href = "/subscription";
+        return;
+      }
+      toast.error(
+        `Lỗi khi lưu bookmark (${error?.response?.status ?? "lỗi mạng"})`,
+      );
     } finally {
       setBookmarkLoading(null);
       setPendingBookmarkId(null);
@@ -601,6 +617,17 @@ export default function ResultPage() {
   const totalQuestions = result.questions?.length || 0;
   // Các câu đã đánh dấu "làm sau" trong lượt làm bài này (lưu trong DB)
   const flaggedQuestionIds = new Set<number>(result.flags || []);
+  // Thống kê các câu đã bookmark (đánh dấu) trong lượt làm bài này
+  const bookmarkedInAttempt = (result.questions || []).filter((q: any) =>
+    bookmarkedQuestions.has(q.questionId),
+  );
+  const bookmarkedTotal = bookmarkedInAttempt.length;
+  const bookmarkedCorrect = bookmarkedInAttempt.filter(
+    (q: any) => q.isCorrect,
+  ).length;
+  const bookmarkedWrong = bookmarkedInAttempt.filter(
+    (q: any) => q.userSelected && !q.isCorrect,
+  ).length;
   const correctCount =
     result.questions?.filter((q: any) => q.isCorrect).length || 0;
   const incorrectCount =
@@ -628,6 +655,7 @@ export default function ResultPage() {
         canRegenerateExplanation: isAdmin,
         regeneratingIds: regeneratingExplanationIds,
         onRegenerateExplanation: handleRegenerateExplanation,
+        flaggedIds: flaggedQuestionIds,
       }}
     >
       <div className="min-h-screen bg-white dark:bg-zinc-950 pb-24 lg:pb-10 font-sans">
@@ -700,7 +728,7 @@ export default function ResultPage() {
       </header>
 
       <div className="w-full mx-auto px-3 sm:px-4 mt-4 sm:mt-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
           {/* Card 1: Tổng điểm (Hero style) */}
           <div className="bg-blue-50/40 dark:bg-blue-950/10 border border-blue-200 dark:border-blue-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
             <div className="flex items-center justify-between mb-1.5">
@@ -789,6 +817,35 @@ export default function ResultPage() {
             <p className="text-2xl sm:text-3xl font-extrabold text-green-600 dark:text-green-400 font-mono">
               {percentage}%
             </p>
+          </div>
+
+          {/* Card 6: Câu đã đánh dấu (bookmark) */}
+          <div className="bg-amber-50/40 dark:bg-amber-950/10 border border-amber-200 dark:border-amber-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                <Bookmark size={12} className="text-amber-500" /> Đã đánh dấu
+              </span>
+            </div>
+            <p className="text-xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono">
+              {bookmarkStatusError ? "—" : bookmarkedTotal}
+            </p>
+            <div className="mt-1 flex items-center gap-1.5 text-[10px] sm:text-xs font-bold whitespace-nowrap">
+              {bookmarkStatusError ? (
+                <span className="text-rose-500 dark:text-rose-400">
+                  Không tải được
+                </span>
+              ) : (
+                <>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono">
+                    Đúng {bookmarkedCorrect}/{bookmarkedTotal}
+                  </span>
+                  <span className="text-gray-300 dark:text-zinc-600">•</span>
+                  <span className="text-rose-500 dark:text-rose-400 font-mono">
+                    Sai {bookmarkedWrong}/{bookmarkedTotal}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1360,12 +1417,7 @@ export default function ResultPage() {
                     >
                       <div className="flex flex-col lg:flex-row">
                         <div
-                          className={`w-full lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-4 md:p-6 transition-all duration-300 ${
-                            translations[group.groupId] &&
-                            expandedPassageTranslations.has(group.groupId)
-                              ? "lg:max-h-[160vh]"
-                              : ""
-                          }`}
+                          className="w-full lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-4 md:p-6"
                         >
                           <div className="lg:sticky lg:top-4 space-y-3">
                             <div className="mb-2 md:mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
@@ -1385,12 +1437,7 @@ export default function ResultPage() {
                             )}
                             {group.groupContent && (
                               <div
-                                className={`reading-content text-sm md:text-base overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-3 md:p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_p]:mb-2 md:[&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-2 md:[&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-2 md:[&_th]:px-3 [&_th]:py-1 md:[&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-2 md:[&_td]:px-3 [&_td]:py-1 md:[&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${
-                                  translations[group.groupId] &&
-                                  expandedPassageTranslations.has(group.groupId)
-                                    ? "max-h-[70vh]"
-                                    : "max-h-[60vh]"
-                                }`}
+                                className={`reading-content text-sm md:text-base max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-3 md:p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_p]:mb-2 md:[&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-2 md:[&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-2 md:[&_th]:px-3 [&_th]:py-1 md:[&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-2 md:[&_td]:px-3 [&_td]:py-1 md:[&_td]:py-2 [&_td]:whitespace-normal`}
                                 dangerouslySetInnerHTML={{
                                   __html: group.groupContent,
                                 }}

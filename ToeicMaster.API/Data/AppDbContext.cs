@@ -43,6 +43,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Bookmark> Bookmarks { get; set; }
 
+    public virtual DbSet<QuestionFlag> QuestionFlags { get; set; }
+
     public virtual DbSet<Vocabulary> Vocabularies { get; set; }
 
     public virtual DbSet<UserVocab> UserVocabs { get; set; }
@@ -341,6 +343,23 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(e => e.Question)
                 .WithMany(q => q.Bookmarks)
+                .HasForeignKey(e => e.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // QuestionFlag configuration (đánh dấu "Lưu lại để xem sau")
+        modelBuilder.Entity<QuestionFlag>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.QuestionId }).IsUnique();
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Question)
+                .WithMany()
                 .HasForeignKey(e => e.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

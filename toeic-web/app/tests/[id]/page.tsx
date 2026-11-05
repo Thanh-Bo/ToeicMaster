@@ -6,6 +6,7 @@ import { testService } from "@/app/services/testService";
 import { CommentSection } from "@/app/components/comments/CommentSection";
 import Link from "next/link";
 import { ArrowLeft, Clock, CheckSquare, Square, Check, Headphones, BookOpen } from "lucide-react";
+import toast from "react-hot-toast";
 import { PageHeader } from "@/app/components";
 
 const PARTS = [
@@ -48,7 +49,10 @@ export default function TestOverviewPage() {
   const [customMode, setCustomMode] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("45");
   const [loading, setLoading] = useState(true);
-  const [toggleAll, setToggleAll] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+
+  // Suy ra từ selectedParts thay vì giữ state riêng -> tránh lệch trạng thái
+  const allSelected = selectedParts.length === PARTS.length;
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -68,20 +72,19 @@ export default function TestOverviewPage() {
     setSelectedParts((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
     );
+    if (startError) setStartError(null);
   };
 
   const handleToggleAll = () => {
-    if (toggleAll) {
-      setSelectedParts([]);
-    } else {
-      setSelectedParts(PARTS.map((part) => part.id));
-    }
-    setToggleAll(!toggleAll);
+    setSelectedParts(allSelected ? [] : PARTS.map((part) => part.id));
+    if (startError) setStartError(null);
   };
 
   const handleStart = () => {
     if (selectedParts.length === 0) {
-      alert("Vui lòng chọn ít nhất một Part để luyện tập!");
+      const message = "Vui lòng chọn ít nhất một Part để luyện tập!";
+      setStartError(message);
+      toast.error(message);
       return;
     }
 
@@ -89,7 +92,9 @@ export default function TestOverviewPage() {
     if (customMode) {
       const minutes = Number(customMinutes);
       if (!Number.isFinite(minutes) || minutes < 1 || minutes > 600) {
-        alert("Thời gian tùy chỉnh phải từ 1 đến 600 phút.");
+        const message = "Thời gian tùy chỉnh phải từ 1 đến 600 phút.";
+        setStartError(message);
+        toast.error(message);
         return;
       }
       finalDuration = Math.floor(minutes);
@@ -147,7 +152,7 @@ export default function TestOverviewPage() {
                   onClick={handleToggleAll}
                   className="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition"
                 >
-                  {toggleAll ? (
+                  {allSelected ? (
                     <>
                       <Square className="w-3.5 h-3.5" /> Bỏ chọn tất cả
                     </>
@@ -297,6 +302,13 @@ export default function TestOverviewPage() {
             >
               Bắt đầu làm bài
             </button>
+
+            {/* Thông báo lỗi khi chưa chọn Part */}
+            {startError && (
+              <p className="text-xs font-bold text-red-600 dark:text-red-400 text-center mt-2">
+                {startError}
+              </p>
+            )}
           </div>
         </div>
 

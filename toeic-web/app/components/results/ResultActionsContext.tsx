@@ -9,12 +9,15 @@ interface ResultActions {
   regeneratingIds: Set<number>;
   /** Regenerate the AI explanation of one question. */
   onRegenerateExplanation: (questionId: number) => void;
+  /** Question ids the user flagged for later review during this attempt. */
+  flaggedIds: Set<number>;
 }
 
 const ResultActionsContext = createContext<ResultActions>({
   canRegenerateExplanation: false,
   regeneratingIds: new Set<number>(),
   onRegenerateExplanation: () => {},
+  flaggedIds: new Set<number>(),
 });
 
 export const ResultActionsProvider = ResultActionsContext.Provider;

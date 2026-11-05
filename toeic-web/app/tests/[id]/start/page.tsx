@@ -12,6 +12,7 @@ import AnswerOption from "@/app/components/tests/AnswerOption";
 import AudioPlayer from "@/app/components/audio/AudioPlayer";
 import { ListChecks, PlayCircle, Trash, Eye, EyeOff, ArrowLeft, Send, X } from "lucide-react";
 import { testService } from "@/app/services/testService";
+import { flagService } from "@/app/services/flagService";
 // import { CommentSection } from "@/app/components/comments/CommentSection"; // Chưa dùng tới trong UI này
 
 export default function ExamPage() {
@@ -46,6 +47,23 @@ export default function ExamPage() {
   const timeWarningTimerRef = useRef<number | null>(null);
   const STORAGE_KEY = `exam_progress_${testGuid}`;
   const FLAGS_KEY = `exam_flags_${testGuid}`;
+
+  // --- EFFECT: Đồng bộ cờ đã đánh dấu trên server (bảng dbo.QuestionFlags) ---
+  useEffect(() => {
+    let cancelled = false;
+    flagService
+      .getAll()
+      .then((ids) => {
+        if (cancelled || ids.length === 0) return;
+        setFlaggedQuestions((prev) => new Set([...prev, ...ids]));
+      })
+      .catch((error) => {
+        console.warn("Không tải được danh sách câu đã đánh dấu:", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isLowTime =
     durationParam !== "0" && timeLeft <= 300 && timeLeft > 0;
@@ -91,6 +109,13 @@ export default function ExamPage() {
     ) || 0;
   const answeredCount = Object.keys(userAnswers).length;
 
+  // Id các câu hỏi thuộc đề đang làm (dùng để lọc cờ khi nộp bài)
+  const testQuestionIds = new Set<number>(
+    testData?.parts.flatMap((part) =>
+      part.groups.flatMap((g) => g.questions.map((q) => q.id)),
+    ) ?? [],
+  );
+
   // --- HELPER FUNCTIONS ---
   // Thay thế hàm formatTime cũ
   // Thay thế hàm formatTime cũ
@@ -119,15 +144,34 @@ export default function ExamPage() {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  // Lưu trạng thái đánh dấu xuống server. Lỗi mạng/auth thì bỏ qua để
+  // không làm gián đoạn bài làm (localStorage vẫn giữ trạng thái).
+  const persistFlag = async (questionId: number, flag: boolean) => {
+    try {
+      if (flag) {
+        await flagService.add(questionId);
+      } else {
+        await flagService.remove(questionId);
+      }
+    } catch (error) {
+      console.warn("Không đồng bộ được đánh dấu với server:", error);
+    }
+  };
+
   const handleToggleFlag = (questionId: number) => {
     const next = new Set(flaggedQuestions);
-    if (next.has(questionId)) {
-      next.delete(questionId);
-    } else {
+    const willFlag = !next.has(questionId);
+
+    if (willFlag) {
       next.add(questionId);
+    } else {
+      next.delete(questionId);
     }
+
+    // Cập nhật UI ngay, rồi đồng bộ xuống DB (localStorage giữ làm cache offline)
     setFlaggedQuestions(next);
     localStorage.setItem(FLAGS_KEY, JSON.stringify([...next]));
+    void persistFlag(questionId, willFlag);
   };
 
   const handleScrollToQuestion = (id: number) => {
@@ -281,8 +325,9 @@ export default function ExamPage() {
           questionId: Number(qId),
           selectedOption: opt,
         })),
-        // Câu đã đánh dấu "làm sau" -> lưu vào DB theo từng lượt làm bài
-        flags: [...flaggedQuestions],
+        // Chỉ gửi những câu thuộc đề này (tránh lẫn cờ của đề khác
+        // khi danh sách được đồng bộ từ server)
+        flags: [...flaggedQuestions].filter((id) => testQuestionIds.has(id)),
         duration: timeSpent, // Gửi thời gian thực tế đã làm
       };
       const res = await testService.submit(payload);

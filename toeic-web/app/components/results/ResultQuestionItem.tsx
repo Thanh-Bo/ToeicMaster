@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Lock,
   RefreshCw,
+  Flag,
 } from "lucide-react";
 import { AnswerOptionResult } from "./AnswerOptionResult";
 import { useResultActions } from "./ResultActionsContext";
@@ -52,7 +53,11 @@ export default function ResultQuestionItem({
     canRegenerateExplanation,
     regeneratingIds,
     onRegenerateExplanation,
+    flaggedIds,
   } = useResultActions();
+
+  // Câu đã được đánh dấu "làm sau" trong lúc làm bài (lưu trong TestAttempt.Flags)
+  const isFlagged = flaggedIds.has(q.questionId);
 
   const getAnswerContent = (label: string) => {
     if (q.answers && Array.isArray(q.answers)) {
@@ -167,6 +172,20 @@ export default function ResultQuestionItem({
 
       {/* --- KHU VỰC NÚT TƯƠNG TÁC --- */}
       <div className="ml-8 xs:ml-10 sm:ml-12 flex flex-wrap items-center gap-1.5 xs:gap-2 sm:gap-3">
+        {/* Nhãn: câu đã đánh dấu làm sau trong lúc thi */}
+        {isFlagged && (
+          <span
+            title="Bạn đã đánh dấu câu này để làm sau trong lúc làm bài"
+            className="inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-xs xs:text-sm sm:text-sm font-bold px-2 xs:px-2.5 sm:px-3 py-1.5 xs:py-2 rounded-md xs:rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/60"
+          >
+            <Flag
+              size={14}
+              className="xs:w-4 xs:h-4 sm:w-4 sm:h-4 fill-amber-500 text-amber-500"
+            />
+            <span className="hidden xs:inline">Làm sau</span>
+          </span>
+        )}
+
         {/* Nút Bookmark: Gọi hàm từ Props */}
         <button
           onClick={() => onToggleBookmark(q.questionId)}
