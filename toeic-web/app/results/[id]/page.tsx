@@ -101,9 +101,10 @@ export default function ResultPage() {
   );
   const [hiddenTranscriptTranslations, setHiddenTranscriptTranslations] =
     useState<Set<number>>(new Set());
-  const [hiddenPassageTranslations, setHiddenPassageTranslations] = useState<
-    Set<number>
-  >(new Set());
+  // Passage translations (Part 6/7) are COLLAPSED by default: a cached
+  // translation is loaded but stays hidden until the user clicks "Hiện".
+  const [expandedPassageTranslations, setExpandedPassageTranslations] =
+    useState<Set<number>>(new Set());
 
   const toggleTranscript = (id: number) =>
     setHiddenTranscripts((prev) => {
@@ -118,7 +119,7 @@ export default function ResultPage() {
       return s;
     });
   const togglePassageTranslation = (id: number) =>
-    setHiddenPassageTranslations((prev) => {
+    setExpandedPassageTranslations((prev) => {
       const s = new Set(prev);
       s.has(id) ? s.delete(id) : s.add(id);
       return s;
@@ -320,6 +321,10 @@ export default function ResultPage() {
         ...prev,
         [group.groupId]: result.translation,
       }));
+      // Vừa dịch xong -> mở ra để người dùng thấy ngay
+      setExpandedPassageTranslations((prev) =>
+        new Set(prev).add(group.groupId),
+      );
     } catch (error) {
       console.error("Lỗi dịch đoạn văn:", error);
       alert("Không thể dịch đoạn văn lúc này.");
@@ -1357,7 +1362,7 @@ export default function ResultPage() {
                         <div
                           className={`w-full lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-4 md:p-6 transition-all duration-300 ${
                             translations[group.groupId] &&
-                            !hiddenPassageTranslations.has(group.groupId)
+                            expandedPassageTranslations.has(group.groupId)
                               ? "lg:max-h-[160vh]"
                               : ""
                           }`}
@@ -1382,7 +1387,7 @@ export default function ResultPage() {
                               <div
                                 className={`reading-content text-sm md:text-base overflow-y-auto custom-scrollbar max-w-none bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 p-3 md:p-5 rounded-lg border border-gray-200 dark:border-zinc-600 shadow-sm whitespace-pre-line [&_p]:mb-2 md:[&_p]:mb-3 [&_p]:leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_table]:my-2 md:[&_table]:my-3 [&_table]:whitespace-normal [&_th]:border [&_th]:border-gray-400 dark:[&_th]:border-zinc-500 [&_th]:bg-gray-100 dark:[&_th]:bg-zinc-700 [&_th]:px-2 md:[&_th]:px-3 [&_th]:py-1 md:[&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:whitespace-normal [&_td]:border [&_td]:border-gray-300 dark:[&_td]:border-zinc-600 [&_td]:px-2 md:[&_td]:px-3 [&_td]:py-1 md:[&_td]:py-2 [&_td]:whitespace-normal transition-all duration-300 ${
                                   translations[group.groupId] &&
-                                  !hiddenPassageTranslations.has(group.groupId)
+                                  expandedPassageTranslations.has(group.groupId)
                                     ? "max-h-[70vh]"
                                     : "max-h-[60vh]"
                                 }`}
@@ -1474,15 +1479,15 @@ export default function ResultPage() {
                                           }
                                           className="flex items-center gap-1.5 md:gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 border border-purple-300 dark:border-purple-700 rounded-lg px-2.5 md:px-3 py-1 md:py-1.5 transition-colors disabled:opacity-50"
                                         >
-                                          {hiddenPassageTranslations.has(
+                                          {expandedPassageTranslations.has(
                                             group.groupId,
                                           )
-                                            ? "Hiện"
-                                            : "Ẩn"}
+                                            ? "Ẩn"
+                                            : "Hiện"}
                                         </button>
                                       </div>
                                     </div>
-                                    {!hiddenPassageTranslations.has(
+                                    {expandedPassageTranslations.has(
                                       group.groupId,
                                     ) && (
                                       <div
@@ -1503,7 +1508,7 @@ export default function ResultPage() {
                         <div
                           className={`w-full lg:w-5/10 p-4 md:p-6 space-y-4 md:space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-600 overflow-y-auto custom-scrollbar transition-all duration-300 ${
                             translations[group.groupId] &&
-                            !hiddenPassageTranslations.has(group.groupId)
+                            expandedPassageTranslations.has(group.groupId)
                               ? "max-h-[80vh] lg:max-h-[100vh]"
                               : "max-h-[60vh] lg:max-h-[80vh]"
                           }`}

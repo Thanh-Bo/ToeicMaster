@@ -253,19 +253,6 @@ export default function ExamPage() {
     }
   }, [timeLeft, loading, testData, durationParam]);
 
-  // --- EFFECT 4: Keyboard Shortcuts (A, B, C, D) ---
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!currentQuestionId) return;
-      const key = e.key.toUpperCase();
-      if (["A", "B", "C", "D"].includes(key)) {
-        handleSelectAnswer(currentQuestionId, key);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentQuestionId]);
-
   // --- HANDLERS ---
   const handleForceSubmit = async () => {
     if (!user) {
