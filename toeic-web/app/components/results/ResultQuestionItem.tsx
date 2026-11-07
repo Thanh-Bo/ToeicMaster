@@ -172,11 +172,11 @@ export default function ResultQuestionItem({
 
       {/* --- KHU VỰC NÚT TƯƠNG TÁC --- */}
       <div className="ml-8 xs:ml-10 sm:ml-12 flex flex-wrap items-center gap-1.5 xs:gap-2 sm:gap-3">
-        {/* Nhãn: câu đã đánh dấu làm sau trong lúc thi */}
+        {/* Nhãn (chỉ hiển thị): câu đã đánh dấu làm sau - không bấm được ở trang kết quả */}
         {isFlagged && (
           <span
             title="Bạn đã đánh dấu câu này để làm sau trong lúc làm bài"
-            className="inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-xs xs:text-sm sm:text-sm font-bold px-2 xs:px-2.5 sm:px-3 py-1.5 xs:py-2 rounded-md xs:rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/60"
+            className="inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-xs xs:text-sm sm:text-sm font-bold px-2 xs:px-2.5 sm:px-3 py-1.5 xs:py-2 rounded-md xs:rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/60 cursor-default select-none"
           >
             <Flag
               size={14}

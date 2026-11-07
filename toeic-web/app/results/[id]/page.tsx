@@ -14,6 +14,7 @@ import {
   Loader2,
   FileText,
   Bookmark,
+  Flag,
   Tag,
   Sparkles,
   ChevronUp,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 import { testService } from "../../services/testService";
 import { bookmarkService } from "../../services/bookmarkService";
+import { flagService } from "../../services/flagService";
 import { useAuth } from "../../contexts/AuthContext";
 import { ResultDetail } from "../../types";
 import ResultRightSidebar from "@/app/components/results/ResultRightSidebar";
@@ -75,8 +77,8 @@ export default function ResultPage() {
     new Set(),
   );
   const [bookmarkLoading, setBookmarkLoading] = useState<number | null>(null);
-  // true khi gọi /bookmarks/check-batch thất bại (401, mất mạng...) -> khác với "0 bookmark thật"
-  const [bookmarkStatusError, setBookmarkStatusError] = useState(false);
+  // Câu đã đánh dấu "làm sau" (flag): TestAttempt.Flags + bảng dbo.QuestionFlags
+  const [flaggedIds, setFlaggedIds] = useState<Set<number>>(new Set());
 
   const [bookmarkModalOpen, setBookmarkModalOpen] = useState(false);
   const [pendingBookmarkId, setPendingBookmarkId] = useState<number | null>(
@@ -210,10 +212,8 @@ export default function ResultPage() {
     try {
       const result = await bookmarkService.checkBatch(questionIds);
       setBookmarkedQuestions(new Set(result.bookmarkedIds));
-      setBookmarkStatusError(false);
     } catch (error) {
       console.error("Failed to load bookmark status:", error);
-      setBookmarkStatusError(true);
     }
   }, []);
 
@@ -225,6 +225,33 @@ export default function ResultPage() {
       loadBookmarkStatus(questionIds);
     }
   }, [result, loadBookmarkStatus]);
+
+  // Đánh dấu "làm sau": ưu tiên TestAttempt.Flags, sau đó gộp trạng thái mới nhất từ API /flags
+  useEffect(() => {
+    if (!result?.questions) return;
+
+    setFlaggedIds(new Set<number>(result.flags || []));
+
+    const questionIds = result.questions.map(
+      (q: { questionId: number }) => q.questionId,
+    );
+    if (questionIds.length === 0) return;
+
+    let cancelled = false;
+    flagService
+      .checkBatch(questionIds)
+      .then((ids) => {
+        if (cancelled || ids.length === 0) return;
+        setFlaggedIds((prev) => new Set([...prev, ...ids]));
+      })
+      .catch((error) => {
+        console.warn("Không tải được danh sách đã đánh dấu:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [result]);
 
   // 1. Hàm tính toán nội dung Note mặc định (Logic cốt lõi)
   const getSmartDefaultNote = (q: any) => {
@@ -615,17 +642,17 @@ export default function ResultPage() {
 
   const actualTimeTaken = calculateTimeTaken();
   const totalQuestions = result.questions?.length || 0;
-  // Các câu đã đánh dấu "làm sau" trong lượt làm bài này (lưu trong DB)
-  const flaggedQuestionIds = new Set<number>(result.flags || []);
-  // Thống kê các câu đã bookmark (đánh dấu) trong lượt làm bài này
-  const bookmarkedInAttempt = (result.questions || []).filter((q: any) =>
-    bookmarkedQuestions.has(q.questionId),
+  // Các câu đã đánh dấu "làm sau" trong lượt làm bài này (TestAttempt.Flags + bảng QuestionFlags)
+  const flaggedQuestionIds = flaggedIds;
+  // Thống kê các câu đã đánh dấu trong lượt làm bài này
+  const flaggedInAttempt = (result.questions || []).filter((q: any) =>
+    flaggedQuestionIds.has(q.questionId),
   );
-  const bookmarkedTotal = bookmarkedInAttempt.length;
-  const bookmarkedCorrect = bookmarkedInAttempt.filter(
+  const flaggedTotal = flaggedInAttempt.length;
+  const flaggedCorrect = flaggedInAttempt.filter(
     (q: any) => q.isCorrect,
   ).length;
-  const bookmarkedWrong = bookmarkedInAttempt.filter(
+  const flaggedWrong = flaggedInAttempt.filter(
     (q: any) => q.userSelected && !q.isCorrect,
   ).length;
   const correctCount =
@@ -776,22 +803,9 @@ export default function ResultPage() {
             </div>
           </div>
 
-          {/* Card 3: Listening Correct */}
-          <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200 dark:border-zinc-700/80 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                <Headphones size={12} className="text-sky-500" /> Câu đúng Nghe
-              </span>
-            </div>
-            <p className="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white font-mono">
-              {listeningCorrect}
-              <span className="text-sm sm:text-lg text-gray-400 dark:text-gray-500 font-normal">
-                /{listeningQuestions.length}
-              </span>
-            </p>
-          </div>
+          
 
-          {/* Card 4: Reading Correct */}
+          {/* Card 3: Reading Correct */}
           <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-gray-200 dark:border-zinc-700/80 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
@@ -806,7 +820,7 @@ export default function ResultPage() {
             </p>
           </div>
 
-          {/* Card 5: Tỉ lệ đúng (Accent style) */}
+          {/* Card 4: Tỉ lệ đúng (Accent style) */}
           <div className="bg-green-50/40 dark:bg-green-950/10 border border-green-200 dark:border-green-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-green-600 dark:text-green-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
@@ -819,32 +833,24 @@ export default function ResultPage() {
             </p>
           </div>
 
-          {/* Card 6: Câu đã đánh dấu (bookmark) */}
+          {/* Card 5: Câu đã đánh dấu "làm sau" (flag) */}
           <div className="bg-amber-50/40 dark:bg-amber-950/10 border border-amber-200 dark:border-amber-800/60 p-4 sm:p-5 rounded-2xl shadow-xs transition hover:shadow-md">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                <Bookmark size={12} className="text-amber-500" /> Đã đánh dấu
+                <Flag size={12} className="text-amber-500" /> Đánh dấu làm sau
               </span>
             </div>
             <p className="text-xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono">
-              {bookmarkStatusError ? "—" : bookmarkedTotal}
+              {flaggedTotal}
             </p>
             <div className="mt-1 flex items-center gap-1.5 text-[10px] sm:text-xs font-bold whitespace-nowrap">
-              {bookmarkStatusError ? (
-                <span className="text-rose-500 dark:text-rose-400">
-                  Không tải được
-                </span>
-              ) : (
-                <>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-mono">
-                    Đúng {bookmarkedCorrect}/{bookmarkedTotal}
-                  </span>
-                  <span className="text-gray-300 dark:text-zinc-600">•</span>
-                  <span className="text-rose-500 dark:text-rose-400 font-mono">
-                    Sai {bookmarkedWrong}/{bookmarkedTotal}
-                  </span>
-                </>
-              )}
+              <span className="text-emerald-600 dark:text-emerald-400 font-mono">
+               {flaggedCorrect}/{flaggedTotal}
+              </span>
+              <span className="text-gray-300 dark:text-zinc-600">•</span>
+              <span className="text-rose-500 dark:text-rose-400 font-mono">
+                {flaggedWrong}/{flaggedTotal}
+              </span>
             </div>
           </div>
         </div>
@@ -1019,7 +1025,7 @@ export default function ResultPage() {
                             {(group.imageUrl ||
                               group.groupContent ||
                               group.transcript) && (
-                              <div className="lg:sticky lg:top-20 px-3 md:px-6 pb-4 md:pb-6 pt-2 md:pt-3 space-y-3 md:space-y-4 max-h-[60vh] lg:max-h-[70vh] overflow-y-auto custom-scrollbar">
+                              <div className="lg:sticky lg:top-20 px-3 md:px-6 pb-4 md:pb-6 pt-2 md:pt-3 space-y-3 md:space-y-4 max-h-[60vh] lg:max-h-[80vh] overflow-y-auto custom-scrollbar">
                                 {group.imageUrl && (
                                   <img
                                     src={
@@ -1278,6 +1284,7 @@ export default function ResultPage() {
                                 <button
                                   onClick={() => handleClickBookmark(q)}
                                   disabled={bookmarkLoading === q.questionId}
+                                  title="Lưu câu hỏi kèm ghi chú vào tab Đã lưu"
                                   className={`inline-flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-bold px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition-colors
                                       ${
                                         bookmarkedQuestions.has(q.questionId)
@@ -1293,7 +1300,7 @@ export default function ResultPage() {
                                     </>
                                   ) : (
                                     <>
-                                      <Tag size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Đánh dấu</span>
+                                      <Tag size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Ghi chú</span>
                                     </>
                                   )}
                                 </button>
@@ -1419,7 +1426,7 @@ export default function ResultPage() {
                         <div
                           className="w-full lg:w-5/10 bg-gray-100 dark:bg-zinc-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-600 p-4 md:p-6"
                         >
-                          <div className="lg:sticky lg:top-4 space-y-3">
+                          <div className="lg:sticky lg:top-4 space-y-3 max-h-[60vh] lg:max-h-[80vh] overflow-y-auto custom-scrollbar pr-1">
                             <div className="mb-2 md:mb-3 text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                               <BookOpen size={14} className="md:w-4 md:h-4" /> Reading Passage
                             </div>
