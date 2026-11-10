@@ -44,7 +44,6 @@ export default function ExamPage() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoSubmitted = useRef(false);
-  const timeWarningTimerRef = useRef<number | null>(null);
   const STORAGE_KEY = `exam_progress_${testGuid}`;
   const FLAGS_KEY = `exam_flags_${testGuid}`;
 
@@ -68,36 +67,16 @@ export default function ExamPage() {
   const isLowTime =
     durationParam !== "0" && timeLeft <= 300 && timeLeft > 0;
 
-  // Hiện lại cảnh báo khi thời gian không còn ở mức thấp (đề mới / reset)
+  // Cảnh báo chỉ hiện 1 lần cho mỗi lượt làm bài (reset khi thời gian không còn thấp)
   useEffect(() => {
     if (!isLowTime) {
       setShowTimeWarning(true);
-      if (timeWarningTimerRef.current) {
-        window.clearTimeout(timeWarningTimerRef.current);
-        timeWarningTimerRef.current = null;
-      }
     }
   }, [isLowTime]);
 
-  // Dọn timer khi unmount
-  useEffect(() => {
-    return () => {
-      if (timeWarningTimerRef.current) {
-        window.clearTimeout(timeWarningTimerRef.current);
-      }
-    };
-  }, []);
-
-  // Ẩn tạm thời: cảnh báo hiện lại sau 60 giây nếu vẫn còn ít thời gian
+  // Đóng vĩnh viễn: bấm X là ẩn luôn, không hiện lại nữa
   const handleDismissTimeWarning = () => {
     setShowTimeWarning(false);
-    if (timeWarningTimerRef.current) {
-      window.clearTimeout(timeWarningTimerRef.current);
-    }
-    timeWarningTimerRef.current = window.setTimeout(
-      () => setShowTimeWarning(true),
-      60_000,
-    );
   };
 
   // --- TÍNH TOÁN ---
@@ -484,8 +463,8 @@ export default function ExamPage() {
           <button
             type="button"
             onClick={handleDismissTimeWarning}
-            title="Ẩn cảnh báo (sẽ hiện lại sau 60 giây)"
-            aria-label="Ẩn cảnh báo"
+            title="Đóng cảnh báo"
+            aria-label="Đóng cảnh báo"
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-red-600/50 dark:hover:bg-red-700/60 transition-colors"
           >
             <X className="w-4 h-4" />
