@@ -33,8 +33,9 @@ const DURATIONS = [
   { label: "Mặc định (120 phút)", value: 120 },
   { label: "60 phút", value: 60 },
   { label: "30 phút", value: 30 },
+  { label: "10 phút", value: 10 },
   { label: "Không giới hạn", value: 0 },
-];  
+];
 
 export default function TestOverviewPage() {
   const params = useParams();
@@ -218,7 +219,7 @@ export default function TestOverviewPage() {
                 <Clock className="w-4 h-4 text-blue-500" />
                 Giới hạn thời gian
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {DURATIONS.map((d) => {
                   const active = !customMode && duration === d.value;
                   return (
