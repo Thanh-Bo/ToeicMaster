@@ -1280,6 +1280,20 @@ export default function ResultPage() {
                             <div className="p-4 md:p-6 lg:sticky lg:top-4 lg:max-h-[90vh] overflow-y-auto custom-scrollbar">
                               {/* Nút Bookmark + Xem giải thích */}
                               <div className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-6">
+                                {/* Nhãn (chỉ hiển thị): câu đã đánh dấu làm sau - giống Part 6/7 */}
+                                {flaggedQuestionIds.has(q.questionId) && (
+                                  <span
+                                    title="Bạn đã đánh dấu câu này để làm sau trong lúc làm bài"
+                                    className="inline-flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-bold px-3 md:px-3 py-1.5 md:py-2 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/60 cursor-default select-none"
+                                  >
+                                    <Flag
+                                      size={14}
+                                      className="md:w-4 md:h-4 fill-amber-500 text-amber-500"
+                                    />
+                                    <span className="hidden sm:inline">Làm sau</span>
+                                  </span>
+                                )}
+
                                 {/* Nút Bookmark */}
                                 <button
                                   onClick={() => handleClickBookmark(q)}
